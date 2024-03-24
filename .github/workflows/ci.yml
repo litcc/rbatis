@@ -2,13 +2,13 @@ name: ci
 
 on:
   push:
-    branches:
-      - '**'
+#    branches:
+#      - '**'
     branches-ignore:
       - 'master'
   pull_request:
-    branches:
-      - '**'
+#    branches:
+#      - '**'
     branches-ignore:
       - 'master'
 
