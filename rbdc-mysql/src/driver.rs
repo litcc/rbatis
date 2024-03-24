@@ -1,7 +1,10 @@
-use crate::options::MySqlConnectOptions;
 use futures_core::future::BoxFuture;
-use rbdc::db::{ConnectOptions, Connection, Driver, Placeholder};
-use rbdc::Error;
+use rbdc::{
+    db::{ConnectOptions, Connection, Driver, Placeholder},
+    Error,
+};
+
+use crate::options::MySqlConnectOptions;
 
 #[derive(Debug)]
 pub struct MysqlDriver {}

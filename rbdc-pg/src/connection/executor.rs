@@ -1,23 +1,25 @@
-use crate::connection::PgConnection;
-use crate::message::{
-    self, Bind, Close, CommandComplete, DataRow, MessageFormat, ParameterDescription, Parse, Query,
-    RowDescription,
-};
-use crate::query::PgQuery;
-use crate::statement::PgStatementMetadata;
-use crate::type_info::PgType;
-use crate::types::Oid;
-use crate::{
-    arguments::PgArguments, query_result::PgQueryResult, row::PgRow, statement::PgStatement,
-    type_info::PgTypeInfo, value::PgValueFormat,
-};
+use std::sync::Arc;
+
 use either::Either;
-use futures_core::future::BoxFuture;
-use futures_core::stream::BoxStream;
-use futures_core::Stream;
+use futures_core::{future::BoxFuture, stream::BoxStream, Stream};
 use futures_util::{pin_mut, TryStreamExt};
 use rbdc::{err_protocol, try_stream, Error};
-use std::sync::Arc;
+
+use crate::{
+    arguments::PgArguments,
+    connection::PgConnection,
+    message::{
+        self, Bind, Close, CommandComplete, DataRow, MessageFormat,
+        ParameterDescription, Parse, Query, RowDescription,
+    },
+    query::PgQuery,
+    query_result::PgQueryResult,
+    row::PgRow,
+    statement::{PgStatement, PgStatementMetadata},
+    type_info::{PgType, PgTypeInfo},
+    types::Oid,
+    value::PgValueFormat,
+};
 
 async fn prepare(
     conn: &mut PgConnection,
@@ -83,7 +85,8 @@ async fn prepare(
 
         let parameters = conn.handle_parameter_description(parameters).await?;
 
-        let (columns, column_names) = conn.handle_row_description(rows, true).await?;
+        let (columns, column_names) =
+            conn.handle_row_description(rows, true).await?;
 
         // ensure that if we did fetch custom data, we wait until we are fully ready before
         // continuing
@@ -99,16 +102,22 @@ async fn prepare(
     Ok((id, metadata))
 }
 
-async fn recv_desc_params(conn: &mut PgConnection) -> Result<ParameterDescription, Error> {
+async fn recv_desc_params(
+    conn: &mut PgConnection,
+) -> Result<ParameterDescription, Error> {
     conn.stream
         .recv_expect(MessageFormat::ParameterDescription)
         .await
 }
 
-async fn recv_desc_rows(conn: &mut PgConnection) -> Result<Option<RowDescription>, Error> {
+async fn recv_desc_rows(
+    conn: &mut PgConnection,
+) -> Result<Option<RowDescription>, Error> {
     let rows: Option<RowDescription> = match conn.stream.recv().await? {
         // describes the rows that will be returned when the statement is eventually executed
-        message if message.format == MessageFormat::RowDescription => Some(message.decode()?),
+        message if message.format == MessageFormat::RowDescription => {
+            Some(message.decode()?)
+        }
 
         // no data would be returned if this statement was executed
         message if message.format == MessageFormat::NoData => None,
@@ -126,7 +135,10 @@ async fn recv_desc_rows(conn: &mut PgConnection) -> Result<Option<RowDescription
 
 impl PgConnection {
     // wait for CloseComplete to indicate a statement was closed
-    pub(super) async fn wait_for_close_complete(&mut self, mut count: usize) -> Result<(), Error> {
+    pub(super) async fn wait_for_close_complete(
+        &mut self,
+        mut count: usize,
+    ) -> Result<(), Error> {
         // we need to wait for the [CloseComplete] to be returned from the server
         while count > 0 {
             match self.stream.recv().await? {
@@ -177,7 +189,9 @@ impl PgConnection {
         let statement = prepare(self, sql, parameters, metadata).await?;
 
         if store_to_cache && self.cache_statement.is_enabled() {
-            if let Some((id, _)) = self.cache_statement.insert(sql, statement.clone()) {
+            if let Some((id, _)) =
+                self.cache_statement.insert(sql, statement.clone())
+            {
                 self.stream.write(Close::Statement(id));
                 self.write_sync();
 
@@ -198,7 +212,10 @@ impl PgConnection {
         limit: u8,
         persistent: bool,
         metadata_opt: Option<Arc<PgStatementMetadata>>,
-    ) -> Result<impl Stream<Item = Result<Either<PgQueryResult, PgRow>, Error>> + 'e, Error> {
+    ) -> Result<
+        impl Stream<Item = Result<Either<PgQueryResult, PgRow>, Error>> + 'e,
+        Error,
+    > {
         // before we continue, wait until we are "ready" to accept more queries
         self.wait_until_ready().await?;
 
@@ -380,7 +397,8 @@ impl PgConnection {
         Box::pin(async move {
             self.wait_until_ready().await?;
 
-            let (_, metadata) = self.get_or_prepare(&sql, parameters, true, None).await?;
+            let (_, metadata) =
+                self.get_or_prepare(&sql, parameters, true, None).await?;
 
             Ok(PgStatement {
                 sql: sql.to_owned(),

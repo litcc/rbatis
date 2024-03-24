@@ -1,28 +1,35 @@
-use crate::driver::PgDriver;
-use crate::message::{
-    Close, Message, MessageFormat, Query, ReadyForQuery, Terminate, TransactionStatus,
+use std::{
+    collections::HashMap,
+    fmt::{self, Debug, Formatter},
+    sync::Arc,
 };
-use crate::query::PgQuery;
-use crate::query_result::PgQueryResult;
-use crate::row::PgRow;
-use crate::statement::PgStatementMetadata;
-use crate::type_info::PgTypeInfo;
-use crate::types::{Oid, TypeInfo};
+
 use either::Either;
-use futures_core::future::BoxFuture;
-use futures_core::stream::BoxStream;
+use futures_core::{future::BoxFuture, stream::BoxStream};
 use futures_util::{FutureExt, StreamExt, TryFutureExt, TryStreamExt};
-use rbdc::common::StatementCache;
-use rbdc::db::{Connection, ExecResult, Placeholder, Row};
-use rbdc::ext::ustr::UStr;
-use rbdc::io::Decode;
-use rbdc::Error;
+use rbdc::{
+    common::StatementCache,
+    db::{Connection, ExecResult, Placeholder, Row},
+    ext::ustr::UStr,
+    io::Decode,
+    Error,
+};
 use rbs::Value;
-use std::collections::HashMap;
-use std::fmt::{self, Debug, Formatter};
-use std::sync::Arc;
 
 pub use self::stream::PgStream;
+use crate::{
+    driver::PgDriver,
+    message::{
+        Close, Message, MessageFormat, Query, ReadyForQuery, Terminate,
+        TransactionStatus,
+    },
+    query::PgQuery,
+    query_result::PgQueryResult,
+    row::PgRow,
+    statement::PgStatementMetadata,
+    type_info::PgTypeInfo,
+    types::{Oid, TypeInfo},
+};
 
 pub(crate) mod describe;
 mod establish;
@@ -103,7 +110,8 @@ impl PgConnection {
 
     fn handle_ready_for_query(&mut self, message: Message) -> Result<(), Error> {
         self.pending_ready_for_query_count -= 1;
-        self.transaction_status = ReadyForQuery::decode(message.contents)?.transaction_status;
+        self.transaction_status =
+            ReadyForQuery::decode(message.contents)?.transaction_status;
 
         Ok(())
     }
@@ -229,7 +237,11 @@ impl Connection for PgConnection {
         })
     }
 
-    fn exec(&mut self, sql: &str, params: Vec<Value>) -> BoxFuture<Result<ExecResult, Error>> {
+    fn exec(
+        &mut self,
+        sql: &str,
+        params: Vec<Value>,
+    ) -> BoxFuture<Result<ExecResult, Error>> {
         let sql = PgDriver {}.exchange(sql);
         Box::pin(async move {
             let many = {

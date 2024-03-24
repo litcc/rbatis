@@ -1,10 +1,8 @@
 use chrono::{FixedOffset, NaiveDateTime};
 use fastdate::offset_sec;
-use rbdc::datetime::DateTime;
-use rbdc::Error;
+use rbdc::{datetime::DateTime, Error};
 use rbs::{to_value, Value};
-use tiberius::numeric::BigDecimal;
-use tiberius::ColumnData;
+use tiberius::{numeric::BigDecimal, ColumnData};
 
 pub trait Decode {
     fn decode(row: &ColumnData<'static>) -> Result<Value, Error>;
@@ -56,11 +54,14 @@ impl Decode for Value {
             ColumnData::Numeric(v) => match v {
                 None => Value::Null,
                 Some(_) => {
-                    let v: tiberius::Result<Option<BigDecimal>> = tiberius::FromSql::from_sql(row);
+                    let v: tiberius::Result<Option<BigDecimal>> =
+                        tiberius::FromSql::from_sql(row);
                     match v {
                         Ok(v) => match v {
                             None => Value::Null,
-                            Some(v) => Value::String(v.to_string()).into_ext("Decimal"),
+                            Some(v) => {
+                                Value::String(v.to_string()).into_ext("Decimal")
+                            }
                         },
                         Err(e) => {
                             return Err(Error::from(e.to_string()));
@@ -167,9 +168,15 @@ impl Decode for Value {
                         Ok(v) => match v {
                             None => Value::Null,
                             Some(v) => {
-                                let dt = DateTime(fastdate::DateTime::from_timestamp_nano(
-                                    v.timestamp_nanos_opt()
-                                        .expect("value can not be represented in a timestamp with nanosecond precision.") as i128 - (v.offset().utc_minus_local() * 60) as i128).set_offset(v.offset().utc_minus_local() * 60));
+                                let dt = DateTime(
+									fastdate::DateTime::from_timestamp_nano(
+										v.timestamp_nanos_opt().expect(
+											"value can not be represented in a timestamp with nanosecond precision.",
+										) as i128 - (v.offset().utc_minus_local()
+											* 60) as i128,
+									)
+									.set_offset(v.offset().utc_minus_local() * 60),
+								);
                                 to_value!(dt)
                             }
                         },
@@ -194,39 +201,41 @@ pub trait DateTimeFromDateTimeFixedOffset {
 impl DateTimeFromNativeDatetime for fastdate::DateTime {
     fn from(arg: NaiveDateTime) -> Self {
         fastdate::DateTime::from_timestamp_nano(
-            arg.and_utc().timestamp_nanos_opt()
-                .expect("value can not be represented in a timestamp with nanosecond precision.")
-                as i128,
-        )
-        .set_offset(offset_sec())
-        .add_sub_sec(-offset_sec() as i64)
+			arg.and_utc().timestamp_nanos_opt().expect(
+				"value can not be represented in a timestamp with nanosecond precision.",
+			) as i128,
+		)
+		.set_offset(offset_sec())
+		.add_sub_sec(-offset_sec() as i64)
     }
 }
 
 impl DateTimeFromDateTimeFixedOffset for fastdate::DateTime {
     fn from(arg: chrono::DateTime<FixedOffset>) -> Self {
-        fastdate::DateTime::from_timestamp_nano(
-            arg.timestamp_nanos_opt()
-                .expect("value can not be represented in a timestamp with nanosecond precision.")
-                as i128,
-        )
+        fastdate::DateTime::from_timestamp_nano(arg.timestamp_nanos_opt().expect(
+            "value can not be represented in a timestamp with nanosecond precision.",
+        ) as i128)
         .set_offset(offset_sec())
     }
 }
 
 #[cfg(test)]
 mod test {
-    use crate::decode::{DateTimeFromDateTimeFixedOffset, DateTimeFromNativeDatetime};
     use chrono::{FixedOffset, NaiveDateTime};
     use fastdate::DateTime;
+
+    use crate::decode::{
+        DateTimeFromDateTimeFixedOffset, DateTimeFromNativeDatetime,
+    };
 
     #[test]
     fn test_decode_time_zone() {
         let offset = FixedOffset::east_opt(8 * 60 * 60).unwrap();
-        let dt: chrono::DateTime<FixedOffset> = chrono::DateTime::from_naive_utc_and_offset(
-            NaiveDateTime::from_timestamp_opt(1697801035, 0).unwrap(),
-            offset,
-        );
+        let dt: chrono::DateTime<FixedOffset> =
+            chrono::DateTime::from_naive_utc_and_offset(
+                NaiveDateTime::from_timestamp_opt(1697801035, 0).unwrap(),
+                offset,
+            );
         println!("{}", dt.to_string());
         let de = <DateTime as DateTimeFromDateTimeFixedOffset>::from(dt);
         println!("{}", de.to_string());

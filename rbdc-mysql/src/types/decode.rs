@@ -1,9 +1,12 @@
-use crate::protocol::text::ColumnType;
-use crate::value::{MySqlValue, MySqlValueFormat};
 use byteorder::{ByteOrder, LittleEndian};
 use bytes::Buf;
 use fastdate::Date;
 use rbdc::Error;
+
+use crate::{
+    protocol::text::ColumnType,
+    value::{MySqlValue, MySqlValueFormat},
+};
 
 pub(crate) fn uint_decode(value: MySqlValue) -> Result<u64, Error> {
     if value.type_info.r#type == ColumnType::Bit {

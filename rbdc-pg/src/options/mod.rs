@@ -1,8 +1,11 @@
+use std::{
+    borrow::Cow,
+    env::var,
+    fmt::{Display, Write},
+    path::{Path, PathBuf},
+};
+
 use rbdc::net::CertificateInput;
-use std::borrow::Cow;
-use std::env::var;
-use std::fmt::{Display, Write};
-use std::path::{Path, PathBuf};
 
 mod connect;
 mod parse;
@@ -260,7 +263,8 @@ impl PgConnectOptions {
     ///     .ssl_root_cert("./ca-certificate.crt");
     /// ```
     pub fn ssl_root_cert(mut self, cert: impl AsRef<Path>) -> Self {
-        self.ssl_root_cert = Some(CertificateInput::File(cert.as_ref().to_path_buf()));
+        self.ssl_root_cert =
+            Some(CertificateInput::File(cert.as_ref().to_path_buf()));
         self
     }
 
@@ -353,8 +357,12 @@ impl PgConnectOptions {
     ///     // don't send the option at all (Postgres 9 and older)
     ///     .extra_float_digits(None);
     /// ```
-    pub fn extra_float_digits(mut self, extra_float_digits: impl Into<Option<i8>>) -> Self {
-        self.extra_float_digits = extra_float_digits.into().map(|it| it.to_string().into());
+    pub fn extra_float_digits(
+        mut self,
+        extra_float_digits: impl Into<Option<i8>>,
+    ) -> Self {
+        self.extra_float_digits =
+            extra_float_digits.into().map(|it| it.to_string().into());
         self
     }
 
@@ -380,7 +388,8 @@ impl PgConnectOptions {
                 options_str.push(' ');
             }
 
-            write!(options_str, "-c {}={}", k, v).expect("failed to write an option to the string");
+            write!(options_str, "-c {}={}", k, v)
+                .expect("failed to write an option to the string");
         }
         self
     }
@@ -390,7 +399,8 @@ impl PgConnectOptions {
     pub(crate) fn fetch_socket(&self) -> Option<String> {
         match self.socket {
             Some(ref socket) => {
-                let full_path = format!("{}/.s.PGSQL.{}", socket.display(), self.port);
+                let full_path =
+                    format!("{}/.s.PGSQL.{}", socket.display(), self.port);
                 Some(full_path)
             }
             None if self.host.starts_with('/') => {
@@ -430,7 +440,8 @@ fn test_options_formatting() {
         options.options,
         Some("-c geqo=off -c search_path=rbdc".to_string())
     );
-    let options = PgConnectOptions::new().options([("geqo", "off"), ("statement_timeout", "5min")]);
+    let options = PgConnectOptions::new()
+        .options([("geqo", "off"), ("statement_timeout", "5min")]);
     assert_eq!(
         options.options,
         Some("-c geqo=off -c statement_timeout=5min".to_string())

@@ -1,13 +1,16 @@
-use crate::connection::{sasl, stream::PgStream, tls, PgConnection};
-use crate::message::{
-    Authentication, BackendKeyData, MessageFormat, Password, ReadyForQuery, Startup,
-};
-use crate::options::PgConnectOptions;
-use crate::types::Oid;
-use rbdc::common::StatementCache;
-use rbdc::io::Decode;
-use rbdc::{err_protocol, Error};
 use std::collections::HashMap;
+
+use rbdc::{common::StatementCache, err_protocol, io::Decode, Error};
+
+use crate::{
+    connection::{sasl, stream::PgStream, tls, PgConnection},
+    message::{
+        Authentication, BackendKeyData, MessageFormat, Password, ReadyForQuery,
+        Startup,
+    },
+    options::PgConnectOptions,
+    types::Oid,
+};
 
 // https://www.postgresql.org/docs/current/protocol-flow.html#id-1.10.5.7.3
 // https://www.postgresql.org/docs/current/protocol-flow.html#id-1.10.5.7.11
@@ -91,7 +94,10 @@ impl PgConnection {
                         stream
                             .send(Password::Md5 {
                                 username: &options.username,
-                                password: options.password.as_deref().unwrap_or_default(),
+                                password: options
+                                    .password
+                                    .as_deref()
+                                    .unwrap_or_default(),
                                 salt: body.salt,
                             })
                             .await?;
@@ -130,7 +136,7 @@ impl PgConnection {
                     return Err(err_protocol!(
                         "establish: unexpected message: {:?}",
                         message.format
-                    ))
+                    ));
                 }
             }
         }

@@ -1,10 +1,11 @@
 #[cfg(test)]
 mod test {
-    use rbatis::{
-        field_key, field_name, make_table, make_table_field_map, make_table_field_map_btree,
-        make_table_field_vec,
-    };
     use std::collections::{BTreeMap, HashMap};
+
+    use rbatis::{
+        field_key, field_name, make_table, make_table_field_map,
+        make_table_field_map_btree, make_table_field_vec,
+    };
 
     #[derive(Clone, Debug, Eq, PartialEq, Default)]
     pub struct Base {

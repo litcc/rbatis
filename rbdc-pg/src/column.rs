@@ -1,5 +1,6 @@
-use crate::type_info::PgTypeInfo;
 use rbdc::ext::ustr::UStr;
+
+use crate::type_info::PgTypeInfo;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct PgColumn {

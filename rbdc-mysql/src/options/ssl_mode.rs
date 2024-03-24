@@ -1,5 +1,6 @@
-use rbdc::Error;
 use std::str::FromStr;
+
+use rbdc::Error;
 
 /// Options for controlling the desired security state of the connection to the MySQL server.
 ///
@@ -49,9 +50,10 @@ impl FromStr for MySqlSslMode {
             "verify_identity" => MySqlSslMode::VerifyIdentity,
 
             _ => {
-                return Err(Error::from(
-                    format!("unknown value {:?} for `ssl_mode`", s),
-                ));
+                return Err(Error::from(format!(
+                    "unknown value {:?} for `ssl_mode`",
+                    s
+                )));
             }
         })
     }

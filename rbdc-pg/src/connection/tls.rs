@@ -1,9 +1,11 @@
 use bytes::Bytes;
 use rbdc::{err_protocol, Error};
 
-use crate::connection::stream::PgStream;
-use crate::message::SslRequest;
-use crate::options::{PgConnectOptions, PgSslMode};
+use crate::{
+    connection::stream::PgStream,
+    message::SslRequest,
+    options::{PgConnectOptions, PgSslMode},
+};
 
 pub(super) async fn maybe_upgrade(
     stream: &mut PgStream,
@@ -29,7 +31,10 @@ pub(super) async fn maybe_upgrade(
     Ok(())
 }
 
-async fn upgrade(stream: &mut PgStream, options: &PgConnectOptions) -> Result<bool, Error> {
+async fn upgrade(
+    stream: &mut PgStream,
+    options: &PgConnectOptions,
+) -> Result<bool, Error> {
     // https://www.postgresql.org/docs/current/protocol-flow.html#id-1.10.5.7.11
 
     // To initiate an SSL-encrypted connection, the frontend initially sends an
@@ -62,7 +67,8 @@ async fn upgrade(stream: &mut PgStream, options: &PgConnectOptions) -> Result<bo
         options.ssl_mode,
         PgSslMode::VerifyCa | PgSslMode::VerifyFull
     );
-    let accept_invalid_hostnames = !matches!(options.ssl_mode, PgSslMode::VerifyFull);
+    let accept_invalid_hostnames =
+        !matches!(options.ssl_mode, PgSslMode::VerifyFull);
 
     stream
         .upgrade(

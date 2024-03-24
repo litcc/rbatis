@@ -1,10 +1,10 @@
-use crate::options::PgConnectOptions;
+use std::{net::IpAddr, num::ParseIntError, str::FromStr};
+
 use percent_encoding::percent_decode_str;
 use rbdc::error::Error;
-use std::net::IpAddr;
-use std::num::ParseIntError;
-use std::str::FromStr;
 use url::Url;
+
+use crate::options::PgConnectOptions;
 
 impl FromStr for PgConnectOptions {
     type Err = Error;
@@ -65,11 +65,10 @@ impl FromStr for PgConnectOptions {
                 }
 
                 "statement-cache-capacity" => {
-                    options = options.statement_cache_capacity(
-                        value
-                            .parse()
-                            .map_err(|e: ParseIntError| Error::from(e.to_string()))?,
-                    );
+                    options =
+                        options.statement_cache_capacity(value.parse().map_err(
+                            |e: ParseIntError| Error::from(e.to_string()),
+                        )?);
                 }
 
                 "host" => {
@@ -88,11 +87,10 @@ impl FromStr for PgConnectOptions {
                 }
 
                 "port" => {
-                    options = options.port(
-                        value
-                            .parse()
-                            .map_err(|e: ParseIntError| Error::from(e.to_string()))?,
-                    )
+                    options =
+                        options.port(value.parse().map_err(|e: ParseIntError| {
+                            Error::from(e.to_string())
+                        })?)
                 }
 
                 "dbname" => options = options.database(&*value),
@@ -122,7 +120,11 @@ impl FromStr for PgConnectOptions {
                     }
                 }
 
-                _ => log::warn!("ignoring unrecognized connect parameter: {}={}", key, value),
+                _ => log::warn!(
+                    "ignoring unrecognized connect parameter: {}={}",
+                    key,
+                    value
+                ),
             }
         }
 

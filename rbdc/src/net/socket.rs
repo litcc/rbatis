@@ -1,9 +1,11 @@
 #![allow(dead_code)]
 
-use std::io;
-use std::path::Path;
-use std::pin::Pin;
-use std::task::{Context, Poll};
+use std::{
+    io,
+    path::Path,
+    pin::Pin,
+    task::{Context, Poll},
+};
 
 use crate::rt::{AsyncRead, AsyncWrite, TcpStream};
 
@@ -81,7 +83,10 @@ impl AsyncWrite for Socket {
         }
     }
 
-    fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
+    fn poll_flush(
+        mut self: Pin<&mut Self>,
+        cx: &mut Context<'_>,
+    ) -> Poll<io::Result<()>> {
         match &mut *self {
             Socket::Tcp(s) => Pin::new(s).poll_flush(cx),
 
@@ -90,7 +95,10 @@ impl AsyncWrite for Socket {
         }
     }
 
-    fn poll_shutdown(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
+    fn poll_shutdown(
+        mut self: Pin<&mut Self>,
+        cx: &mut Context<'_>,
+    ) -> Poll<io::Result<()>> {
         match &mut *self {
             Socket::Tcp(s) => Pin::new(s).poll_shutdown(cx),
 

@@ -1,6 +1,6 @@
-use crate::ops::AsProxy;
-use crate::ops::BitXor;
 use rbs::Value;
+
+use crate::ops::{AsProxy, BitXor};
 
 fn op_bitxor_value(left: Value, rhs: Value) -> Value {
     match left {
@@ -20,6 +20,8 @@ fn op_bitxor_value(left: Value, rhs: Value) -> Value {
             let rhs = rhs.u64();
             Value::U64(s ^ rhs)
         }
+        #[cfg(feature = "option")]
+        Value::Some(v) => op_bitxor_value(*v, rhs),
         Value::Ext(_, e) => op_bitxor_value(*e, rhs),
         _ => Value::Null,
     }

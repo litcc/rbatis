@@ -1,6 +1,6 @@
-use crate::ops::AsProxy;
-use crate::ops::Rem;
 use rbs::Value;
+
+use crate::ops::{AsProxy, Rem};
 
 fn op_rem_value(left: Value, rhs: Value) -> Value {
     match left {
@@ -28,6 +28,8 @@ fn op_rem_value(left: Value, rhs: Value) -> Value {
             let rhs = rhs.f64();
             Value::F64(s % rhs)
         }
+        #[cfg(feature = "option")]
+        Value::Some(v) => op_rem_value(*v, rhs),
         Value::Ext(_, e) => op_rem_value(*e, rhs),
         _ => Value::Null,
     }

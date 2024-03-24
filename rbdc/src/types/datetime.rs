@@ -1,13 +1,15 @@
-use crate::date::Date;
-use crate::types::time::Time;
-use crate::Error;
+use std::{
+    cmp,
+    fmt::{Debug, Display, Formatter},
+    ops::{Add, Deref, DerefMut, Sub},
+    str::FromStr,
+    time::{Duration, SystemTime, UNIX_EPOCH},
+};
+
 use rbs::Value;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use std::cmp;
-use std::fmt::{Debug, Display, Formatter};
-use std::ops::{Add, Deref, DerefMut, Sub};
-use std::str::FromStr;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+
+use crate::{date::Date, types::time::Time, Error};
 
 #[derive(Clone, Eq, PartialEq, Hash)]
 pub struct DateTime(pub fastdate::DateTime);
@@ -33,6 +35,33 @@ impl Debug for DateTime {
     }
 }
 
+impl TryFrom<&Value> for DateTime {
+    type Error = String;
+
+    fn try_from(value: &Value) -> Result<Self, Self::Error> {
+        match value {
+            Value::I32(u) => {
+                Ok(Self(fastdate::DateTime::from_timestamp_millis(*u as i64)))
+            }
+            Value::U32(u) => {
+                Ok(Self(fastdate::DateTime::from_timestamp_millis(*u as i64)))
+            }
+            Value::I64(u) => Ok(Self(fastdate::DateTime::from_timestamp_millis(*u))),
+            Value::U64(u) => {
+                Ok(Self(fastdate::DateTime::from_timestamp_millis(*u as i64)))
+            }
+            Value::String(s) => Ok({
+                Self(fastdate::DateTime::from_str(s).map_err(|e| e.to_string())?)
+            }),
+            #[cfg(feature = "option")]
+            Value::Some(s) => Ok({ Self::try_from(s.deref())? }),
+            _ => {
+                return Err(format!("unsupported type DateTime({})", value));
+            }
+        }
+    }
+}
+
 impl<'de> Deserialize<'de> for DateTime {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -43,24 +72,9 @@ impl<'de> Deserialize<'de> for DateTime {
         #[serde(rename = "DateTime")]
         pub struct DateTimeValue(pub Value);
         let v = DateTimeValue::deserialize(deserializer)?;
-        match v.0 {
-            Value::I32(u) => Ok(Self(fastdate::DateTime::from_timestamp_millis(u as i64))),
-            Value::U32(u) => Ok(Self(fastdate::DateTime::from_timestamp_millis(u as i64))),
-            Value::I64(u) => Ok(Self(fastdate::DateTime::from_timestamp_millis(u))),
-            Value::U64(u) => Ok(Self(fastdate::DateTime::from_timestamp_millis(u as i64))),
-            Value::String(s) => Ok({
-                Self(
-                    fastdate::DateTime::from_str(&s)
-                        .map_err(|e| D::Error::custom(e.to_string()))?,
-                )
-            }),
-            _ => {
-                return Err(D::Error::custom(&format!(
-                    "unsupported type DateTime({})",
-                    v.0
-                )));
-            }
-        }
+
+        DateTime::try_from(v.0.as_ref()).map_err(|e| D::Error::custom(e))
+        // Value::try_into(v.0)
     }
 }
 
@@ -168,7 +182,8 @@ impl DateTime {
     /// ```
     pub fn parse(format: &str, arg: &str) -> Result<DateTime, Error> {
         Ok(Self(
-            fastdate::DateTime::parse(format, arg).map_err(|e| Error::from(e.to_string()))?,
+            fastdate::DateTime::parse(format, arg)
+                .map_err(|e| Error::from(e.to_string()))?,
         ))
     }
 
@@ -320,13 +335,13 @@ impl From<Time> for DateTime {
 
 impl From<(Date, Time)> for DateTime {
     fn from(arg: (Date, Time)) -> Self {
-        Self(fastdate::DateTime::from((arg.0 .0, arg.1 .0)))
+        Self(fastdate::DateTime::from((arg.0.0, arg.1.0)))
     }
 }
 
 impl From<(Date, Time, i32)> for DateTime {
     fn from(arg: (Date, Time, i32)) -> Self {
-        Self(fastdate::DateTime::from((arg.0 .0, arg.1 .0, arg.2)))
+        Self(fastdate::DateTime::from((arg.0.0, arg.1.0, arg.2)))
     }
 }
 
@@ -373,8 +388,9 @@ impl Default for DateTime {
 
 #[cfg(test)]
 mod test {
-    use crate::datetime::DateTime;
     use std::str::FromStr;
+
+    use crate::datetime::DateTime;
 
     #[test]
     fn test_ser_de() {
@@ -395,7 +411,8 @@ mod test {
 
     #[test]
     fn test_de2() {
-        let dt = vec![DateTime::from_str("2023-10-21T00:15:00.9233333+08:00").unwrap()];
+        let dt =
+            vec![DateTime::from_str("2023-10-21T00:15:00.9233333+08:00").unwrap()];
         let v = serde_json::to_value(&dt).unwrap();
         println!("dt={:?}", dt);
         let new_dt: Vec<DateTime> = serde_json::from_value(v).unwrap();
@@ -404,7 +421,8 @@ mod test {
 
     #[test]
     fn test_de3() {
-        let dt = vec![DateTime::from_str("2023-10-21T00:15:00.9233333+08:00").unwrap()];
+        let dt =
+            vec![DateTime::from_str("2023-10-21T00:15:00.9233333+08:00").unwrap()];
         let v = rbs::to_value!(&dt);
         let new_dt: Vec<DateTime> = rbs::from_value(v).unwrap();
         assert_eq!(new_dt, dt);
@@ -444,6 +462,6 @@ mod test {
         let dt = DateTime::default();
         let s = dt.format("YYYY-MM-DD/hh/mm/ss");
         println!("{}", s);
-        assert_eq!(s, "1970-1-1/0/0/0");
+        assert_eq!(s, "1970-01-01/00/00/00");
     }
 }

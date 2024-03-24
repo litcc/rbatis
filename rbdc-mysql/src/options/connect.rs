@@ -1,9 +1,12 @@
-use crate::connection::MySqlConnection;
-use crate::options::MySqlConnectOptions;
-use futures_core::future::BoxFuture;
-use rbdc::db::{ConnectOptions, Connection};
-use rbdc::Error;
 use std::str::FromStr;
+
+use futures_core::future::BoxFuture;
+use rbdc::{
+    db::{ConnectOptions, Connection},
+    Error,
+};
+
+use crate::{connection::MySqlConnection, options::MySqlConnectOptions};
 
 impl ConnectOptions for MySqlConnectOptions {
     fn connect(&self) -> BoxFuture<Result<Box<dyn Connection>, Error>> {
@@ -52,7 +55,8 @@ impl ConnectOptions for MySqlConnectOptions {
     }
 
     fn set_uri(&mut self, uri: &str) -> Result<(), Error> {
-        *self = MySqlConnectOptions::from_str(uri).map_err(|e| Error::from(e.to_string()))?;
+        *self = MySqlConnectOptions::from_str(uri)
+            .map_err(|e| Error::from(e.to_string()))?;
         Ok(())
     }
 }

@@ -1,5 +1,6 @@
-use rbdc::error::Error;
 use std::str::FromStr;
+
+use rbdc::error::Error;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SqliteAutoVacuum {

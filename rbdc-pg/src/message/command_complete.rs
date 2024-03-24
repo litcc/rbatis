@@ -1,8 +1,7 @@
 use atoi::atoi;
 use bytes::Bytes;
 use memchr::memrchr;
-use rbdc::io::Decode;
-use rbdc::Error;
+use rbdc::{io::Decode, Error};
 
 #[derive(Debug)]
 pub struct CommandComplete {

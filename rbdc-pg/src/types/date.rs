@@ -1,11 +1,15 @@
-use crate::arguments::PgArgumentBuffer;
-use crate::types::decode::Decode;
-use crate::types::encode::{Encode, IsNull};
-use crate::value::{PgValue, PgValueFormat};
-use rbdc::date::Date;
-use rbdc::Error;
-use std::str::FromStr;
-use std::time::Duration;
+use std::{str::FromStr, time::Duration};
+
+use rbdc::{date::Date, Error};
+
+use crate::{
+    arguments::PgArgumentBuffer,
+    types::{
+        decode::Decode,
+        encode::{Encode, IsNull},
+    },
+    value::{PgValue, PgValueFormat},
+};
 
 impl Decode for fastdate::Date {
     fn decode(value: PgValue) -> Result<Self, Error> {
@@ -37,7 +41,10 @@ impl Decode for fastdate::Date {
             }
 
             PgValueFormat::Text => {
-                let dt = fastdate::DateTime::from_str(&format!("{}T00:00:00Z", value.as_str()?))?;
+                let dt = fastdate::DateTime::from_str(&format!(
+                    "{}T00:00:00Z",
+                    value.as_str()?
+                ))?;
                 fastdate::Date::from(dt)
             }
         })

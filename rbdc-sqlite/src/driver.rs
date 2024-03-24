@@ -1,7 +1,10 @@
-use crate::SqliteConnectOptions;
 use futures_core::future::BoxFuture;
-use rbdc::db::{ConnectOptions, Connection, Driver, Placeholder};
-use rbdc::Error;
+use rbdc::{
+    db::{ConnectOptions, Connection, Driver, Placeholder},
+    Error,
+};
+
+use crate::SqliteConnectOptions;
 
 #[derive(Debug)]
 pub struct SqliteDriver {}

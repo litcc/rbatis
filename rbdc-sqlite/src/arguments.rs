@@ -1,9 +1,11 @@
-use crate::encode::{Encode, IsNull};
-use crate::statement::StatementHandle;
 use atoi::atoi;
 use libsqlite3_sys::SQLITE_OK;
-use rbdc::err_protocol;
-use rbdc::error::Error;
+use rbdc::{err_protocol, error::Error};
+
+use crate::{
+    encode::{Encode, IsNull},
+    statement::StatementHandle,
+};
 
 #[derive(Debug, Clone)]
 pub enum SqliteArgumentValue {
@@ -47,7 +49,11 @@ impl SqliteArguments {
 }
 
 impl SqliteArguments {
-    pub(super) fn bind(&self, handle: &mut StatementHandle, offset: usize) -> Result<usize, Error> {
+    pub(super) fn bind(
+        &self,
+        handle: &mut StatementHandle,
+        offset: usize,
+    ) -> Result<usize, Error> {
         let mut arg_i = offset;
         // for handle in &statement.handles {
 
@@ -62,13 +68,16 @@ impl SqliteArguments {
                 } else if let Some(name) = name.strip_prefix('$') {
                     // parameter should have the form $NNN
                     atoi(name.as_bytes()).ok_or_else(|| {
-                        err_protocol!(
-                            "parameters with non-integer names are not currently supported: {}",
-                            name
-                        )
-                    })?
+						err_protocol!(
+							"parameters with non-integer names are not currently supported: {}",
+							name
+						)
+					})?
                 } else {
-                    return Err(err_protocol!("unsupported SQL parameter format: {}", name));
+                    return Err(err_protocol!(
+                        "unsupported SQL parameter format: {}",
+                        name
+                    ));
                 }
             } else {
                 arg_i += 1;

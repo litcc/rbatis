@@ -1,5 +1,6 @@
-use crate::ops::BitAnd;
 use rbs::Value;
+
+use crate::ops::BitAnd;
 
 impl BitAnd for Value {
     type Output = bool;

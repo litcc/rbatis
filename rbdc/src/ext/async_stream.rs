@@ -1,12 +1,14 @@
-use std::future::Future;
-use std::pin::Pin;
-use std::task::{Context, Poll};
+use std::{
+    future::Future,
+    pin::Pin,
+    task::{Context, Poll},
+};
+
+use futures_channel::mpsc;
+use futures_core::{future::BoxFuture, stream::Stream};
+use futures_util::{pin_mut, FutureExt, SinkExt};
 
 use crate::Error;
-use futures_channel::mpsc;
-use futures_core::future::BoxFuture;
-use futures_core::stream::Stream;
-use futures_util::{pin_mut, FutureExt, SinkExt};
 
 pub struct TryAsyncStream<'a, T> {
     receiver: mpsc::Receiver<Result<T, Error>>,
@@ -40,7 +42,10 @@ impl<'a, T> TryAsyncStream<'a, T> {
 impl<'a, T> Stream for TryAsyncStream<'a, T> {
     type Item = Result<T, Error>;
 
-    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+    fn poll_next(
+        mut self: Pin<&mut Self>,
+        cx: &mut Context<'_>,
+    ) -> Poll<Option<Self::Item>> {
         let future = &mut self.future;
         pin_mut!(future);
 

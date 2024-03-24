@@ -1,14 +1,20 @@
-use crate::decode::is_debug_mode;
-use crate::executor::Executor;
-use crate::intercept::{Intercept, ResultType};
-use crate::{Error};
+use std::{
+    fmt::{Display, Formatter},
+    ops::Deref,
+    sync::atomic::{AtomicUsize, Ordering},
+};
+
 use async_trait::async_trait;
 use log::{log, Level, LevelFilter};
 use rbdc::db::ExecResult;
 use rbs::Value;
-use std::fmt::{Display, Formatter};
-use std::ops::Deref;
-use std::sync::atomic::{AtomicUsize, Ordering};
+
+use crate::{
+    decode::is_debug_mode,
+    executor::Executor,
+    intercept::{Intercept, ResultType},
+    Error,
+};
 
 struct RbsValueDisplay<'a> {
     inner: &'a Vec<Value>,
@@ -107,7 +113,10 @@ impl Intercept for LogInterceptor {
         _rb: &dyn Executor,
         sql: &mut String,
         args: &mut Vec<Value>,
-        _result: ResultType<&mut Result<ExecResult, Error>, &mut Result<Vec<Value>, Error>>,
+        _result: ResultType<
+            &mut Result<ExecResult, Error>,
+            &mut Result<Vec<Value>, Error>,
+        >,
     ) -> Result<bool, Error> {
         if self.get_level_filter() == LevelFilter::Off {
             return Ok(true);
@@ -130,7 +139,10 @@ impl Intercept for LogInterceptor {
         _rb: &dyn Executor,
         _sql: &mut String,
         _args: &mut Vec<Value>,
-        result: ResultType<&mut Result<ExecResult, Error>, &mut Result<Vec<Value>, Error>>,
+        result: ResultType<
+            &mut Result<ExecResult, Error>,
+            &mut Result<Vec<Value>, Error>,
+        >,
     ) -> Result<bool, Error> {
         if self.get_level_filter() == LevelFilter::Off {
             return Ok(true);
@@ -178,4 +190,3 @@ impl Intercept for LogInterceptor {
         return Ok(true);
     }
 }
-

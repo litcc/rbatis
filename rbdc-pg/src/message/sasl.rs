@@ -1,5 +1,6 @@
-use crate::io::PgBufMutExt;
 use rbdc::io::{BufMutExt, Encode};
+
+use crate::io::PgBufMutExt;
 
 pub struct SaslInitialResponse<'a> {
     pub response: &'a str,

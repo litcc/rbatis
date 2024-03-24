@@ -1,11 +1,12 @@
-use crate::ParseArgs;
 use proc_macro2::{Ident, Span};
-use quote::quote;
-use quote::ToTokens;
+use quote::{quote, ToTokens};
 use syn::{FnArg, ItemFn, Pat};
 
-use crate::proc_macro::TokenStream;
-use crate::util::{find_fn_body, find_return_type, get_fn_args, is_query, is_rb_ref};
+use crate::{
+    proc_macro::TokenStream,
+    util::{find_fn_body, find_return_type, get_fn_args, is_query, is_rb_ref},
+    ParseArgs,
+};
 
 //impl sql macro
 pub(crate) fn impl_macro_sql(target_fn: &ItemFn, args: &ParseArgs) -> TokenStream {
@@ -34,7 +35,10 @@ pub(crate) fn impl_macro_sql(target_fn: &ItemFn, args: &ParseArgs) -> TokenStrea
     let mut sql_ident = quote!();
     if args.sqls.len() >= 1 {
         if rbatis_name.is_empty() {
-            panic!("[rbatis] you should add rbatis ref param  rb:&RBatis  or rb: &mut Executor  on '{}()'!", target_fn.sig.ident);
+            panic!(
+                "[rbatis] you should add rbatis ref param  rb:&RBatis  or rb: &mut Executor  on '{}()'!",
+                target_fn.sig.ident
+            );
         }
         let mut s = "".to_string();
         for v in &args.sqls {
@@ -75,8 +79,11 @@ pub(crate) fn impl_macro_sql(target_fn: &ItemFn, args: &ParseArgs) -> TokenStrea
     let page_req_str = String::new();
     let page_req = quote! {};
     //append all args
-    let sql_args_gen =
-        filter_args_context_id(&rbatis_name, &get_fn_args(target_fn), &[page_req_str]);
+    let sql_args_gen = filter_args_context_id(
+        &rbatis_name,
+        &get_fn_args(target_fn),
+        &[page_req_str],
+    );
     let generic = target_fn.sig.generics.clone();
     //gen rust code templete
     let gen_token_temple = quote! {

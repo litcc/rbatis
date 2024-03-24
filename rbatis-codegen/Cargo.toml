@@ -17,6 +17,7 @@ homepage = "https://rbatis.github.io/rbatis.io"
 
 [features]
 default = []
+option = ["rbs/option"]
 [dependencies]
 #serde
 serde = { version = "1", features = ["derive"] }

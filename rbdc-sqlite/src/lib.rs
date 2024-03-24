@@ -12,7 +12,8 @@ pub use connection::{LockedSqliteHandle, SqliteConnection};
 pub use database::Sqlite;
 pub use error::SqliteError;
 pub use options::{
-    SqliteAutoVacuum, SqliteConnectOptions, SqliteJournalMode, SqliteLockingMode, SqliteSynchronous,
+    SqliteAutoVacuum, SqliteConnectOptions, SqliteJournalMode, SqliteLockingMode,
+    SqliteSynchronous,
 };
 pub use query_result::SqliteQueryResult;
 pub use row::SqliteRow;
@@ -37,5 +38,4 @@ pub mod type_info;
 pub mod types;
 pub mod value;
 
-pub use driver::SqliteDriver;
-pub use driver::SqliteDriver as Driver;
+pub use driver::{SqliteDriver, SqliteDriver as Driver};

@@ -1,12 +1,12 @@
-use crate::query::SqliteQuery;
-use crate::{SqliteConnection, SqliteQueryResult, SqliteRow, SqliteStatement, SqliteTypeInfo};
 use either::Either;
-use futures_core::future::BoxFuture;
-use futures_core::stream::BoxStream;
-use futures_util::pin_mut;
-use futures_util::{TryFutureExt, TryStreamExt};
-use rbdc::error::Error;
-use rbdc::try_stream;
+use futures_core::{future::BoxFuture, stream::BoxStream};
+use futures_util::{pin_mut, TryFutureExt, TryStreamExt};
+use rbdc::{error::Error, try_stream};
+
+use crate::{
+    query::SqliteQuery, SqliteConnection, SqliteQueryResult, SqliteRow,
+    SqliteStatement, SqliteTypeInfo,
+};
 
 impl SqliteConnection {
     pub fn fetch_many(

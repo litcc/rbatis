@@ -1,17 +1,23 @@
-use crate::connection::handle::ConnectionHandle;
-use crate::connection::{ConnectionState, Statements};
-use crate::{SqliteConnectOptions, SqliteError};
+use std::{
+    ffi::CString,
+    io,
+    ptr::{null, null_mut},
+    sync::atomic::{AtomicU64, Ordering},
+    time::Duration,
+};
+
 use libsqlite3_sys::{
     sqlite3_busy_timeout, sqlite3_extended_result_codes, sqlite3_open_v2, SQLITE_OK,
-    SQLITE_OPEN_CREATE, SQLITE_OPEN_FULLMUTEX, SQLITE_OPEN_MEMORY, SQLITE_OPEN_NOMUTEX,
-    SQLITE_OPEN_PRIVATECACHE, SQLITE_OPEN_READONLY, SQLITE_OPEN_READWRITE, SQLITE_OPEN_SHAREDCACHE,
+    SQLITE_OPEN_CREATE, SQLITE_OPEN_FULLMUTEX, SQLITE_OPEN_MEMORY,
+    SQLITE_OPEN_NOMUTEX, SQLITE_OPEN_PRIVATECACHE, SQLITE_OPEN_READONLY,
+    SQLITE_OPEN_READWRITE, SQLITE_OPEN_SHAREDCACHE,
 };
 use rbdc::error::Error;
-use std::ffi::CString;
-use std::io;
-use std::ptr::{null, null_mut};
-use std::sync::atomic::{AtomicU64, Ordering};
-use std::time::Duration;
+
+use crate::{
+    connection::{handle::ConnectionHandle, ConnectionState, Statements},
+    SqliteConnectOptions, SqliteError,
+};
 
 static THREAD_ID: AtomicU64 = AtomicU64::new(0);
 
@@ -82,7 +88,9 @@ impl EstablishParams {
             open_flags: flags,
             busy_timeout: options.busy_timeout,
             statement_cache_capacity: options.statement_cache_capacity,
-            thread_name: (options.thread_name)(THREAD_ID.fetch_add(1, Ordering::AcqRel)),
+            thread_name: (options.thread_name)(
+                THREAD_ID.fetch_add(1, Ordering::AcqRel),
+            ),
             command_channel_size: options.command_channel_size,
         })
     }
@@ -92,7 +100,12 @@ impl EstablishParams {
 
         // <https://www.sqlite.org/c3ref/open.html>
         let mut status = unsafe {
-            sqlite3_open_v2(self.filename.as_ptr(), &mut handle, self.open_flags, null())
+            sqlite3_open_v2(
+                self.filename.as_ptr(),
+                &mut handle,
+                self.open_flags,
+                null(),
+            )
         };
 
         if handle.is_null() {

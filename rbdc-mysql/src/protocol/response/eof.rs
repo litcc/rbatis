@@ -1,9 +1,7 @@
 use bytes::{Buf, Bytes};
+use rbdc::{err_protocol, io::Decode, Error};
 
-use crate::protocol::response::Status;
-use crate::protocol::Capabilities;
-use rbdc::io::Decode;
-use rbdc::{err_protocol, Error};
+use crate::protocol::{response::Status, Capabilities};
 
 /// Marks the end of a result set, returning status and warnings.
 ///

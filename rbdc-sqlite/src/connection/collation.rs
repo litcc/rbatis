@@ -1,17 +1,17 @@
-use std::cmp::Ordering;
-use std::ffi::CString;
-use std::fmt::{self, Debug, Formatter};
-use std::os::raw::{c_int, c_void};
-use std::slice;
-use std::str::from_utf8_unchecked;
-use std::sync::Arc;
+use std::{
+    cmp::Ordering,
+    ffi::CString,
+    fmt::{self, Debug, Formatter},
+    os::raw::{c_int, c_void},
+    slice,
+    str::from_utf8_unchecked,
+    sync::Arc,
+};
 
 use libsqlite3_sys::{sqlite3_create_collation_v2, SQLITE_OK, SQLITE_UTF8};
-use rbdc::err_protocol;
+use rbdc::{err_protocol, error::Error};
 
-use crate::connection::handle::ConnectionHandle;
-use crate::SqliteError;
-use rbdc::error::Error;
+use crate::{connection::handle::ConnectionHandle, SqliteError};
 
 #[derive(Clone)]
 pub struct Collation {
@@ -93,8 +93,8 @@ where
     }
 
     let boxed_f: *mut F = Box::into_raw(Box::new(compare));
-    let c_name =
-        CString::new(name).map_err(|_| err_protocol!("invalid collation name: {}", name))?;
+    let c_name = CString::new(name)
+        .map_err(|_| err_protocol!("invalid collation name: {}", name))?;
     let flags = SQLITE_UTF8;
     let r = unsafe {
         sqlite3_create_collation_v2(
@@ -129,11 +129,13 @@ where
     let boxed_f: *mut C = data as *mut C;
     debug_assert!(!boxed_f.is_null());
     let s1 = {
-        let c_slice = slice::from_raw_parts(left_ptr as *const u8, left_len as usize);
+        let c_slice =
+            slice::from_raw_parts(left_ptr as *const u8, left_len as usize);
         from_utf8_unchecked(c_slice)
     };
     let s2 = {
-        let c_slice = slice::from_raw_parts(right_ptr as *const u8, right_len as usize);
+        let c_slice =
+            slice::from_raw_parts(right_ptr as *const u8, right_len as usize);
         from_utf8_unchecked(c_slice)
     };
     let t = (*boxed_f)(s1, s2);

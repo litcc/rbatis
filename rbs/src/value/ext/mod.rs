@@ -1,8 +1,12 @@
-use std::error;
-use std::fmt::{self, Display, Formatter};
+use std::{
+    error,
+    fmt::{self, Display, Formatter},
+};
 
-pub use self::de::{from_value,from_value_ref};
-pub use self::se::{to_value, to_value_def};
+pub use self::{
+    de::{from_value, from_value_ref},
+    se::{to_value, to_value_def},
+};
 
 mod de;
 mod se;
@@ -16,12 +20,12 @@ pub enum Error {
 
 impl Error {
     pub fn append(self, arg: &str) -> Self {
-         match self {
-             Error::Syntax(mut v) => {
-                 v.push_str(arg);
-                 Self::Syntax(v)
-             }
-         }
+        match self {
+            Error::Syntax(mut v) => {
+                v.push_str(arg);
+                Self::Syntax(v)
+            }
+        }
     }
 }
 
@@ -34,4 +38,3 @@ impl Display for Error {
     }
 }
 impl error::Error for Error {}
-

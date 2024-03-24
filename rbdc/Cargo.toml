@@ -16,7 +16,7 @@ homepage = "https://rbatis.github.io/rbatis.io"
 default = ["tls-rustls"]
 tls-rustls = ["rustls", "webpki-roots", "rustls-pemfile","tokio-rustls"]
 tls-native-tls = ["native-tls", "tokio-native-tls"]
-
+option =["rbs/option"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]

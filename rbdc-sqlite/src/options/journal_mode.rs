@@ -1,5 +1,6 @@
-use rbdc::error::Error;
 use std::str::FromStr;
+
+use rbdc::error::Error;
 
 /// Refer to [SQLite documentation] for the meaning of the database journaling mode.
 ///

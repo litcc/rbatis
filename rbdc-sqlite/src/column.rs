@@ -1,5 +1,6 @@
-use crate::SqliteTypeInfo;
 use rbdc::ext::ustr::UStr;
+
+use crate::SqliteTypeInfo;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct SqliteColumn {

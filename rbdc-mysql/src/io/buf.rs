@@ -1,7 +1,5 @@
 use bytes::{Buf, Bytes};
-
-use rbdc::io::BufExt;
-use rbdc::Error;
+use rbdc::{io::BufExt, Error};
 
 pub trait MySqlBufExt: Buf {
     // Read a length-encoded integer.

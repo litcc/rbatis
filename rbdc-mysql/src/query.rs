@@ -1,6 +1,7 @@
-use crate::stmt::{MySqlArguments, MySqlStatement};
 use either::Either;
 use rbdc::Error;
+
+use crate::stmt::{MySqlArguments, MySqlStatement};
 
 #[must_use = "query must be executed to affect database"]
 pub struct MysqlQuery {

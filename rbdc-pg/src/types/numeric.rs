@@ -1,6 +1,7 @@
-use crate::arguments::PgArgumentBuffer;
 use bytes::Buf;
 use rbdc::Error;
+
+use crate::arguments::PgArgumentBuffer;
 
 /// Represents a `NUMERIC` value in the **Postgres** wire protocol.
 #[derive(Debug, PartialEq, Eq)]
@@ -68,7 +69,9 @@ impl PgNumericSign {
 
             SIGN_NAN => unreachable!("sign value for NaN passed to PgNumericSign"),
 
-            _ => Err(format!("invalid value for PgNumericSign: {:#04X}", val).into()),
+            _ => {
+                Err(format!("invalid value for PgNumericSign: {:#04X}", val).into())
+            }
         }
     }
 }
@@ -84,7 +87,8 @@ impl PgNumeric {
         if sign == SIGN_NAN {
             Ok(PgNumeric::NotANumber)
         } else {
-            let digits: Vec<_> = (0..num_digits).map(|_| buf.get_i16()).collect::<_>();
+            let digits: Vec<_> =
+                (0..num_digits).map(|_| buf.get_i16()).collect::<_>();
 
             Ok(PgNumeric::Number {
                 sign: PgNumericSign::try_from_u16(sign)?,
@@ -118,7 +122,10 @@ impl PgNumeric {
                 buf.extend(&scale.to_be_bytes());
 
                 for digit in digits {
-                    debug_assert!(*digit < 10000, "PgNumeric digits must be in base-10000");
+                    debug_assert!(
+                        *digit < 10000,
+                        "PgNumeric digits must be in base-10000"
+                    );
 
                     buf.extend(&digit.to_be_bytes());
                 }

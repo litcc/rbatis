@@ -1,8 +1,12 @@
-use crate::types::{Decode, Encode};
-use crate::value::{MySqlValue, MySqlValueFormat};
+use std::fmt::{Debug, Display, Formatter};
+
 use byteorder::{ByteOrder, LittleEndian};
 use rbdc::Error;
-use std::fmt::{Debug, Display, Formatter};
+
+use crate::{
+    types::{Decode, Encode},
+    value::{MySqlValue, MySqlValueFormat},
+};
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, Eq, PartialEq)]
 #[serde(rename = "Year")]
@@ -32,7 +36,9 @@ impl Decode for Year {
     fn decode(value: MySqlValue) -> Result<Self, Error> {
         Ok(Self({
             match value.format() {
-                MySqlValueFormat::Text => value.as_str()?.parse().unwrap_or_default(),
+                MySqlValueFormat::Text => {
+                    value.as_str()?.parse().unwrap_or_default()
+                }
                 MySqlValueFormat::Binary => {
                     let buf = value.as_bytes()?;
                     LittleEndian::read_u16(&buf[1..])

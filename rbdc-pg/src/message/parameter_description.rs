@@ -1,9 +1,8 @@
 use bytes::{Buf, Bytes};
+use rbdc::{error::Error, io::Decode};
 use smallvec::SmallVec;
 
 use crate::types::Oid;
-use rbdc::error::Error;
-use rbdc::io::Decode;
 
 #[derive(Debug)]
 pub struct ParameterDescription {
@@ -49,6 +48,7 @@ fn bench_decode_parameter_description(b: &mut test::Bencher) {
     const DATA: &[u8] = b"\x00\x02\x00\x00\x00\x00\x00\x00\x05\x00";
 
     b.iter(|| {
-        ParameterDescription::decode(test::black_box(Bytes::from_static(DATA))).unwrap();
+        ParameterDescription::decode(test::black_box(Bytes::from_static(DATA)))
+            .unwrap();
     });
 }

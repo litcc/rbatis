@@ -1,9 +1,7 @@
 use bytes::{Buf, Bytes};
+use rbdc::{err_protocol, io::Decode, Error};
 
-use crate::io::MySqlBufExt;
-use crate::protocol::response::Status;
-use rbdc::io::Decode;
-use rbdc::{err_protocol, Error};
+use crate::{io::MySqlBufExt, protocol::response::Status};
 
 /// Indicates successful completion of a previous command sent by the client.
 #[derive(Debug)]

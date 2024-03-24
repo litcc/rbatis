@@ -1,5 +1,6 @@
-use crate::table_sync::ColumMapper;
 use rbs::Value;
+
+use crate::table_sync::ColumMapper;
 
 pub struct SqliteTableMapper {}
 
@@ -24,6 +25,10 @@ impl ColumMapper for SqliteTableMapper {
             Value::Binary(_) => "BLOB".to_string(),
             Value::Array(_) => "BLOB".to_string(),
             Value::Map(_) => "BLOB".to_string(),
+
+            #[cfg(feature = "option")]
+            Value::Some(d) => self.get_column(_column, &*d),
+
             Value::Ext(t, _v) => match *t {
                 "Date" => "TEXT".to_string(),
                 "DateTime" => "TEXT".to_string(),

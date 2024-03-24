@@ -1,16 +1,22 @@
-use crate::connection::{tls, DropBox, MySqlConnection, MySqlStream, MAX_PACKET_SIZE};
-use crate::options::{MySqlConnectOptions, MySqlSslMode};
-use crate::protocol::auth::AuthPlugin;
-use crate::protocol::connect::{
-    AuthSwitchRequest, AuthSwitchResponse, Handshake, HandshakeResponse,
-};
-use crate::protocol::Capabilities;
-use bytes::buf::Buf;
-use bytes::Bytes;
+use bytes::{buf::Buf, Bytes};
 use rbdc::{err_protocol, Error};
 
+use crate::{
+    connection::{tls, DropBox, MySqlConnection, MySqlStream, MAX_PACKET_SIZE},
+    options::{MySqlConnectOptions, MySqlSslMode},
+    protocol::{
+        auth::AuthPlugin,
+        connect::{
+            AuthSwitchRequest, AuthSwitchResponse, Handshake, HandshakeResponse,
+        },
+        Capabilities,
+    },
+};
+
 impl MySqlConnection {
-    pub(crate) async fn establish(options: &MySqlConnectOptions) -> Result<Self, Error> {
+    pub(crate) async fn establish(
+        options: &MySqlConnectOptions,
+    ) -> Result<Self, Error> {
         let mut stream: MySqlStream = MySqlStream::connect(options).await?;
 
         // https://dev.mysql.com/doc/dev/mysql-server/8.0.30/page_protocol_connection_phase.html
@@ -61,24 +67,27 @@ impl MySqlConnection {
         // Upgrade to TLS if we were asked to and the server supports it
         tls::maybe_upgrade(&mut stream, options).await?;
 
-        let auth_response = if let (Some(plugin), Some(password)) = (plugin, &options.password) {
-            Some(plugin.scramble(&mut stream, password, &nonce).await?)
-        } else {
-            //mysql < 5.5.0 version only use MySqlNativePassword
-            if server_version_major < 5 || (server_version_major == 5 && server_version_minor < 5) {
-                if let Some(password) = &options.password {
-                    Some(
-                        AuthPlugin::MySqlNativePassword
-                            .scramble(&mut stream, password, &nonce)
-                            .await?,
-                    )
+        let auth_response =
+            if let (Some(plugin), Some(password)) = (plugin, &options.password) {
+                Some(plugin.scramble(&mut stream, password, &nonce).await?)
+            } else {
+                //mysql < 5.5.0 version only use MySqlNativePassword
+                if server_version_major < 5
+                    || (server_version_major == 5 && server_version_minor < 5)
+                {
+                    if let Some(password) = &options.password {
+                        Some(
+                            AuthPlugin::MySqlNativePassword
+                                .scramble(&mut stream, password, &nonce)
+                                .await?,
+                        )
+                    } else {
+                        None
+                    }
                 } else {
                     None
                 }
-            } else {
-                None
-            }
-        };
+            };
 
         stream.write_packet(HandshakeResponse {
             collation: stream.collation as u8,
@@ -120,8 +129,13 @@ impl MySqlConnection {
                 }
 
                 id => {
-                    if let (Some(plugin), Some(password)) = (plugin, &options.password) {
-                        if plugin.handle(&mut stream, packet, password, &nonce).await? {
+                    if let (Some(plugin), Some(password)) =
+                        (plugin, &options.password)
+                    {
+                        if plugin
+                            .handle(&mut stream, packet, password, &nonce)
+                            .await?
+                        {
                             // plugin signaled authentication is ok
                             break;
                         }
@@ -140,7 +154,9 @@ impl MySqlConnection {
             stream: DropBox {
                 inner: Some(stream),
             },
-            cache_statement: rbdc::common::StatementCache::new(options.statement_cache_capacity),
+            cache_statement: rbdc::common::StatementCache::new(
+                options.statement_cache_capacity,
+            ),
         })
     }
 }

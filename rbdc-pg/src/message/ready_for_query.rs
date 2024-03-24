@@ -1,7 +1,5 @@
 use bytes::Bytes;
-use rbdc::err_protocol;
-use rbdc::error::Error;
-use rbdc::io::Decode;
+use rbdc::{err_protocol, error::Error, io::Decode};
 
 #[derive(Debug)]
 #[repr(u8)]

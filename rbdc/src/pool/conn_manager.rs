@@ -1,9 +1,10 @@
-use crate::db::{ConnectOptions, Driver};
-use crate::pool::conn_box::ConnectionBox;
-use crate::Error;
-use std::future::Future;
-use std::ops::Deref;
-use std::sync::Arc;
+use std::{future::Future, ops::Deref, sync::Arc};
+
+use crate::{
+    db::{ConnectOptions, Driver},
+    pool::conn_box::ConnectionBox,
+    Error,
+};
 
 #[derive(Clone, Debug)]
 pub struct ConnManager {
@@ -29,14 +30,20 @@ impl ConnManager {
             option: Arc::new(option),
         })
     }
-    pub fn new_opt<D: Driver + 'static, Option: ConnectOptions>(driver: D, option: Option) -> Self {
+    pub fn new_opt<D: Driver + 'static, Option: ConnectOptions>(
+        driver: D,
+        option: Option,
+    ) -> Self {
         Self {
             driver: Arc::new(Box::new(driver)),
             option: Arc::new(Box::new(option)),
         }
     }
 
-    pub fn new_opt_box(driver: Box<dyn Driver>, option: Box<dyn ConnectOptions>) -> Self {
+    pub fn new_opt_box(
+        driver: Box<dyn Driver>,
+        option: Box<dyn ConnectOptions>,
+    ) -> Self {
         Self {
             driver: Arc::new(driver),
             option: Arc::new(option),

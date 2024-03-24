@@ -1,5 +1,4 @@
-use quote::quote;
-use quote::ToTokens;
+use quote::{quote, ToTokens};
 use syn::{FnArg, ItemFn, Pat, ReturnType};
 
 //find and check method return type
@@ -45,7 +44,10 @@ pub(crate) fn find_fn_body(target_fn: &ItemFn) -> proc_macro2::TokenStream {
             .to_string()
             .replace("\n", "")
             .replace(" ", "");
-        if token.eq("todo!()") || token.eq("unimplemented!()") || token.contains("impled!()") {
+        if token.eq("todo!()")
+            || token.eq("unimplemented!()")
+            || token.contains("impled!()")
+        {
             //nothing to do
         } else {
             new_stmts.push(x.to_owned());

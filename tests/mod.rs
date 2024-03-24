@@ -1,7 +1,6 @@
 #[cfg(test)]
 mod test {
-    use rbs::value::map::ValueMap;
-    use rbs::Value;
+    use rbs::{value::map::ValueMap, Value};
 
     #[test]
     fn test_value_iter() {

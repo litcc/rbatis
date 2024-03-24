@@ -1,12 +1,15 @@
-use crate::value::map::ValueMap;
-use crate::Value;
-use serde::ser::{
-    self, SerializeMap, SerializeSeq, SerializeStruct, SerializeTuple, SerializeTupleStruct,
-};
-use serde::Serialize;
 use std::fmt::Display;
 
+use serde::{
+    ser::{
+        self, SerializeMap, SerializeSeq, SerializeStruct, SerializeTuple,
+        SerializeTupleStruct,
+    },
+    Serialize,
+};
+
 use super::Error;
+use crate::{value::map::ValueMap, Value};
 
 impl Serialize for Value {
     fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
@@ -38,6 +41,8 @@ impl Serialize for Value {
                 }
                 state.end()
             }
+            #[cfg(feature = "option")]
+            Value::Some(ref d) => s.serialize_some(d),
             Value::Ext(ref ty, ref value) => s.serialize_newtype_struct(ty, value),
         }
     }
@@ -176,7 +181,10 @@ impl ser::Serializer for Serializer {
     }
 
     #[inline]
-    fn serialize_unit_struct(self, _name: &'static str) -> Result<Self::Ok, Self::Error> {
+    fn serialize_unit_struct(
+        self,
+        _name: &'static str,
+    ) -> Result<Self::Ok, Self::Error> {
         Ok(Value::Array(Vec::new()))
     }
 
@@ -227,10 +235,20 @@ impl ser::Serializer for Serializer {
     where
         T: Serialize,
     {
-        value.serialize(self)
+        #[cfg(feature = "option")]
+        {
+            Ok(Value::Some(Box::new(value.serialize(self)?)))
+        }
+        #[cfg(not(feature = "option"))]
+        {
+            value.serialize(self)
+        }
     }
 
-    fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
+    fn serialize_seq(
+        self,
+        len: Option<usize>,
+    ) -> Result<Self::SerializeSeq, Self::Error> {
         let se = SerializeVec {
             vec: Vec::with_capacity(len.unwrap_or(0)),
         };
@@ -481,7 +499,8 @@ impl ser::SerializeStruct for DefaultSerializeMap {
     where
         T: Serialize,
     {
-        self.map.insert(Value::String(key.to_string()), to_value(&value)?);
+        self.map
+            .insert(Value::String(key.to_string()), to_value(&value)?);
         Ok(())
     }
 
@@ -502,7 +521,8 @@ impl ser::SerializeStructVariant for DefaultSerializeMap {
     where
         T: Serialize,
     {
-        self.map.insert(Value::String(key.to_string()), to_value(&value)?);
+        self.map
+            .insert(Value::String(key.to_string()), to_value(&value)?);
         Ok(())
     }
 
@@ -516,7 +536,11 @@ impl SerializeStruct for SerializeVec {
     type Error = Error;
 
     #[inline]
-    fn serialize_field<T: ?Sized>(&mut self, _key: &'static str, value: &T) -> Result<(), Error>
+    fn serialize_field<T: ?Sized>(
+        &mut self,
+        _key: &'static str,
+        value: &T,
+    ) -> Result<(), Error>
     where
         T: Serialize,
     {
@@ -534,7 +558,11 @@ impl ser::SerializeStructVariant for SerializeStructVariant {
     type Error = Error;
 
     #[inline]
-    fn serialize_field<T: ?Sized>(&mut self, _key: &'static str, value: &T) -> Result<(), Error>
+    fn serialize_field<T: ?Sized>(
+        &mut self,
+        _key: &'static str,
+        value: &T,
+    ) -> Result<(), Error>
     where
         T: Serialize,
     {

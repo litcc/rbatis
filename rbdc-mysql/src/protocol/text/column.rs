@@ -2,11 +2,9 @@ use std::str::from_utf8;
 
 use bitflags::bitflags;
 use bytes::{Buf, Bytes};
+use rbdc::{err_protocol, io::Decode, Error};
 
-use crate::io::MySqlBufExt;
-use crate::protocol::Capabilities;
-use rbdc::io::Decode;
-use rbdc::{err_protocol, Error};
+use crate::{io::MySqlBufExt, protocol::Capabilities};
 
 // https://dev.mysql.com/doc/dev/mysql-server/8.0.12/group__group__cs__column__definition__flags.html
 

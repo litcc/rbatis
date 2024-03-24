@@ -1,5 +1,6 @@
-use crate::ops::{AsProxy, From};
 use rbs::Value;
+
+use crate::ops::{AsProxy, From};
 
 impl From<bool> for bool {
     fn op_from(arg: bool) -> Self {

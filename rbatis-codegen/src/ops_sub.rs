@@ -1,6 +1,6 @@
-use crate::ops::AsProxy;
-use crate::ops::Sub;
 use rbs::Value;
+
+use crate::ops::{AsProxy, Sub};
 
 fn op_sub_value(left: Value, rhs: Value) -> Value {
     match left {
@@ -10,6 +10,8 @@ fn op_sub_value(left: Value, rhs: Value) -> Value {
         Value::U64(s) => Value::U64(s - rhs.u64()),
         Value::F32(s) => Value::F32(s - rhs.f64() as f32),
         Value::F64(s) => Value::F64(s - rhs.f64()),
+        #[cfg(feature = "option")]
+        Value::Some(v) => op_sub_value(*v, rhs),
         Value::Ext(_, e) => op_sub_value(*e, rhs),
         _ => Value::Null,
     }
@@ -194,8 +196,9 @@ self_sub!([f32 f64]);
 
 #[cfg(test)]
 mod test {
-    use crate::ops::Sub;
     use rbs::Value;
+
+    use crate::ops::Sub;
 
     #[test]
     fn test_sub() {

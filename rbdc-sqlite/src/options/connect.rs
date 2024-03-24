@@ -1,15 +1,18 @@
-use crate::query::SqliteQuery;
-use crate::type_info::Type;
-use crate::{SqliteConnectOptions, SqliteConnection, SqliteQueryResult, SqliteRow};
-use either::Either;
-use futures_core::future::BoxFuture;
-use futures_core::stream::BoxStream;
-use futures_util::FutureExt;
-use futures_util::{StreamExt, TryStreamExt};
-use rbdc::db::{Connection, ExecResult, Row};
-use rbdc::error::Error;
-use rbs::Value;
 use std::fmt::Write;
+
+use either::Either;
+use futures_core::{future::BoxFuture, stream::BoxStream};
+use futures_util::{FutureExt, StreamExt, TryStreamExt};
+use rbdc::{
+    db::{Connection, ExecResult, Row},
+    error::Error,
+};
+use rbs::Value;
+
+use crate::{
+    query::SqliteQuery, type_info::Type, SqliteConnectOptions, SqliteConnection,
+    SqliteQueryResult, SqliteRow,
+};
 
 impl SqliteConnectOptions {
     pub fn connect(&self) -> BoxFuture<'_, Result<SqliteConnection, Error>> {
@@ -81,7 +84,8 @@ impl Connection for SqliteConnection {
                     })
                 })
                 .boxed();
-            let c: BoxFuture<Result<Vec<SqliteRow>, Error>> = f.try_collect().boxed();
+            let c: BoxFuture<Result<Vec<SqliteRow>, Error>> =
+                f.try_collect().boxed();
             let v = c.await?;
             let mut data: Vec<Box<dyn Row>> = Vec::with_capacity(v.len());
             for x in v {
@@ -91,7 +95,11 @@ impl Connection for SqliteConnection {
         })
     }
 
-    fn exec(&mut self, sql: &str, params: Vec<Value>) -> BoxFuture<Result<ExecResult, Error>> {
+    fn exec(
+        &mut self,
+        sql: &str,
+        params: Vec<Value>,
+    ) -> BoxFuture<Result<ExecResult, Error>> {
         let sql = sql.to_owned();
         Box::pin(async move {
             let many = {

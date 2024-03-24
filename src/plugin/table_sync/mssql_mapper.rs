@@ -1,5 +1,6 @@
-use crate::table_sync::ColumMapper;
 use rbs::Value;
+
+use crate::table_sync::ColumMapper;
 
 pub struct MssqlTableMapper {}
 impl ColumMapper for MssqlTableMapper {
@@ -22,7 +23,11 @@ impl ColumMapper for MssqlTableMapper {
             }
             Value::Binary(_) => "VARBINARY(MAX)".to_string(),
             Value::Array(_) => "NVARCHAR(MAX)".to_string(), // or appropriate JSON type
-            Value::Map(_) => "NVARCHAR(MAX)".to_string(),   // or appropriate JSON type
+            Value::Map(_) => "NVARCHAR(MAX)".to_string(), // or appropriate JSON type
+
+            #[cfg(feature = "option")]
+            Value::Some(d) => self.get_column(_column, &*d),
+
             Value::Ext(t, _v) => match *t {
                 "Date" => "DATE".to_string(),
                 "DateTime" => "DATETIME2".to_string(),

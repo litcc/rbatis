@@ -1,15 +1,18 @@
-use crate::options::MySqlConnectOptions;
+use std::{num::ParseIntError, str::FromStr};
+
 use percent_encoding::percent_decode_str;
 use rbdc::Error;
-use std::num::ParseIntError;
-use std::str::FromStr;
 use url::{ParseError, Url};
+
+use crate::options::MySqlConnectOptions;
 
 impl FromStr for MySqlConnectOptions {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Error> {
-        let url: Url = s.parse().map_err(|e: ParseError| Error::from(e.to_string()))?;
+        let url: Url = s
+            .parse()
+            .map_err(|e: ParseError| Error::from(e.to_string()))?;
         let mut options = Self::new();
 
         if let Some(host) = url.host_str() {
@@ -22,11 +25,13 @@ impl FromStr for MySqlConnectOptions {
 
         let username = url.username();
         if !username.is_empty() {
-            options = options.username(&*percent_decode_str(username).decode_utf8()?);
+            options =
+                options.username(&*percent_decode_str(username).decode_utf8()?);
         }
 
         if let Some(password) = url.password() {
-            options = options.password(&*percent_decode_str(password).decode_utf8()?);
+            options =
+                options.password(&*percent_decode_str(password).decode_utf8()?);
         }
 
         let path = url.path().trim_start_matches('/');
@@ -53,11 +58,10 @@ impl FromStr for MySqlConnectOptions {
                 }
 
                 "statement-cache-capacity" => {
-                    options = options.statement_cache_capacity(
-                        value
-                            .parse()
-                            .map_err(|e: ParseIntError| Error::from(e.to_string()))?,
-                    );
+                    options =
+                        options.statement_cache_capacity(value.parse().map_err(
+                            |e: ParseIntError| Error::from(e.to_string()),
+                        )?);
                 }
 
                 "socket" => {

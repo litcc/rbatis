@@ -1,14 +1,17 @@
-use crate::decode::Decode;
-use crate::encode::{Encode, IsNull};
-use crate::type_info::DataType;
-use crate::{SqliteArgumentValue, SqliteValue};
 use rbdc::Error;
 use rbs::Value;
 
+use crate::{
+    decode::Decode,
+    encode::{Encode, IsNull},
+    type_info::DataType,
+    SqliteArgumentValue, SqliteValue,
+};
+
 impl Decode for Value {
     fn decode(value: SqliteValue) -> Result<Self, Error>
-        where
-            Self: Sized,
+    where
+        Self: Sized,
     {
         if value.type_info_opt().is_none() {
             return Ok(Value::Null);
@@ -97,6 +100,11 @@ impl Encode for Value {
             Value::Map(v) => {
                 //json
                 Value::Map(v).to_string().encode(args)?;
+                Ok(IsNull::No)
+            }
+            #[cfg(feature = "option")]
+            Value::Some(d) => {
+                d.encode(args)?;
                 Ok(IsNull::No)
             }
             Value::Ext(t, v) => match t {

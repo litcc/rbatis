@@ -375,3 +375,8 @@ You are welcome to submit the merge, and make sure that any functionality you ad
 <img style="width: 200px;height: 250px;" width="200" height="250" src="https://raw.githubusercontent.com/rbatis/rbatis.io/master/docs/_media/wechat.jpg" alt="zxj347284221" />
 
 
+
+# Fork 项目改动内容
+
+原有功能无改动,新增 Option 功能和对应的结构体生成宏
+

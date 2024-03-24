@@ -1,6 +1,6 @@
+use std::{fmt::Debug, sync::Arc};
+
 use crate::statement::PgStatementMetadata;
-use std::fmt::Debug;
-use std::sync::Arc;
 
 #[derive(Debug)]
 pub struct PgMetaData {

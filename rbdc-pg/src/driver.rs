@@ -1,7 +1,10 @@
-use crate::options::PgConnectOptions;
 use futures_core::future::BoxFuture;
-use rbdc::db::{ConnectOptions, Connection, Driver, Placeholder};
-use rbdc::{impl_exchange, Error};
+use rbdc::{
+    db::{ConnectOptions, Connection, Driver, Placeholder},
+    impl_exchange, Error,
+};
+
+use crate::options::PgConnectOptions;
 
 #[derive(Debug)]
 pub struct PgDriver {}
@@ -42,8 +45,9 @@ impl Placeholder for PgDriver {
 
 #[cfg(test)]
 mod test {
-    use crate::driver::PgDriver;
     use rbdc::db::Placeholder;
+
+    use crate::driver::PgDriver;
     #[test]
     fn test_default() {}
     #[test]
@@ -51,7 +55,10 @@ mod test {
         let v = "insert into biz_activity (id,name,pc_link,h5_link,pc_banner_img,h5_banner_img,sort,status,remark,create_time,version,delete_flag) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
         let d = PgDriver {};
         let sql = d.exchange(v);
-        assert_eq!("insert into biz_activity (id,name,pc_link,h5_link,pc_banner_img,h5_banner_img,sort,status,remark,create_time,version,delete_flag) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)", sql);
+        assert_eq!(
+            "insert into biz_activity (id,name,pc_link,h5_link,pc_banner_img,h5_banner_img,sort,status,remark,create_time,version,delete_flag) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)",
+            sql
+        );
     }
 }
 

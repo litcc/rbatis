@@ -1,8 +1,9 @@
-use crate::type_info::PgTypeInfo;
+use std::{borrow::Cow, str::from_utf8};
+
 use bytes::Buf;
 use rbdc::Error;
-use std::borrow::Cow;
-use std::str::from_utf8;
+
+use crate::type_info::PgTypeInfo;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[repr(u8)]
@@ -28,7 +29,11 @@ pub struct PgValue {
 }
 
 impl<'r> PgValueRef<'r> {
-    pub(crate) fn get(buf: &mut &'r [u8], format: PgValueFormat, ty: PgTypeInfo) -> Self {
+    pub(crate) fn get(
+        buf: &mut &'r [u8],
+        format: PgValueFormat,
+        ty: PgTypeInfo,
+    ) -> Self {
         let mut element_len = buf.get_i32();
 
         let element_val = if element_len == -1 {

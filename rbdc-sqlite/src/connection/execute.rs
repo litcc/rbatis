@@ -1,8 +1,11 @@
-use crate::connection::{ConnectionHandle, ConnectionState};
-use crate::statement::{StatementHandle, VirtualStatement};
-use crate::{SqliteArguments, SqliteQueryResult, SqliteRow};
 use either::Either;
 use rbdc::error::Error;
+
+use crate::{
+    connection::{ConnectionHandle, ConnectionState},
+    statement::{StatementHandle, VirtualStatement},
+    SqliteArguments, SqliteQueryResult, SqliteRow,
+};
 
 pub struct ExecuteIter<'a> {
     handle: &'a mut ConnectionHandle,

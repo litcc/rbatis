@@ -1,8 +1,10 @@
-use std::borrow::Cow;
-use std::env::var_os;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
-use std::path::PathBuf;
+use std::{
+    borrow::Cow,
+    env::var_os,
+    fs::File,
+    io::{BufRead, BufReader},
+    path::PathBuf,
+};
 
 /// try to load a password from the various pgpass file locations
 pub fn load_password(
@@ -13,9 +15,13 @@ pub fn load_password(
 ) -> Option<String> {
     let custom_file = var_os("PGPASSFILE");
     if let Some(file) = custom_file {
-        if let Some(password) =
-            load_password_from_file(PathBuf::from(file), host, port, username, database)
-        {
+        if let Some(password) = load_password_from_file(
+            PathBuf::from(file),
+            host,
+            port,
+            username,
+            database,
+        ) {
             return Some(password);
         }
     }
@@ -23,7 +29,8 @@ pub fn load_password(
     #[cfg(not(target_os = "windows"))]
     let default_file = dirs::home_dir().map(|path| path.join(".pgpass"));
     #[cfg(target_os = "windows")]
-    let default_file = dirs::data_dir().map(|path| path.join("postgres").join("pgpass.conf"));
+    let default_file =
+        dirs::data_dir().map(|path| path.join("postgres").join("pgpass.conf"));
     load_password_from_file(default_file?, host, port, username, database)
 }
 
@@ -89,7 +96,9 @@ fn load_password_from_reader(
         } else {
             // try to load password from line
             trim_newline(&mut line);
-            if let Some(password) = load_password_from_line(&line, host, port, username, database) {
+            if let Some(password) =
+                load_password_from_line(&line, host, port, username, database)
+            {
                 return Some(password);
             }
         }
@@ -183,12 +192,19 @@ fn find_next_field<'a>(line: &mut &'a str) -> Option<Cow<'a, str>> {
 
 #[cfg(test)]
 mod tests {
-    use super::{find_next_field, load_password_from_line, load_password_from_reader};
     use std::borrow::Cow;
+
+    use super::{
+        find_next_field, load_password_from_line, load_password_from_reader,
+    };
 
     #[test]
     fn test_find_next_field() {
-        fn test_case<'a>(mut input: &'a str, result: Option<Cow<'a, str>>, rest: &str) {
+        fn test_case<'a>(
+            mut input: &'a str,
+            result: Option<Cow<'a, str>>,
+            rest: &str,
+        ) {
             assert_eq!(find_next_field(&mut input), result);
             assert_eq!(input, rest);
         }
@@ -251,12 +267,24 @@ mod tests {
         );
         // wildcard
         assert_eq!(
-            load_password_from_line("*:5432:bar:foo:baz", "localhost", 5432, "foo", Some("bar")),
+            load_password_from_line(
+                "*:5432:bar:foo:baz",
+                "localhost",
+                5432,
+                "foo",
+                Some("bar")
+            ),
             Some("baz".to_owned())
         );
         // accept wildcard with missing db
         assert_eq!(
-            load_password_from_line("localhost:5432:*:foo:baz", "localhost", 5432, "foo", None),
+            load_password_from_line(
+                "localhost:5432:*:foo:baz",
+                "localhost",
+                5432,
+                "foo",
+                None
+            ),
             Some("baz".to_owned())
         );
 
@@ -300,28 +328,58 @@ mod tests {
 
         // normal
         assert_eq!(
-            load_password_from_reader(&mut &file[..], "localhost", 5432, "foo", Some("bar")),
+            load_password_from_reader(
+                &mut &file[..],
+                "localhost",
+                5432,
+                "foo",
+                Some("bar")
+            ),
             Some("baz".to_owned())
         );
         // wildcard
         assert_eq!(
-            load_password_from_reader(&mut &file[..], "localhost", 5432, "foo", Some("foobar")),
+            load_password_from_reader(
+                &mut &file[..],
+                "localhost",
+                5432,
+                "foo",
+                Some("foobar")
+            ),
             Some("baz".to_owned())
         );
         // accept wildcard with missing db
         assert_eq!(
-            load_password_from_reader(&mut &file[..], "localhost", 5432, "foo", None),
+            load_password_from_reader(
+                &mut &file[..],
+                "localhost",
+                5432,
+                "foo",
+                None
+            ),
             Some("baz".to_owned())
         );
 
         // doesn't match
         assert_eq!(
-            load_password_from_reader(&mut &file[..], "thathost", 5432, "foo", Some("foobar")),
+            load_password_from_reader(
+                &mut &file[..],
+                "thathost",
+                5432,
+                "foo",
+                Some("foobar")
+            ),
             None
         );
         // malformed entry
         assert_eq!(
-            load_password_from_reader(&mut &file[..], "thathost", 5432, "foo", Some("foobar")),
+            load_password_from_reader(
+                &mut &file[..],
+                "thathost",
+                5432,
+                "foo",
+                Some("foobar")
+            ),
             None
         );
     }

@@ -1,8 +1,11 @@
 use bytes::{Buf, Bytes};
+use rbdc::{
+    err_protocol,
+    io::{BufExt, Decode},
+    Error,
+};
 
 use crate::protocol::Capabilities;
-use rbdc::io::{BufExt, Decode};
-use rbdc::{err_protocol, Error};
 
 // https://dev.mysql.com/doc/dev/mysql-server/8.0.12/page_protocol_basic_err_packet.html
 // https://mariadb.com/kb/en/err_packet/
@@ -16,7 +19,10 @@ pub struct ErrPacket {
 }
 
 impl Decode<'_, Capabilities> for ErrPacket {
-    fn decode_with(mut buf: Bytes, capabilities: Capabilities) -> Result<Self, Error> {
+    fn decode_with(
+        mut buf: Bytes,
+        capabilities: Capabilities,
+    ) -> Result<Self, Error> {
         let header = buf.get_u8();
         if header != 0xff {
             return Err(err_protocol!(
@@ -50,8 +56,11 @@ impl Decode<'_, Capabilities> for ErrPacket {
 fn test_decode_err_packet_out_of_order() {
     const ERR_PACKETS_OUT_OF_ORDER: &[u8] = b"\xff\x84\x04Got packets out of order";
 
-    let p =
-        ErrPacket::decode_with(ERR_PACKETS_OUT_OF_ORDER.into(), Capabilities::PROTOCOL_41).unwrap();
+    let p = ErrPacket::decode_with(
+        ERR_PACKETS_OUT_OF_ORDER.into(),
+        Capabilities::PROTOCOL_41,
+    )
+    .unwrap();
 
     assert_eq!(&p.error_message, "Got packets out of order");
     assert_eq!(p.error_code, 1156);
@@ -60,10 +69,14 @@ fn test_decode_err_packet_out_of_order() {
 
 #[test]
 fn test_decode_err_packet_unknown_database() {
-    const ERR_HANDSHAKE_UNKNOWN_DB: &[u8] = b"\xff\x19\x04#42000Unknown database \'unknown\'";
+    const ERR_HANDSHAKE_UNKNOWN_DB: &[u8] =
+        b"\xff\x19\x04#42000Unknown database \'unknown\'";
 
-    let p =
-        ErrPacket::decode_with(ERR_HANDSHAKE_UNKNOWN_DB.into(), Capabilities::PROTOCOL_41).unwrap();
+    let p = ErrPacket::decode_with(
+        ERR_HANDSHAKE_UNKNOWN_DB.into(),
+        Capabilities::PROTOCOL_41,
+    )
+    .unwrap();
 
     assert_eq!(p.error_code, 1049);
     assert_eq!(p.sql_state.as_deref(), Some("42000"));

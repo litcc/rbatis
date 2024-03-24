@@ -1,8 +1,11 @@
-use crate::{MssqlConnectOptions, MssqlConnection};
 use futures_core::future::BoxFuture;
-use rbdc::db::{ConnectOptions, Connection, Driver, Placeholder};
-use rbdc::{impl_exchange, Error};
+use rbdc::{
+    db::{ConnectOptions, Connection, Driver, Placeholder},
+    impl_exchange, Error,
+};
 use tiberius::Config;
+
+use crate::{MssqlConnectOptions, MssqlConnection};
 
 #[derive(Debug)]
 pub struct MssqlDriver {}
@@ -15,7 +18,8 @@ impl Driver for MssqlDriver {
     fn connect(&self, url: &str) -> BoxFuture<Result<Box<dyn Connection>, Error>> {
         let url = url.to_owned();
         Box::pin(async move {
-            let cfg = Config::from_jdbc_string(&url).map_err(|e| Error::from(e.to_string()))?;
+            let cfg = Config::from_jdbc_string(&url)
+                .map_err(|e| Error::from(e.to_string()))?;
             let conn = MssqlConnection::establish(&cfg).await?;
             Ok(Box::new(conn) as Box<dyn Connection>)
         })
@@ -45,15 +49,19 @@ impl Placeholder for MssqlDriver {
 
 #[cfg(test)]
 mod test {
-    use crate::driver::MssqlDriver;
     use rbdc::db::Placeholder;
+
+    use crate::driver::MssqlDriver;
 
     #[test]
     fn test_exchange() {
         let v = "insert into biz_activity (id,name,pc_link,h5_link,pc_banner_img,h5_banner_img,sort,status,remark,create_time,version,delete_flag) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
         let d = MssqlDriver {};
         let sql = d.exchange(v);
-        assert_eq!("insert into biz_activity (id,name,pc_link,h5_link,pc_banner_img,h5_banner_img,sort,status,remark,create_time,version,delete_flag) VALUES (@P1,@P2,@P3,@P4,@P5,@P6,@P7,@P8,@P9,@P10,@P11,@P12)", sql);
+        assert_eq!(
+            "insert into biz_activity (id,name,pc_link,h5_link,pc_banner_img,h5_banner_img,sort,status,remark,create_time,version,delete_flag) VALUES (@P1,@P2,@P3,@P4,@P5,@P6,@P7,@P8,@P9,@P10,@P11,@P12)",
+            sql
+        );
     }
 }
 

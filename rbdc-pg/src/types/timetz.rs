@@ -1,13 +1,21 @@
-use crate::arguments::PgArgumentBuffer;
-use crate::types::decode::Decode;
-use crate::types::encode::{Encode, IsNull};
-use crate::value::{PgValue, PgValueFormat};
+use std::{
+    fmt::{Display, Formatter},
+    io::Cursor,
+    time::Duration,
+};
+
 use byteorder::{BigEndian, ReadBytesExt};
 use rbdc::Error;
 use rbs::Value;
-use std::fmt::{Display, Formatter};
-use std::io::Cursor;
-use std::time::Duration;
+
+use crate::{
+    arguments::PgArgumentBuffer,
+    types::{
+        decode::Decode,
+        encode::{Encode, IsNull},
+    },
+    value::{PgValue, PgValueFormat},
+};
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Eq, PartialEq)]
 #[serde(rename = "Timez")]
@@ -54,14 +62,17 @@ impl Decode for Timetz {
                 let seconds = buf.read_i32::<BigEndian>()?;
 
                 Ok(Self(OffsetTz {
-                    time: fastdate::Time::from(Duration::from_micros(microseconds as u64)),
+                    time: fastdate::Time::from(Duration::from_micros(
+                        microseconds as u64,
+                    )),
                     offset: seconds,
                 }))
             }
             PgValueFormat::Text => {
                 // the `time` crate has a limited ability to parse and can't parse the
                 // timezone format
-                Err("reading a `TIMETZ` value in text format is not supported.".into())
+                Err("reading a `TIMETZ` value in text format is not supported."
+                    .into())
             }
         }
     }

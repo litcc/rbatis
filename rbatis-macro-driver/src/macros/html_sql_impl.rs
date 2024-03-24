@@ -1,16 +1,20 @@
+use std::{fs::File, io::Read};
+
 use proc_macro2::{Ident, Span};
-use quote::quote;
-use quote::ToTokens;
-use std::fs::File;
-use std::io::Read;
+use quote::{quote, ToTokens};
 use syn::{FnArg, ItemFn};
 
-use crate::macros::py_sql_impl;
-use crate::proc_macro::TokenStream;
-use crate::util::{find_fn_body, find_return_type, get_fn_args, is_query, is_rb_ref};
-use crate::ParseArgs;
+use crate::{
+    macros::py_sql_impl,
+    proc_macro::TokenStream,
+    util::{find_fn_body, find_return_type, get_fn_args, is_query, is_rb_ref},
+    ParseArgs,
+};
 
-pub(crate) fn impl_macro_html_sql(target_fn: &ItemFn, args: &ParseArgs) -> TokenStream {
+pub(crate) fn impl_macro_html_sql(
+    target_fn: &ItemFn,
+    args: &ParseArgs,
+) -> TokenStream {
     let return_ty = find_return_type(target_fn);
     let func_name_ident = target_fn.sig.ident.to_token_stream();
 
@@ -35,7 +39,10 @@ pub(crate) fn impl_macro_html_sql(target_fn: &ItemFn, args: &ParseArgs) -> Token
     let mut sql_ident = quote!();
     if args.sqls.len() >= 1 {
         if rbatis_name.is_empty() {
-            panic!("[rbatis] you should add rbatis ref param  rb:&RBatis  or rb: &mut Executor  on '{}()'!", target_fn.sig.ident);
+            panic!(
+                "[rbatis] you should add rbatis ref param  rb:&RBatis  or rb: &mut Executor  on '{}()'!",
+                target_fn.sig.ident
+            );
         }
         let mut s = "".to_string();
         for v in &args.sqls {
@@ -59,8 +66,9 @@ pub(crate) fn impl_macro_html_sql(target_fn: &ItemFn, args: &ParseArgs) -> Token
             .expect(&format!("File Name = '{}' does not exist", file_name));
         f.read_to_string(&mut html_data)
             .expect(&format!("{} read_to_string fail", file_name));
-        let mut htmls = rbatis_codegen::codegen::parser_html::load_mapper_map(&html_data)
-            .expect("load html content fail");
+        let mut htmls =
+            rbatis_codegen::codegen::parser_html::load_mapper_map(&html_data)
+                .expect("load html content fail");
         let token = htmls.remove(&func_name_ident.to_string()).expect("");
         let token = format!("{}", token);
         sql_ident = token.to_token_stream();
@@ -83,7 +91,8 @@ pub(crate) fn impl_macro_html_sql(target_fn: &ItemFn, args: &ParseArgs) -> Token
     }
 
     //append all args
-    let sql_args_gen = py_sql_impl::filter_args_context_id(&rbatis_name, &get_fn_args(target_fn));
+    let sql_args_gen =
+        py_sql_impl::filter_args_context_id(&rbatis_name, &get_fn_args(target_fn));
     let is_query = is_query(&return_ty.to_string());
     let mut call_method = quote! {};
     if is_query {
@@ -105,8 +114,11 @@ pub(crate) fn impl_macro_html_sql(target_fn: &ItemFn, args: &ParseArgs) -> Token
     let gen_target_macro_arg = quote! {
         #sql_ident
     };
-    let gen_func: proc_macro2::TokenStream =
-        rbatis_codegen::rb_html(gen_target_macro_arg.into(), gen_target_method.into()).into();
+    let gen_func: proc_macro2::TokenStream = rbatis_codegen::rb_html(
+        gen_target_macro_arg.into(),
+        gen_target_method.into(),
+    )
+    .into();
 
     let mut include_data = quote!();
     include_data = quote! {
@@ -115,15 +127,18 @@ pub(crate) fn impl_macro_html_sql(target_fn: &ItemFn, args: &ParseArgs) -> Token
     #[cfg(feature = "debug_mode")]
     if cfg!(debug_assertions) {
         if file_name.ends_with(".html") {
-            use std::env::current_dir;
-            use std::path::PathBuf;
+            use std::{env::current_dir, path::PathBuf};
             let current_dir = current_dir().unwrap();
             let mut html_file_name = file_name.clone();
             if !PathBuf::from(&file_name).is_absolute() {
-                html_file_name =
-                    format!("{}/{}", current_dir.to_str().unwrap_or_default(), file_name);
+                html_file_name = format!(
+                    "{}/{}",
+                    current_dir.to_str().unwrap_or_default(),
+                    file_name
+                );
             }
-            include_data = quote! {#include_data  let _ = include_bytes!(#html_file_name);};
+            include_data =
+                quote! {#include_data  let _ = include_bytes!(#html_file_name);};
         }
     }
     let generic = target_fn.sig.generics.clone();

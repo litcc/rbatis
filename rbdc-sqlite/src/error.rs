@@ -1,8 +1,11 @@
-use std::error::Error as StdError;
-use std::ffi::CStr;
-use std::fmt::{self, Display, Formatter};
-use std::os::raw::c_int;
-use std::{borrow::Cow, str::from_utf8_unchecked};
+use std::{
+    borrow::Cow,
+    error::Error as StdError,
+    ffi::CStr,
+    fmt::{self, Display, Formatter},
+    os::raw::c_int,
+    str::from_utf8_unchecked,
+};
 
 use libsqlite3_sys::{sqlite3, sqlite3_errmsg, sqlite3_extended_errcode};
 

@@ -1,14 +1,18 @@
 #![allow(dead_code)]
 
-use std::io;
-use std::ops::{Deref, DerefMut};
+use std::{
+    io,
+    io::Cursor,
+    ops::{Deref, DerefMut},
+};
 
-use crate::io::write_and_flush::WriteAndFlush;
-use crate::io::{decode::Decode, encode::Encode};
-use crate::rt::{AsyncRead, AsyncReadExt, AsyncWrite};
-use crate::Error;
 use bytes::BytesMut;
-use std::io::Cursor;
+
+use crate::{
+    io::{decode::Decode, encode::Encode, write_and_flush::WriteAndFlush},
+    rt::{AsyncRead, AsyncReadExt, AsyncWrite},
+    Error,
+};
 
 pub struct BufStream<S>
 where
@@ -64,7 +68,11 @@ where
         self.read_with(cnt, ()).await
     }
 
-    pub async fn read_with<'de, T, C>(&mut self, cnt: usize, context: C) -> Result<T, Error>
+    pub async fn read_with<'de, T, C>(
+        &mut self,
+        cnt: usize,
+        context: C,
+    ) -> Result<T, Error>
     where
         T: Decode<'de, C>,
     {
@@ -78,7 +86,11 @@ where
         Ok(buf)
     }
 
-    pub async fn read_raw_into(&mut self, buf: &mut BytesMut, cnt: usize) -> Result<(), Error> {
+    pub async fn read_raw_into(
+        &mut self,
+        buf: &mut BytesMut,
+        cnt: usize,
+    ) -> Result<(), Error> {
         read_raw_into(&mut self.stream, buf, cnt).await
     }
 }
@@ -119,7 +131,10 @@ impl<'a> BufTruncator<'a> {
     fn reserve(&mut self, space: usize) {
         self.buf.resize(self.filled_len + space, 0);
     }
-    async fn read<S: AsyncRead + Unpin>(&mut self, stream: &mut S) -> Result<usize, Error> {
+    async fn read<S: AsyncRead + Unpin>(
+        &mut self,
+        stream: &mut S,
+    ) -> Result<usize, Error> {
         let n = stream.read(&mut self.buf[self.filled_len..]).await?;
         self.filled_len += n;
         Ok(n)

@@ -1,17 +1,24 @@
-use std::future::Future;
-use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::Arc;
-use std::thread;
+use std::{
+    future::Future,
+    sync::{
+        atomic::{AtomicUsize, Ordering},
+        Arc,
+    },
+    thread,
+};
 
-use crate::connection::collation::create_collation;
-use crate::connection::establish::EstablishParams;
-use crate::connection::ConnectionState;
-use crate::connection::{execute, ConnectionHandleRaw};
-use crate::{SqliteArguments, SqliteQueryResult, SqliteRow, SqliteStatement};
 use either::Either;
 use futures_channel::oneshot;
 use futures_intrusive::sync::{Mutex, MutexGuard};
 use rbdc::error::Error;
+
+use crate::{
+    connection::{
+        collation::create_collation, establish::EstablishParams, execute,
+        ConnectionHandleRaw, ConnectionState,
+    },
+    SqliteArguments, SqliteQueryResult, SqliteRow, SqliteStatement,
+};
 
 // Each SQLite connection has a dedicated thread.
 
@@ -44,8 +51,12 @@ pub enum Command {
         tx: flume::Sender<Result<Either<SqliteQueryResult, SqliteRow>, Error>>,
     },
     CreateCollation {
-        create_collation:
-            Box<dyn FnOnce(&mut ConnectionState) -> Result<(), Error> + Send + Sync + 'static>,
+        create_collation: Box<
+            dyn FnOnce(&mut ConnectionState) -> Result<(), Error>
+                + Send
+                + Sync
+                + 'static,
+        >,
     },
     UnlockDb,
     ClearCache {
@@ -64,108 +75,122 @@ impl ConnectionWorker {
         let (establish_tx, establish_rx) = oneshot::channel();
 
         thread::Builder::new()
-            .name(params.thread_name.clone())
-            .spawn(move || {
-                let (command_tx, command_rx) = flume::bounded(params.command_channel_size);
+			.name(params.thread_name.clone())
+			.spawn(move || {
+				let (command_tx, command_rx) =
+					flume::bounded(params.command_channel_size);
 
-                let conn = match params.establish() {
-                    Ok(conn) => conn,
-                    Err(e) => {
-                        establish_tx.send(Err(e)).ok();
-                        return;
-                    }
-                };
+				let conn = match params.establish() {
+					Ok(conn) => conn,
+					Err(e) => {
+						establish_tx.send(Err(e)).ok();
+						return;
+					}
+				};
 
-                let shared = Arc::new(WorkerSharedState {
-                    cached_statements_size: AtomicUsize::new(0),
-                    // note: must be fair because in `Command::UnlockDb` we unlock the mutex
-                    // and then immediately try to relock it; an unfair mutex would immediately
-                    // grant us the lock even if another task is waiting.
-                    conn: Mutex::new(conn, true),
-                });
-                let mut conn = shared.conn.try_lock().unwrap();
+				let shared = Arc::new(WorkerSharedState {
+					cached_statements_size: AtomicUsize::new(0),
+					// note: must be fair because in `Command::UnlockDb` we unlock the mutex
+					// and then immediately try to relock it; an unfair mutex would immediately
+					// grant us the lock even if another task is waiting.
+					conn: Mutex::new(conn, true),
+				});
+				let mut conn = shared.conn.try_lock().unwrap();
 
-                if establish_tx
-                    .send(Ok(Self {
-                        command_tx,
-                        handle_raw: conn.handle.to_raw(),
-                        shared: Arc::clone(&shared),
-                    }))
-                    .is_err()
-                {
-                    return;
-                }
+				if establish_tx
+					.send(Ok(Self {
+						command_tx,
+						handle_raw: conn.handle.to_raw(),
+						shared: Arc::clone(&shared),
+					}))
+					.is_err()
+				{
+					return;
+				}
 
-                for cmd in command_rx {
-                    match cmd {
-                        Command::Prepare { query, tx } => {
-                            tx.send(prepare(&mut conn, &query).map(|prepared| {
-                                update_cached_statements_size(
-                                    &conn,
-                                    &shared.cached_statements_size,
-                                );
-                                prepared
-                            }))
-                            .ok();
-                        }
-                        Command::Execute {
-                            query,
-                            arguments,
-                            persistent,
-                            tx,
-                        } => {
-                            let iter = match execute::iter(&mut conn, &query, arguments, persistent)
-                            {
-                                Ok(iter) => iter,
-                                Err(e) => {
-                                    tx.send(Err(e)).ok();
-                                    continue;
-                                }
-                            };
+				for cmd in command_rx {
+					match cmd {
+						Command::Prepare { query, tx } => {
+							tx.send(prepare(&mut conn, &query).map(|prepared| {
+								update_cached_statements_size(
+									&conn,
+									&shared.cached_statements_size,
+								);
+								prepared
+							}))
+							.ok();
+						}
+						Command::Execute {
+							query,
+							arguments,
+							persistent,
+							tx,
+						} => {
+							let iter = match execute::iter(
+								&mut conn, &query, arguments, persistent,
+							) {
+								Ok(iter) => iter,
+								Err(e) => {
+									tx.send(Err(e)).ok();
+									continue;
+								}
+							};
 
-                            for res in iter {
-                                if tx.send(res).is_err() {
-                                    break;
-                                }
-                            }
+							for res in iter {
+								if tx.send(res).is_err() {
+									break;
+								}
+							}
 
-                            update_cached_statements_size(&conn, &shared.cached_statements_size);
-                        }
-                        Command::CreateCollation { create_collation } => {
-                            if let Err(e) = (create_collation)(&mut conn) {
-                                log::warn!("error applying collation in background worker: {}", e);
-                            }
-                        }
-                        Command::ClearCache { tx } => {
-                            conn.statements.clear();
-                            update_cached_statements_size(&conn, &shared.cached_statements_size);
-                            tx.send(()).ok();
-                        }
-                        Command::UnlockDb => {
-                            drop(conn);
-                            conn = futures_executor::block_on(shared.conn.lock());
-                        }
-                        Command::Ping { tx } => {
-                            tx.send(()).ok();
-                        }
-                        Command::Shutdown { tx } => {
-                            // drop the connection references before sending confirmation
-                            // and ending the command loop
-                            drop(conn);
-                            drop(shared);
-                            let _ = tx.send(());
-                            return;
-                        }
-                    }
-                }
-            })?;
+							update_cached_statements_size(
+								&conn,
+								&shared.cached_statements_size,
+							);
+						}
+						Command::CreateCollation { create_collation } => {
+							if let Err(e) = (create_collation)(&mut conn) {
+								log::warn!(
+									"error applying collation in background worker: {}",
+									e
+								);
+							}
+						}
+						Command::ClearCache { tx } => {
+							conn.statements.clear();
+							update_cached_statements_size(
+								&conn,
+								&shared.cached_statements_size,
+							);
+							tx.send(()).ok();
+						}
+						Command::UnlockDb => {
+							drop(conn);
+							conn = futures_executor::block_on(shared.conn.lock());
+						}
+						Command::Ping { tx } => {
+							tx.send(()).ok();
+						}
+						Command::Shutdown { tx } => {
+							// drop the connection references before sending confirmation
+							// and ending the command loop
+							drop(conn);
+							drop(shared);
+							let _ = tx.send(());
+							return;
+						}
+					}
+				}
+			})?;
 
         establish_rx
             .await
             .map_err(|_| Error::from("WorkerCrashed"))?
     }
 
-    pub(crate) async fn prepare(&mut self, query: &str) -> Result<SqliteStatement, Error> {
+    pub(crate) async fn prepare(
+        &mut self,
+        query: &str,
+    ) -> Result<SqliteStatement, Error> {
         self.oneshot_cmd(|tx| Command::Prepare {
             query: query.into(),
             tx,
@@ -179,7 +204,10 @@ impl ConnectionWorker {
         args: Option<SqliteArguments>,
         chan_size: usize,
         persistent: bool,
-    ) -> Result<flume::Receiver<Result<Either<SqliteQueryResult, SqliteRow>, Error>>, Error> {
+    ) -> Result<
+        flume::Receiver<Result<Either<SqliteQueryResult, SqliteRow>, Error>>,
+        Error,
+    > {
         let (tx, rx) = flume::bounded(chan_size);
 
         self.command_tx
@@ -234,7 +262,9 @@ impl ConnectionWorker {
         self.oneshot_cmd(|tx| Command::ClearCache { tx }).await
     }
 
-    pub(crate) async fn unlock_db(&mut self) -> Result<MutexGuard<'_, ConnectionState>, Error> {
+    pub(crate) async fn unlock_db(
+        &mut self,
+    ) -> Result<MutexGuard<'_, ConnectionState>, Error> {
         let (guard, res) = futures_util::future::join(
             // we need to join the wait queue for the lock before we send the message
             self.shared.conn.lock(),
@@ -267,7 +297,10 @@ impl ConnectionWorker {
     }
 }
 
-fn prepare(conn: &mut ConnectionState, query: &str) -> Result<SqliteStatement, Error> {
+fn prepare(
+    conn: &mut ConnectionState,
+    query: &str,
+) -> Result<SqliteStatement, Error> {
     // prepare statement object (or checkout from cache)
     let statement = conn.statements.get(query, true)?;
 

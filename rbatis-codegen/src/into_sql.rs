@@ -1,6 +1,8 @@
-use crate::ops::AsProxy;
-use rbs::Value;
 use std::borrow::Cow;
+
+use rbs::Value;
+
+use crate::ops::AsProxy;
 
 pub trait IntoSql {
     fn sql(&self) -> String;

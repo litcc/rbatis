@@ -1,6 +1,6 @@
-use crate::ops::Neg;
-
 use rbs::Value;
+
+use crate::ops::Neg;
 
 fn op_neg(left: Value) -> Value {
     use std::ops::Neg;
@@ -9,6 +9,8 @@ fn op_neg(left: Value) -> Value {
         Value::I64(b) => Value::I64(b.neg()),
         Value::F32(b) => Value::F32(b.neg()),
         Value::F64(b) => Value::F64(b.neg()),
+        #[cfg(feature = "option")]
+        Value::Some(v) => op_neg(*v),
         Value::Ext(_, e) => op_neg(*e),
         _ => Value::Null,
     }

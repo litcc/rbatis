@@ -1,8 +1,10 @@
-use rbs::Value;
-use std::fmt::{Debug, Display, Formatter};
-use std::ops::{Deref, DerefMut};
-use std::str::FromStr;
+use std::{
+    fmt::{Debug, Display, Formatter},
+    ops::{Deref, DerefMut},
+    str::FromStr,
+};
 
+use rbs::Value;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 /// support deserialize JsonStruct or json string
@@ -25,30 +27,35 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 ///
 /// ```
 pub fn deserialize_maybe_str<'de, D, T>(deserializer: D) -> Result<T, D::Error>
-    where
-        D: Deserializer<'de>,
-        T: serde::de::DeserializeOwned
+where
+    D: Deserializer<'de>,
+    T: serde::de::DeserializeOwned,
 {
     use serde::de::Error;
     let account_value: serde_json::Value = Deserialize::deserialize(deserializer)?;
     match account_value {
         serde_json::Value::String(account_str) => {
             let typename = std::any::type_name::<T>();
-            if typename == std::any::type_name::<String>() || typename == std::any::type_name::<Option<String>>() {
-                let account_json: T = serde_json::from_value(serde_json::Value::String(account_str)).map_err(D::Error::custom)?;
+            if typename == std::any::type_name::<String>()
+                || typename == std::any::type_name::<Option<String>>()
+            {
+                let account_json: T =
+                    serde_json::from_value(serde_json::Value::String(account_str))
+                        .map_err(D::Error::custom)?;
                 Ok(account_json)
             } else {
-                let account_json: T = serde_json::from_str(&account_str).map_err(D::Error::custom)?;
+                let account_json: T =
+                    serde_json::from_str(&account_str).map_err(D::Error::custom)?;
                 Ok(account_json)
             }
         }
         _ => {
-            let account_json: T = serde_json::from_str(&account_value.to_string()).map_err(D::Error::custom)?;
+            let account_json: T = serde_json::from_str(&account_value.to_string())
+                .map_err(D::Error::custom)?;
             Ok(account_json)
         }
     }
 }
-
 
 #[derive(serde::Serialize, Clone, Eq, PartialEq, Hash)]
 #[serde(rename = "Json")]
@@ -104,6 +111,8 @@ impl From<Value> for Json {
             Value::Binary(v) => Json(unsafe { String::from_utf8_unchecked(v) }),
             Value::Array(_) => Json(v.to_string()),
             Value::Map(v) => Json(v.to_string()),
+            #[cfg(feature = "option")]
+            Value::Some(d) => Json::from(*d),
             Value::Ext(_name, v) => Json::from(*v),
         }
     }
@@ -159,8 +168,11 @@ impl<T: Serialize + serde::de::DeserializeOwned> Serialize for JsonV<T> {
     {
         use serde::ser::Error;
         if std::any::type_name::<S::Error>() == std::any::type_name::<rbs::Error>() {
-            Json(serde_json::to_string(&self.0).map_err(|e| Error::custom(e.to_string()))?)
-                .serialize(serializer)
+            Json(
+                serde_json::to_string(&self.0)
+                    .map_err(|e| Error::custom(e.to_string()))?,
+            )
+            .serialize(serializer)
         } else {
             self.0.serialize(serializer)
         }
@@ -180,19 +192,24 @@ impl<'de, T: Serialize + serde::de::DeserializeOwned> Deserialize<'de> for JsonV
                 v = *buf;
             }
             if let Value::Binary(buf) = v {
-                js = String::from_utf8(buf).map_err(|e| D::Error::custom(e.to_string()))?;
+                js = String::from_utf8(buf)
+                    .map_err(|e| D::Error::custom(e.to_string()))?;
             } else if let Value::String(buf) = v {
                 js = buf;
             } else {
                 js = v.to_string();
             }
-            if std::any::type_name::<D::Error>() == std::any::type_name::<rbs::Error>() {
+            if std::any::type_name::<D::Error>()
+                == std::any::type_name::<rbs::Error>()
+            {
                 Ok(JsonV(
-                    serde_json::from_str(&js).map_err(|e| Error::custom(e.to_string()))?,
+                    serde_json::from_str(&js)
+                        .map_err(|e| Error::custom(e.to_string()))?,
                 ))
             } else {
                 Ok(JsonV(
-                    serde_json::from_str(&js).map_err(|e| Error::custom(e.to_string()))?,
+                    serde_json::from_str(&js)
+                        .map_err(|e| Error::custom(e.to_string()))?,
                 ))
             }
         } else {
@@ -223,9 +240,9 @@ impl<T: Serialize + serde::de::DeserializeOwned + Display> Display for JsonV<T> 
 
 #[cfg(test)]
 mod test {
-    use crate::json::Json;
     use rbs::value::map::ValueMap;
-    use crate::JsonV;
+
+    use crate::{json::Json, JsonV};
 
     #[test]
     fn test_decode_js_string() {
@@ -277,9 +294,9 @@ mod test {
 
     #[test]
     fn test_encode_jsonv() {
-        let source:JsonV<String>=JsonV(1.to_string());
+        let source: JsonV<String> = JsonV(1.to_string());
         let v = rbs::to_value!(source);
         let data = *v.as_ext().unwrap().1.clone();
-        assert_eq!(data.into_string().unwrap_or_default(),"\"1\"");
+        assert_eq!(data.into_string().unwrap_or_default(), "\"1\"");
     }
 }

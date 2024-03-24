@@ -1,5 +1,6 @@
-use crate::protocol::text::{ColumnDefinition, ColumnType};
 use rbdc::ext::ustr::UStr;
+
+use crate::protocol::text::{ColumnDefinition, ColumnType};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct MySqlColumn {
@@ -54,9 +55,10 @@ impl MySqlTypeInfo {
     #[doc(hidden)]
     pub fn __type_feature_gate(&self) -> Option<&'static str> {
         match self.r#type {
-            ColumnType::Date | ColumnType::Time | ColumnType::Timestamp | ColumnType::Datetime => {
-                Some("time")
-            }
+            ColumnType::Date
+            | ColumnType::Time
+            | ColumnType::Timestamp
+            | ColumnType::Datetime => Some("time"),
             ColumnType::Json => Some("json"),
             ColumnType::NewDecimal => Some("bigdecimal"),
             _ => None,

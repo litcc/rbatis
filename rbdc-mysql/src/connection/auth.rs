@@ -1,15 +1,15 @@
-use bytes::buf::Chain;
-use bytes::Bytes;
+use bytes::{buf::Chain, Bytes};
 use digest::Digest;
 use rand::thread_rng;
+use rbdc::{err_protocol, Error};
 use rsa::{pkcs8::DecodePublicKey, Oaep, RsaPublicKey};
 use sha1::Sha1;
 use sha2::Sha256;
 
-use crate::connection::stream::MySqlStream;
-use crate::protocol::auth::AuthPlugin;
-use crate::protocol::Packet;
-use rbdc::{err_protocol, Error};
+use crate::{
+    connection::stream::MySqlStream,
+    protocol::{auth::AuthPlugin, Packet},
+};
 
 impl AuthPlugin {
     pub(super) async fn scramble(
@@ -25,7 +25,9 @@ impl AuthPlugin {
             AuthPlugin::MySqlNativePassword => Ok(scramble_sha1(password, nonce)),
 
             // https://mariadb.com/kb/en/sha256_password-plugin/
-            AuthPlugin::Sha256Password => encrypt_rsa(stream, 0x01, password, nonce).await,
+            AuthPlugin::Sha256Password => {
+                encrypt_rsa(stream, 0x01, password, nonce).await
+            }
         }
     }
 
@@ -44,7 +46,8 @@ impl AuthPlugin {
 
                     // AUTH_CONTINUE
                     0x04 => {
-                        let payload = encrypt_rsa(stream, 0x02, password, nonce).await?;
+                        let payload =
+                            encrypt_rsa(stream, 0x02, password, nonce).await?;
 
                         stream.write_packet(&*payload);
                         stream.flush().await?;
@@ -52,9 +55,10 @@ impl AuthPlugin {
                         Ok(false)
                     }
 
-                    v => {
-                        Err(err_protocol!("unexpected result from fast authentication 0x{:x} when expecting 0x03 (AUTH_OK) or 0x04 (AUTH_CONTINUE)", v))
-                    }
+                    v => Err(err_protocol!(
+                        "unexpected result from fast authentication 0x{:x} when expecting 0x03 (AUTH_OK) or 0x04 (AUTH_CONTINUE)",
+                        v
+                    )),
                 }
             }
 

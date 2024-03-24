@@ -1,13 +1,18 @@
-use crate::arguments::PgArgumentBuffer;
-use crate::type_info::PgTypeInfo;
-use crate::types::decode::Decode;
-use crate::types::encode::{Encode, IsNull};
-use crate::types::TypeInfo;
-use crate::value::{PgValue, PgValueFormat};
-use rbdc::json::Json;
-use rbdc::Error;
 use std::io::Write;
+
+use rbdc::{json::Json, Error};
 use rbs::Value;
+
+use crate::{
+    arguments::PgArgumentBuffer,
+    type_info::PgTypeInfo,
+    types::{
+        decode::Decode,
+        encode::{Encode, IsNull},
+        TypeInfo,
+    },
+    value::{PgValue, PgValueFormat},
+};
 
 impl Encode for Json {
     fn encode(self, buf: &mut PgArgumentBuffer) -> Result<IsNull, Error> {
@@ -72,7 +77,10 @@ pub fn decode_json(value: PgValue) -> Result<Value, Error> {
         );
         buf.remove(0);
     }
-    Ok(serde_json::from_str(&unsafe { String::from_utf8_unchecked(buf) }).map_err(|e| Error::from(e.to_string()))?)
+    Ok(
+        serde_json::from_str(&unsafe { String::from_utf8_unchecked(buf) })
+            .map_err(|e| Error::from(e.to_string()))?,
+    )
 }
 
 pub fn encode_json(v: Value, buf: &mut PgArgumentBuffer) -> Result<IsNull, Error> {

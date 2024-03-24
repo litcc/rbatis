@@ -1,8 +1,12 @@
-use crate::io::MySqlBufMutExt;
-use crate::types::{Decode, Encode};
-use crate::value::MySqlValue;
-use rbdc::Error;
 use std::fmt::{Debug, Display, Formatter};
+
+use rbdc::Error;
+
+use crate::{
+    io::MySqlBufMutExt,
+    types::{Decode, Encode},
+    value::MySqlValue,
+};
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, Eq, PartialEq)]
 #[serde(rename = "Geometry")]

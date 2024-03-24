@@ -1,16 +1,25 @@
-use crate::protocol::statement::StmtClose;
-use crate::protocol::text::{Ping, Quit};
-use crate::stmt::MySqlStatementMetadata;
+use std::{
+    fmt::{self, Debug, Formatter},
+    ops::{Deref, DerefMut},
+};
+
 use either::Either;
-use futures_core::future::BoxFuture;
-use futures_core::stream::BoxStream;
+use futures_core::{future::BoxFuture, stream::BoxStream};
 use futures_util::{FutureExt, StreamExt, TryStreamExt};
-use rbdc::common::StatementCache;
-use rbdc::db::{Connection, ExecResult, Row};
-use rbdc::Error;
+use rbdc::{
+    common::StatementCache,
+    db::{Connection, ExecResult, Row},
+    Error,
+};
 use rbs::Value;
-use std::fmt::{self, Debug, Formatter};
-use std::ops::{Deref, DerefMut};
+
+use crate::{
+    protocol::{
+        statement::StmtClose,
+        text::{Ping, Quit},
+    },
+    stmt::MySqlStatementMetadata,
+};
 
 mod auth;
 mod establish;
@@ -18,10 +27,9 @@ mod executor;
 mod stream;
 mod tls;
 
-use crate::query::MysqlQuery;
-use crate::query_result::MySqlQueryResult;
-use crate::row::MySqlRow;
 pub(crate) use stream::MySqlStream;
+
+use crate::{query::MysqlQuery, query_result::MySqlQueryResult, row::MySqlRow};
 
 const MAX_PACKET_SIZE: u32 = 1024;
 
@@ -148,7 +156,11 @@ impl Connection for MySqlConnection {
         })
     }
 
-    fn exec(&mut self, sql: &str, params: Vec<Value>) -> BoxFuture<Result<ExecResult, Error>> {
+    fn exec(
+        &mut self,
+        sql: &str,
+        params: Vec<Value>,
+    ) -> BoxFuture<Result<ExecResult, Error>> {
         let sql = sql.to_owned();
         Box::pin(async move {
             let many = {

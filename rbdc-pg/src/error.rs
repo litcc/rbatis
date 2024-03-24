@@ -1,5 +1,7 @@
-use std::error::Error;
-use std::fmt::{self, Debug, Display, Formatter};
+use std::{
+    error::Error,
+    fmt::{self, Debug, Display, Formatter},
+};
 
 use atoi::atoi;
 

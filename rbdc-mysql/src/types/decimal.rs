@@ -1,9 +1,12 @@
-use crate::io::MySqlBufMutExt;
-use crate::types::{Decode, Encode};
-use crate::value::MySqlValue;
-use rbdc::decimal::Decimal;
-use rbdc::Error;
 use std::str::FromStr;
+
+use rbdc::{decimal::Decimal, Error};
+
+use crate::{
+    io::MySqlBufMutExt,
+    types::{Decode, Encode},
+    value::MySqlValue,
+};
 
 impl Encode for Decimal {
     fn encode(self, buf: &mut Vec<u8>) -> Result<usize, Error> {

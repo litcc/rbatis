@@ -1,8 +1,12 @@
-use std::fmt::{self, Display, Formatter};
-use std::os::raw::c_int;
-use std::str::FromStr;
+use std::{
+    fmt::{self, Display, Formatter},
+    os::raw::c_int,
+    str::FromStr,
+};
 
-use libsqlite3_sys::{SQLITE_BLOB, SQLITE_FLOAT, SQLITE_INTEGER, SQLITE_NULL, SQLITE_TEXT};
+use libsqlite3_sys::{
+    SQLITE_BLOB, SQLITE_FLOAT, SQLITE_INTEGER, SQLITE_NULL, SQLITE_TEXT,
+};
 use rbdc::Error;
 use rbs::Value;
 
@@ -20,7 +24,9 @@ impl<T: Type> Type for Option<T> {
     }
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Debug, Copy, Clone, Eq, PartialEq, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub(crate) enum DataType {
     Null,
     Int,
@@ -41,7 +47,9 @@ pub(crate) enum DataType {
 }
 
 /// Type information for a SQLite type.
-#[derive(Debug, Clone, Eq, PartialEq, Hash, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Debug, Clone, Eq, PartialEq, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub struct SqliteTypeInfo(pub(crate) DataType);
 
 impl SqliteTypeInfo {
@@ -113,11 +121,15 @@ impl FromStr for DataType {
 
             _ if s.contains("int") => DataType::Int64,
 
-            _ if s.contains("char") || s.contains("clob") || s.contains("text") => DataType::Text,
+            _ if s.contains("char") || s.contains("clob") || s.contains("text") => {
+                DataType::Text
+            }
 
             _ if s.contains("blob") => DataType::Blob,
 
-            _ if s.contains("real") || s.contains("floa") || s.contains("doub") => DataType::Float,
+            _ if s.contains("real") || s.contains("floa") || s.contains("doub") => {
+                DataType::Float
+            }
 
             _ => {
                 return Err(format!("unknown type: `{}`", s).into());
@@ -141,6 +153,8 @@ impl Type for Value {
             Value::Binary(_) => SqliteTypeInfo(DataType::Blob),
             Value::Array(_) => SqliteTypeInfo(DataType::Null),
             Value::Map(_) => SqliteTypeInfo(DataType::Null),
+            #[cfg(feature = "option")]
+            Value::Some(v) => v.type_info(),
             Value::Ext(t, _) => match *t {
                 "Date" => SqliteTypeInfo(DataType::Text),
                 "DateTime" => SqliteTypeInfo(DataType::Text),

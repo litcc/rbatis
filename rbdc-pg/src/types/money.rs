@@ -1,11 +1,17 @@
-use crate::arguments::PgArgumentBuffer;
-use crate::types::decode::Decode;
-use crate::types::encode::{Encode, IsNull};
-use crate::value::{PgValue, PgValueFormat};
+use std::fmt::{Display, Formatter};
+
 use byteorder::{BigEndian, ByteOrder};
 use rbdc::Error;
 use rbs::Value;
-use std::fmt::{Display, Formatter};
+
+use crate::{
+    arguments::PgArgumentBuffer,
+    types::{
+        decode::Decode,
+        encode::{Encode, IsNull},
+    },
+    value::{PgValue, PgValueFormat},
+};
 
 /// The raw integer value sent over the wire; for locales with `frac_digits=2` (i.e. most
 /// of them), this will be the value in whole cents.

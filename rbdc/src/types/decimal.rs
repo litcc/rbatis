@@ -1,11 +1,18 @@
-use crate::Error;
+use std::{
+    cmp::Ordering,
+    fmt::{Debug, Display, Formatter},
+    ops::{
+        Add, AddAssign, Deref, DerefMut, Div, Mul, MulAssign, Neg, Rem, Sub,
+        SubAssign,
+    },
+    str::FromStr,
+};
+
 use bigdecimal::{BigDecimal, ParseBigDecimalError};
 use rbs::Value;
 use serde::Deserializer;
-use std::cmp::Ordering;
-use std::fmt::{Debug, Display, Formatter};
-use std::ops::{Add, AddAssign, Deref, DerefMut, Div, Mul, MulAssign, Neg, Rem, Sub, SubAssign};
-use std::str::FromStr;
+
+use crate::Error;
 
 #[derive(serde::Serialize, Clone, Eq, PartialEq, Hash)]
 #[serde(rename = "Decimal")]
@@ -25,7 +32,10 @@ impl<'de> serde::Deserialize<'de> for Decimal {
         use serde::de::Error;
         match Value::deserialize(deserializer)?.into_string() {
             None => Err(D::Error::custom("warn type decode Decimal")),
-            Some(v) => Ok(Decimal::from_str(&v).map_err(|e| D::Error::custom(e.to_string())))?,
+            Some(v) => {
+                Ok(Decimal::from_str(&v)
+                    .map_err(|e| D::Error::custom(e.to_string())))?
+            }
         }
     }
 }
@@ -156,9 +166,11 @@ impl SubAssign for Decimal {
 
 #[cfg(test)]
 mod test {
-    use crate::decimal::Decimal;
-    use rbs::{from_value, to_value};
     use std::str::FromStr;
+
+    use rbs::{from_value, to_value};
+
+    use crate::decimal::Decimal;
 
     #[test]
     fn test_add() {
@@ -202,7 +214,8 @@ mod test {
     #[test]
     fn test_ser2() {
         let v1 = Decimal::from_str("1").unwrap();
-        let rv: Decimal = serde_json::from_value(serde_json::to_value(v1).unwrap()).unwrap();
+        let rv: Decimal =
+            serde_json::from_value(serde_json::to_value(v1).unwrap()).unwrap();
         assert_eq!(rv, Decimal::from_str("1").unwrap());
     }
 }

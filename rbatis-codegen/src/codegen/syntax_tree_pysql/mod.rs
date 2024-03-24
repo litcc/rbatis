@@ -1,8 +1,8 @@
 /// this the py_sql syntax tree
 pub mod bind_node;
+pub mod break_node;
 pub mod choose_node;
 pub mod continue_node;
-pub mod break_node;
 pub mod error;
 pub mod foreach_node;
 pub mod if_node;
@@ -14,19 +14,13 @@ pub mod trim_node;
 pub mod when_node;
 pub mod where_node;
 
-use crate::codegen::syntax_tree_pysql::bind_node::BindNode;
-use crate::codegen::syntax_tree_pysql::break_node::BreakNode;
-use crate::codegen::syntax_tree_pysql::choose_node::ChooseNode;
-use crate::codegen::syntax_tree_pysql::continue_node::ContinueNode;
-use crate::codegen::syntax_tree_pysql::foreach_node::ForEachNode;
-use crate::codegen::syntax_tree_pysql::if_node::IfNode;
-use crate::codegen::syntax_tree_pysql::otherwise_node::OtherwiseNode;
-use crate::codegen::syntax_tree_pysql::set_node::SetNode;
-use crate::codegen::syntax_tree_pysql::sql_node::SqlNode;
-use crate::codegen::syntax_tree_pysql::string_node::StringNode;
-use crate::codegen::syntax_tree_pysql::trim_node::TrimNode;
-use crate::codegen::syntax_tree_pysql::when_node::WhenNode;
-use crate::codegen::syntax_tree_pysql::where_node::WhereNode;
+use crate::codegen::syntax_tree_pysql::{
+    bind_node::BindNode, break_node::BreakNode, choose_node::ChooseNode,
+    continue_node::ContinueNode, foreach_node::ForEachNode, if_node::IfNode,
+    otherwise_node::OtherwiseNode, set_node::SetNode, sql_node::SqlNode,
+    string_node::StringNode, trim_node::TrimNode, when_node::WhenNode,
+    where_node::WhereNode,
+};
 
 /// the pysql syntax tree
 #[derive(Clone, Debug, Eq, PartialEq)]

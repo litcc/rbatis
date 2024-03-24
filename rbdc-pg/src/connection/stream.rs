@@ -1,18 +1,21 @@
-use std::collections::BTreeMap;
-use std::ops::{Deref, DerefMut};
-use std::str::FromStr;
+use std::{
+    collections::BTreeMap,
+    ops::{Deref, DerefMut},
+    str::FromStr,
+};
 
 use bytes::{Buf, Bytes};
 use futures_channel::mpsc::UnboundedSender;
 use futures_util::SinkExt;
 use log::Level;
-use rbdc::err_protocol;
+use rbdc::{
+    err_protocol,
+    error::Error,
+    io::{BufStream, Decode, Encode},
+    net::{MaybeTlsStream, Socket},
+};
 
-use crate::message::*;
-use crate::options::PgConnectOptions;
-use rbdc::error::Error;
-use rbdc::io::{BufStream, Decode, Encode};
-use rbdc::net::{MaybeTlsStream, Socket};
+use crate::{message::*, options::PgConnectOptions};
 // the stream is a separate type from the connection to uphold the invariant where an instantiated
 // [PgConnection] is a **valid** connection to postgres
 
@@ -100,7 +103,10 @@ impl PgStream {
             match message.format {
                 MessageFormat::ErrorResponse => {
                     // An error returned from the database server.
-                    return Err(Error::from(format!("db:{:?}", message.decode::<Notice>()?)));
+                    return Err(Error::from(format!(
+                        "db:{:?}",
+                        message.decode::<Notice>()?
+                    )));
                 }
 
                 MessageFormat::NotificationResponse => {
@@ -138,7 +144,9 @@ impl PgStream {
                     let notice: Notice = message.decode()?;
 
                     let lvl = match notice.severity() {
-                        PgSeverity::Fatal | PgSeverity::Panic | PgSeverity::Error => Level::Error,
+                        PgSeverity::Fatal
+                        | PgSeverity::Panic
+                        | PgSeverity::Error => Level::Error,
                         PgSeverity::Warning => Level::Warn,
                         PgSeverity::Notice => Level::Info,
                         PgSeverity::Debug => Level::Debug,

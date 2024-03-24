@@ -1,14 +1,19 @@
-use crate::meta_data::MysqlMetaData;
-use crate::protocol;
-use crate::result_set::{MySqlColumn, MySqlTypeInfo};
-use crate::types::Decode;
-use crate::value::{MySqlValue, MySqlValueFormat, MySqlValueRef};
-use rbdc::db::{MetaData, Row};
-use rbdc::ext::ustr::UStr;
-use rbdc::Error;
+use std::{collections::HashMap, sync::Arc};
+
+use rbdc::{
+    db::{MetaData, Row},
+    ext::ustr::UStr,
+    Error,
+};
 use rbs::Value;
-use std::collections::HashMap;
-use std::sync::Arc;
+
+use crate::{
+    meta_data::MysqlMetaData,
+    protocol,
+    result_set::{MySqlColumn, MySqlTypeInfo},
+    types::Decode,
+    value::{MySqlValue, MySqlValueFormat, MySqlValueRef},
+};
 
 /// Implementation of [`Row`] for MySQL.
 #[derive(Debug)]

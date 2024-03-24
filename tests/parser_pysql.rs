@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod test {
-    use rbatis_codegen::codegen::parser_pysql::ParsePySql;
-    use rbatis_codegen::codegen::syntax_tree_pysql::if_node::IfNode;
-    use rbatis_codegen::codegen::syntax_tree_pysql::string_node::StringNode;
-    use rbatis_codegen::codegen::syntax_tree_pysql::NodeType;
+    use rbatis_codegen::codegen::{
+        parser_pysql::ParsePySql,
+        syntax_tree_pysql::{if_node::IfNode, string_node::StringNode, NodeType},
+    };
 
     #[test]
     fn test_parse_str() {

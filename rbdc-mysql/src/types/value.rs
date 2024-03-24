@@ -1,25 +1,28 @@
-use crate::io::MySqlBufMutExt;
-use crate::protocol::text::ColumnType;
-use crate::result_set::MySqlTypeInfo;
-use crate::types::decode::{
-    decode_date, decode_time, decode_timestamp, decode_year, f32_decode, f64_decode, int_decode,
-    uint_decode,
-};
-use crate::types::enums::Enum;
-use crate::types::set::Set;
-use crate::types::year::Year;
-use crate::types::{Decode, Encode, TypeInfo};
-use crate::value::MySqlValue;
-use rbdc::date::Date;
-use rbdc::datetime::DateTime;
-use rbdc::decimal::Decimal;
-use rbdc::timestamp::Timestamp;
-use rbdc::types::time::Time;
-use rbdc::uuid::Uuid;
-use rbdc::{Error, Json};
-use rbs::Value;
 use std::str::FromStr;
-use crate::types::json::{decode_json, encode_json};
+
+use rbdc::{
+    date::Date, datetime::DateTime, decimal::Decimal, timestamp::Timestamp,
+    types::time::Time, uuid::Uuid, Error, Json,
+};
+use rbs::Value;
+
+use crate::{
+    io::MySqlBufMutExt,
+    protocol::text::ColumnType,
+    result_set::MySqlTypeInfo,
+    types::{
+        decode::{
+            decode_date, decode_time, decode_timestamp, decode_year, f32_decode,
+            f64_decode, int_decode, uint_decode,
+        },
+        enums::Enum,
+        json::{decode_json, encode_json},
+        set::Set,
+        year::Year,
+        Decode, Encode, TypeInfo,
+    },
+    value::MySqlValue,
+};
 
 impl TypeInfo for Value {
     fn type_info(&self) -> MySqlTypeInfo {
@@ -36,6 +39,8 @@ impl TypeInfo for Value {
             Value::Binary(_) => MySqlTypeInfo::from_type(ColumnType::Blob),
             Value::Array(_) => MySqlTypeInfo::from_type(ColumnType::Json),
             Value::Map(_) => MySqlTypeInfo::from_type(ColumnType::Json),
+            #[cfg(feature = "option")]
+            Value::Some(v) => v.type_info(),
             Value::Ext(ext_type, _) => {
                 match *ext_type {
                     "Uuid" => MySqlTypeInfo::from_type(ColumnType::VarChar),
@@ -105,8 +110,10 @@ impl Encode for Value {
                 buf.put_bytes_lenenc(v);
                 Ok(0)
             }
-            Value::Array(v) => encode_json(Value::Array(v),buf),
-            Value::Map(v) => encode_json(Value::Map(v),buf),
+            Value::Array(v) => encode_json(Value::Array(v), buf),
+            Value::Map(v) => encode_json(Value::Map(v), buf),
+            #[cfg(feature = "option")]
+            Value::Some(v) => v.encode(buf),
             Value::Ext(ext_type, v) => {
                 match ext_type {
                     "Uuid" => {
@@ -118,7 +125,9 @@ impl Encode for Value {
                         .unwrap_or_default()
                         .encode(buf),
                     //year = "1993"
-                    "Year" => Year(v.as_u64().unwrap_or_default() as u16).encode(buf),
+                    "Year" => {
+                        Year(v.as_u64().unwrap_or_default() as u16).encode(buf)
+                    }
                     //Date = "1993-02-06"
                     "Date" => Date(fastdate::Date::from_str(
                         &v.into_string().unwrap_or_default(),
@@ -130,7 +139,9 @@ impl Encode for Value {
                     )?)
                     .encode(buf),
                     //RFC3339 = "2006-01-02 15:04:05.999999"
-                    "Timestamp" => Timestamp(v.as_i64().unwrap_or_default()).encode(buf),
+                    "Timestamp" => {
+                        Timestamp(v.as_i64().unwrap_or_default()).encode(buf)
+                    }
                     "DateTime" => DateTime(fastdate::DateTime::from_str(
                         &v.into_string().unwrap_or_default(),
                     )?)
@@ -138,7 +149,7 @@ impl Encode for Value {
                     "Json" => {
                         let json_str = v.into_string().unwrap_or_default();
                         Json(json_str).encode(buf)
-                    },
+                    }
                     "Enum" => Enum(v.into_string().unwrap_or_default()).encode(buf),
                     "Set" => Set(v.into_string().unwrap_or_default()).encode(buf),
                     _ => {
@@ -158,21 +169,39 @@ impl Decode for Value {
     {
         Ok(match v.type_info().r#type {
             ColumnType::Tiny => Value::I32(int_decode(v).unwrap_or_default() as i32),
-            ColumnType::Short => Value::I32(int_decode(v).unwrap_or_default() as i32),
+            ColumnType::Short => {
+                Value::I32(int_decode(v).unwrap_or_default() as i32)
+            }
             ColumnType::Long => Value::I64(int_decode(v).unwrap_or_default()),
             ColumnType::Float => Value::F32(f32_decode(v).unwrap_or_default()),
             ColumnType::Double => Value::F64(f64_decode(v).unwrap_or_default()),
             ColumnType::Null => Value::Null,
             ColumnType::LongLong => Value::I64(int_decode(v).unwrap_or_default()),
-            ColumnType::Int24 => Value::I32(int_decode(v).unwrap_or_default() as i32),
-            ColumnType::VarChar => Value::String(v.as_str().unwrap_or_default().to_string()),
+            ColumnType::Int24 => {
+                Value::I32(int_decode(v).unwrap_or_default() as i32)
+            }
+            ColumnType::VarChar => {
+                Value::String(v.as_str().unwrap_or_default().to_string())
+            }
             ColumnType::Bit => Value::U64(uint_decode(v).unwrap_or_default()),
-            ColumnType::TinyBlob => Value::Binary(v.as_bytes().unwrap_or_default().to_vec()),
-            ColumnType::MediumBlob => Value::Binary(v.as_bytes().unwrap_or_default().to_vec()),
-            ColumnType::LongBlob => Value::Binary(v.as_bytes().unwrap_or_default().to_vec()),
-            ColumnType::Blob => Value::Binary(v.as_bytes().unwrap_or_default().to_vec()),
-            ColumnType::VarString => Value::String(v.as_str().unwrap_or_default().to_string()),
-            ColumnType::String => Value::String(v.as_str().unwrap_or_default().to_string()),
+            ColumnType::TinyBlob => {
+                Value::Binary(v.as_bytes().unwrap_or_default().to_vec())
+            }
+            ColumnType::MediumBlob => {
+                Value::Binary(v.as_bytes().unwrap_or_default().to_vec())
+            }
+            ColumnType::LongBlob => {
+                Value::Binary(v.as_bytes().unwrap_or_default().to_vec())
+            }
+            ColumnType::Blob => {
+                Value::Binary(v.as_bytes().unwrap_or_default().to_vec())
+            }
+            ColumnType::VarString => {
+                Value::String(v.as_str().unwrap_or_default().to_string())
+            }
+            ColumnType::String => {
+                Value::String(v.as_str().unwrap_or_default().to_string())
+            }
             ColumnType::Timestamp => Value::Ext(
                 "Timestamp",
                 Box::new(Value::U64({

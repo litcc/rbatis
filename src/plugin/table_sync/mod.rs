@@ -3,8 +3,6 @@ pub mod mysql_mapper;
 pub mod pg_mapper;
 pub mod sqlite_mapper;
 
-use crate::executor::Executor;
-use crate::Error;
 use futures_core::future::BoxFuture;
 use log::debug;
 pub use mssql_mapper::*;
@@ -12,6 +10,8 @@ pub use mysql_mapper::*;
 pub use pg_mapper::*;
 use rbs::Value;
 pub use sqlite_mapper::*;
+
+use crate::{executor::Executor, Error};
 
 const PRIMARY_KEY: &'static str = " PRIMARY KEY ";
 
@@ -92,7 +92,9 @@ pub fn sync<'a>(
                     sql_column.push_str(k);
                     sql_column.push_str(" ");
                     sql_column.push_str(column_type.as_str());
-                    if column_type.is_empty() && k.eq("id") || v.as_str().unwrap_or_default() == "id" {
+                    if column_type.is_empty() && k.eq("id")
+                        || v.as_str().unwrap_or_default() == "id"
+                    {
                         sql_column.push_str(&PRIMARY_KEY);
                     }
                     sql_column.push_str(",");
@@ -110,7 +112,9 @@ pub fn sync<'a>(
                             for (k, v) in &m {
                                 let k = k.as_str().unwrap_or_default();
                                 let mut id_key = "";
-                                if k.eq("id") || v.as_str().unwrap_or_default() == "id" {
+                                if k.eq("id")
+                                    || v.as_str().unwrap_or_default() == "id"
+                                {
                                     id_key = &PRIMARY_KEY;
                                 }
                                 match executor

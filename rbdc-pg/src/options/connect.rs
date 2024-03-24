@@ -1,9 +1,12 @@
-use crate::connection::PgConnection;
-use crate::options::PgConnectOptions;
-use futures_core::future::BoxFuture;
-use rbdc::db::{ConnectOptions, Connection};
-use rbdc::error::Error;
 use std::str::FromStr;
+
+use futures_core::future::BoxFuture;
+use rbdc::{
+    db::{ConnectOptions, Connection},
+    error::Error,
+};
+
+use crate::{connection::PgConnection, options::PgConnectOptions};
 
 impl ConnectOptions for PgConnectOptions {
     fn connect(&self) -> BoxFuture<Result<Box<dyn Connection>, Error>> {
@@ -16,7 +19,8 @@ impl ConnectOptions for PgConnectOptions {
     }
 
     fn set_uri(&mut self, arg: &str) -> Result<(), Error> {
-        *self = PgConnectOptions::from_str(arg).map_err(|e| Error::from(e.to_string()))?;
+        *self = PgConnectOptions::from_str(arg)
+            .map_err(|e| Error::from(e.to_string()))?;
         Ok(())
     }
 }

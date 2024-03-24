@@ -1,11 +1,10 @@
-use bytes::buf::Chain;
-use bytes::{Buf, Bytes};
+use bytes::{buf::Chain, Buf, Bytes};
+use rbdc::{
+    io::{BufExt, Decode},
+    Error,
+};
 
-use crate::protocol::auth::AuthPlugin;
-use crate::protocol::response::Status;
-use crate::protocol::Capabilities;
-use rbdc::io::{BufExt, Decode};
-use rbdc::Error;
+use crate::protocol::{auth::AuthPlugin, response::Status, Capabilities};
 
 // https://dev.mysql.com/doc/internals/en/connection-phase-packets.html#packet-Protocol::Handshake
 // https://mariadb.com/kb/en/connection/#initial-handshake-packet
@@ -36,20 +35,23 @@ impl Decode<'_> for Handshake {
         buf.advance(1); // reserved: string<1>
 
         let capabilities_1 = buf.get_u16_le(); // int<2>
-        let mut capabilities = Capabilities::from_bits_truncate(capabilities_1.into());
+        let mut capabilities =
+            Capabilities::from_bits_truncate(capabilities_1.into());
 
         let collation = buf.get_u8(); // int<1>
         let status = Status::from_bits_truncate(buf.get_u16_le());
 
         let capabilities_2 = buf.get_u16_le(); // int<2>
-        capabilities |= Capabilities::from_bits_truncate(((capabilities_2 as u32) << 16).into());
+        capabilities |=
+            Capabilities::from_bits_truncate(((capabilities_2 as u32) << 16).into());
 
-        let auth_plugin_data_len = if capabilities.contains(Capabilities::PLUGIN_AUTH) {
-            buf.get_u8()
-        } else {
-            buf.advance(1); // int<1>
-            0
-        };
+        let auth_plugin_data_len =
+            if capabilities.contains(Capabilities::PLUGIN_AUTH) {
+                buf.get_u8()
+            } else {
+                buf.advance(1); // int<1>
+                0
+            };
 
         buf.advance(6); // reserved: string<6>
 
@@ -57,18 +59,20 @@ impl Decode<'_> for Handshake {
             buf.advance(4); // reserved: string<4>
         } else {
             let capabilities_3 = buf.get_u32_le(); // int<4>
-            capabilities |= Capabilities::from_bits_truncate((capabilities_3 as u64) << 32);
+            capabilities |=
+                Capabilities::from_bits_truncate((capabilities_3 as u64) << 32);
         }
 
-        let auth_plugin_data_2 = if capabilities.contains(Capabilities::SECURE_CONNECTION) {
-            let len = ((auth_plugin_data_len as isize) - 9).max(12) as usize;
-            let v = buf.get_bytes(len);
-            buf.advance(1); // NUL-terminator
+        let auth_plugin_data_2 =
+            if capabilities.contains(Capabilities::SECURE_CONNECTION) {
+                let len = ((auth_plugin_data_len as isize) - 9).max(12) as usize;
+                let v = buf.get_bytes(len);
+                buf.advance(1); // NUL-terminator
 
-            v
-        } else {
-            Bytes::new()
-        };
+                v
+            } else {
+                Bytes::new()
+            };
 
         let auth_plugin = if capabilities.contains(Capabilities::PLUGIN_AUTH) {
             Some(buf.get_str_nul()?.parse()?)
@@ -139,7 +143,10 @@ fn test_decode_handshake_mysql_8_0_18() {
 
     assert_eq!(
         &*p.auth_plugin_data.into_iter().collect::<Vec<_>>(),
-        &[17, 52, 97, 66, 48, 99, 6, 103, 116, 76, 3, 115, 15, 91, 52, 13, 108, 52, 46, 32,]
+        &[
+            17, 52, 97, 66, 48, 99, 6, 103, 116, 76, 3, 115, 15, 91, 52, 13, 108,
+            52, 46, 32,
+        ]
     );
 }
 
@@ -192,6 +199,9 @@ fn test_decode_handshake_mariadb_10_4_7() {
 
     assert_eq!(
         &*p.auth_plugin_data.into_iter().collect::<Vec<_>>(),
-        &[116, 54, 76, 92, 106, 34, 100, 83, 85, 49, 52, 79, 112, 104, 57, 34, 60, 72, 53, 110,]
+        &[
+            116, 54, 76, 92, 106, 34, 100, 83, 85, 49, 52, 79, 112, 104, 57, 34, 60,
+            72, 53, 110,
+        ]
     );
 }

@@ -1,27 +1,28 @@
-use super::MySqlStream;
-use crate::connection::stream::Waiting;
-use crate::connection::MySqlConnection;
-use crate::io::MySqlBufExt;
-use crate::protocol::response::Status;
-use crate::protocol::statement::{
-    BinaryRow, Execute as StatementExecute, Prepare, PrepareOk, StmtClose,
-};
-use crate::protocol::text::{ColumnDefinition, Query, TextRow};
-use crate::query::MysqlQuery;
-use crate::query_result::MySqlQueryResult;
-use crate::result_set::{MySqlColumn, MySqlTypeInfo};
-use crate::row::MySqlRow;
-use crate::stmt::{MySqlArguments, MySqlStatement, MySqlStatementMetadata};
-use crate::value::MySqlValueFormat;
+use std::{collections::HashMap, sync::Arc};
+
 use either::Either;
-use futures_core::future::BoxFuture;
-use futures_core::stream::BoxStream;
-use futures_core::Stream;
+use futures_core::{future::BoxFuture, stream::BoxStream, Stream};
 use futures_util::{pin_mut, TryStreamExt};
-use rbdc::ext::ustr::UStr;
-use rbdc::{try_stream, Error};
-use std::collections::HashMap;
-use std::sync::Arc;
+use rbdc::{ext::ustr::UStr, try_stream, Error};
+
+use super::MySqlStream;
+use crate::{
+    connection::{stream::Waiting, MySqlConnection},
+    io::MySqlBufExt,
+    protocol::{
+        response::Status,
+        statement::{
+            BinaryRow, Execute as StatementExecute, Prepare, PrepareOk, StmtClose,
+        },
+        text::{ColumnDefinition, Query, TextRow},
+    },
+    query::MysqlQuery,
+    query_result::MySqlQueryResult,
+    result_set::{MySqlColumn, MySqlTypeInfo},
+    row::MySqlRow,
+    stmt::{MySqlArguments, MySqlStatement, MySqlStatementMetadata},
+    value::MySqlValueFormat,
+};
 
 impl MySqlConnection {
     async fn get_or_prepare<'c>(
@@ -59,7 +60,8 @@ impl MySqlConnection {
         let mut columns = Vec::with_capacity(ok.columns as usize);
 
         let column_names = if ok.columns > 0 {
-            recv_result_metadata(&mut self.stream, ok.columns as usize, &mut columns).await?
+            recv_result_metadata(&mut self.stream, ok.columns as usize, &mut columns)
+                .await?
         } else {
             Default::default()
         };
@@ -73,7 +75,9 @@ impl MySqlConnection {
 
         if persistent && self.cache_statement.is_enabled() {
             // in case of the cache being full, close the least recently used statement
-            if let Some((id, _)) = self.cache_statement.insert(sql, (id, metadata.clone())) {
+            if let Some((id, _)) =
+                self.cache_statement.insert(sql, (id, metadata.clone()))
+            {
                 self.stream.send_packet(StmtClose { statement: id }).await?;
             }
         }
@@ -87,8 +91,10 @@ impl MySqlConnection {
         sql: &'q str,
         arguments: Option<MySqlArguments>,
         persistent: bool,
-    ) -> Result<impl Stream<Item = Result<Either<MySqlQueryResult, MySqlRow>, Error>> + 'e, Error>
-    {
+    ) -> Result<
+        impl Stream<Item = Result<Either<MySqlQueryResult, MySqlRow>, Error>> + 'e,
+        Error,
+    > {
         self.stream.wait_until_ready().await?;
         self.stream.waiting.push_back(Waiting::Result);
 
@@ -319,7 +325,10 @@ async fn recv_result_columns(
     Ok(())
 }
 
-fn recv_next_result_column(def: &ColumnDefinition, ordinal: usize) -> Result<MySqlColumn, Error> {
+fn recv_next_result_column(
+    def: &ColumnDefinition,
+    ordinal: usize,
+) -> Result<MySqlColumn, Error> {
     // if the alias is empty, use the alias
     // only then use the name
     let name = match (def.name()?, def.alias()?) {
@@ -355,7 +364,8 @@ async fn recv_result_metadata(
 
         let column = recv_next_result_column(&def, ordinal)?;
 
-        column_names.insert(column.name.clone(), (ordinal, column.type_info.clone()));
+        column_names
+            .insert(column.name.clone(), (ordinal, column.type_info.clone()));
         columns.push(column);
     }
 

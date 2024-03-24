@@ -1,10 +1,13 @@
 mod statement_cache;
 
-pub use crate::types::*;
+use std::{
+    fmt::{Debug, Formatter},
+    ops::{Deref, DerefMut},
+};
 
 pub use statement_cache::StatementCache;
-use std::fmt::{Debug, Formatter};
-use std::ops::{Deref, DerefMut};
+
+pub use crate::types::*;
 
 /// A wrapper for `Fn`s that provides a debug impl that just says "Function"
 pub struct DebugFn<F: ?Sized>(pub F);

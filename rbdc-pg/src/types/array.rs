@@ -1,13 +1,19 @@
-use crate::arguments::PgArgumentBuffer;
-use crate::type_info::{PgType, PgTypeInfo, PgTypeKind};
-use crate::types::decode::Decode;
-use crate::types::encode::{Encode, IsNull};
-use crate::types::{Oid, TypeInfo};
-use crate::value::{PgValue, PgValueFormat};
+use std::borrow::Cow;
+
 use bytes::Buf;
 use rbdc::Error;
 use rbs::Value;
-use std::borrow::Cow;
+
+use crate::{
+    arguments::PgArgumentBuffer,
+    type_info::{PgType, PgTypeInfo, PgTypeKind},
+    types::{
+        decode::Decode,
+        encode::{Encode, IsNull},
+        Oid, TypeInfo,
+    },
+    value::{PgValue, PgValueFormat},
+};
 
 impl<T: Decode + TypeInfo> Decode for Vec<T> {
     fn decode(value: PgValue) -> Result<Self, Error> {
@@ -27,7 +33,11 @@ impl<T: Decode + TypeInfo> Decode for Vec<T> {
                 }
 
                 if ndim != 1 {
-                    return Err(format!("encountered an array of {} dimensions; only one-dimensional arrays are supported", ndim).into());
+                    return Err(format!(
+						"encountered an array of {} dimensions; only one-dimensional arrays are supported",
+						ndim
+					)
+					.into());
                 }
 
                 // appears to have been used in the past to communicate potential NULLS
@@ -37,14 +47,17 @@ impl<T: Decode + TypeInfo> Decode for Vec<T> {
 
                 // the OID of the element
                 let element_type_oid = Oid(buf.get_u32());
-                let element_type_info: PgTypeInfo = PgTypeInfo::try_from_oid(element_type_oid)
-                    .or_else(|| value.type_info.try_array_element().map(Cow::into_owned))
-                    .ok_or_else(|| {
-                        Error::from(format!(
-                            "failed to resolve array element type for oid {}",
-                            element_type_oid.0
-                        ))
-                    })?;
+                let element_type_info: PgTypeInfo =
+                    PgTypeInfo::try_from_oid(element_type_oid)
+                        .or_else(|| {
+                            value.type_info.try_array_element().map(Cow::into_owned)
+                        })
+                        .ok_or_else(|| {
+                            Error::from(format!(
+                                "failed to resolve array element type for oid {}",
+                                element_type_oid.0
+                            ))
+                        })?;
 
                 // length of the array axis
                 let len = buf.get_i32();
@@ -176,7 +189,7 @@ impl Encode for Vec<Value> {
         let type_info = element_type_info(&self);
         buf.extend(&1_i32.to_be_bytes()); // number of dimensions
         buf.extend(&0_i32.to_be_bytes()); // flags
-                                          // element type
+        // element type
         match type_info.0 {
             PgType::DeclareWithName(name) => buf.patch_type_by_name(&name),
             ty => {

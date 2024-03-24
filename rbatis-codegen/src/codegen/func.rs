@@ -1,8 +1,8 @@
-use crate::error::Error;
 use proc_macro2::{Ident, Span};
-use quote::quote;
-use quote::ToTokens;
+use quote::{quote, ToTokens};
 use syn::{BinOp, Expr, Lit, Member};
+
+use crate::error::Error;
 
 ///translate like `#{a + b}` Expr to rust code Expr
 fn translate(context: &str, arg: Expr, ignore: &[String]) -> Result<Expr, Error> {
@@ -10,7 +10,8 @@ fn translate(context: &str, arg: Expr, ignore: &[String]) -> Result<Expr, Error>
         Expr::Path(b) => {
             let token = b.to_token_stream().to_string();
             if token == "null" {
-                return syn::parse_str::<Expr>("rbs::Value::Null").map_err(|e| Error::from(e));
+                return syn::parse_str::<Expr>("rbs::Value::Null")
+                    .map_err(|e| Error::from(e));
             }
             if token == "sql" {
                 return Ok(Expr::Path(b));
@@ -26,7 +27,8 @@ fn translate(context: &str, arg: Expr, ignore: &[String]) -> Result<Expr, Error>
                 return syn::parse_str::<Expr>(&format!("&arg[\"{}\"]", param))
                     .map_err(|e| Error::from(e));
             } else {
-                return syn::parse_str::<Expr>(&format!("{}", param)).map_err(|e| Error::from(e));
+                return syn::parse_str::<Expr>(&format!("{}", param))
+                    .map_err(|e| Error::from(e));
             }
         }
         Expr::MethodCall(mut b) => {
@@ -40,7 +42,9 @@ fn translate(context: &str, arg: Expr, ignore: &[String]) -> Result<Expr, Error>
             match b.op {
                 BinOp::Add(_) => {
                     let left_token = b.left.to_token_stream().to_string();
-                    if left_token.trim().ends_with("\"") && left_token.trim().starts_with("\"") {
+                    if left_token.trim().ends_with("\"")
+                        && left_token.trim().starts_with("\"")
+                    {
                         return syn::parse_str::<Expr>(&format!(
                             "(String::from({})).op_add({})",
                             b.left.to_token_stream(),
@@ -211,7 +215,7 @@ fn translate(context: &str, arg: Expr, ignore: &[String]) -> Result<Expr, Error>
                     return Err(Error::from(format!(
                         "unsupported token {}",
                         b.op.to_token_stream()
-                    )))
+                    )));
                 }
             }
             return Ok(Expr::Binary(b));
@@ -345,7 +349,8 @@ pub fn impl_fn(
         }
         .to_token_stream();
     } else {
-        let func_name_ident = Ident::new(&func_name_ident.to_string(), Span::call_site());
+        let func_name_ident =
+            Ident::new(&func_name_ident.to_string(), Span::call_site());
         return quote! {
             pub fn #func_name_ident(arg:&rbs::Value) -> rbs::Value {
                use rbatis_codegen::ops::*;

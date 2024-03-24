@@ -1,7 +1,9 @@
-use serde::ser::SerializeStruct;
-use serde::{Deserializer, Serializer};
-use std::sync::atomic::{AtomicU64, Ordering};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::{
+    sync::atomic::{AtomicU64, Ordering},
+    time::{SystemTime, UNIX_EPOCH},
+};
+
+use serde::{ser::SerializeStruct, Deserializer, Serializer};
 
 ///Snowflakes algorithm
 #[derive(Debug)]
@@ -56,7 +58,9 @@ impl Clone for Snowflake {
         Self {
             epoch: self.epoch,
             worker_id: self.worker_id,
-            last_timestamp: AtomicU64::new(self.last_timestamp.load(Ordering::Relaxed)),
+            last_timestamp: AtomicU64::new(
+                self.last_timestamp.load(Ordering::Relaxed),
+            ),
             sequence: AtomicU64::new(self.sequence.load(Ordering::Relaxed)),
         }
     }
@@ -146,11 +150,14 @@ pub fn new_snowflake_id() -> i64 {
 
 #[cfg(test)]
 mod test {
+    use std::{
+        collections::HashMap,
+        sync::atomic::{AtomicU64, Ordering},
+        thread::sleep,
+        time::Duration,
+    };
+
     use crate::snowflake::{new_snowflake_id, Snowflake};
-    use std::collections::HashMap;
-    use std::sync::atomic::{AtomicU64, Ordering};
-    use std::thread::sleep;
-    use std::time::Duration;
 
     #[test]
     fn test_gen() {

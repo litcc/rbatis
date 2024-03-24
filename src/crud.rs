@@ -62,18 +62,19 @@ macro_rules! crud {
 ///
 #[macro_export]
 macro_rules! impl_insert {
-    ($table:ty{}) => {
-        $crate::impl_insert!($table {},"");
-    };
-    ($table:ty{},$table_name:expr) => {
-        impl $table {
-            pub async fn insert_batch(
-                executor: &dyn $crate::executor::Executor,
-                tables: &[$table],
-                batch_size: u64,
-            ) -> std::result::Result<$crate::rbdc::db::ExecResult, $crate::rbdc::Error> {
-                #[$crate::py_sql(
-                    "`insert into ${table_name} `
+	($table:ty{}) => {
+		$crate::impl_insert!($table {}, "");
+	};
+	($table:ty{},$table_name:expr) => {
+		impl $table {
+			pub async fn insert_batch(
+				executor: &dyn $crate::executor::Executor,
+				tables: &[$table],
+				batch_size: u64,
+			) -> std::result::Result<$crate::rbdc::db::ExecResult, $crate::rbdc::Error>
+			{
+				#[$crate::py_sql(
+					"`insert into ${table_name} `
                     trim ',':
                      for idx,table in tables:
                       if idx == 0:
@@ -92,53 +93,59 @@ macro_rules! impl_insert {
                          #{v},
                       ),
                     "
-                )]
-                async fn insert_batch(
-                    executor: &dyn $crate::executor::Executor,
-                    tables: &[$table],
-                    table_name: &str,
-                ) -> std::result::Result<$crate::rbdc::db::ExecResult, $crate::rbdc::Error>
-                {
-                    impled!()
-                }
-                if tables.is_empty() {
-                    return Err($crate::rbdc::Error::from(
-                        "insert can not insert empty array tables!",
-                    ));
-                }
-                #[$crate::snake_name($table)]
-                fn snake_name(){}
-                let mut table_name = $table_name.to_string();
-                if table_name.is_empty(){
-                    table_name = snake_name();
-                }
-                let mut result = $crate::rbdc::db::ExecResult {
-                    rows_affected: 0,
-                    last_insert_id: rbs::Value::Null,
-                };
-                let ranges =
-                    $crate::plugin::Page::<()>::make_ranges(tables.len() as u64, batch_size);
-                for (offset, limit) in ranges {
-                    let exec_result = insert_batch(
-                        executor,
-                        &tables[offset as usize..limit as usize],
-                        table_name.as_str(),
-                    )
-                    .await?;
-                    result.rows_affected += exec_result.rows_affected;
-                    result.last_insert_id = exec_result.last_insert_id;
-                }
-                Ok(result)
-            }
+				)]
+				async fn insert_batch(
+					executor: &dyn $crate::executor::Executor,
+					tables: &[$table],
+					table_name: &str,
+				) -> std::result::Result<
+					$crate::rbdc::db::ExecResult,
+					$crate::rbdc::Error,
+				> {
+					impled!()
+				}
+				if tables.is_empty() {
+					return Err($crate::rbdc::Error::from(
+						"insert can not insert empty array tables!",
+					));
+				}
+				#[$crate::snake_name($table)]
+				fn snake_name() {}
+				let mut table_name = $table_name.to_string();
+				if table_name.is_empty() {
+					table_name = snake_name();
+				}
+				let mut result = $crate::rbdc::db::ExecResult {
+					rows_affected: 0,
+					last_insert_id: rbs::Value::Null,
+				};
+				let ranges = $crate::plugin::Page::<()>::make_ranges(
+					tables.len() as u64,
+					batch_size,
+				);
+				for (offset, limit) in ranges {
+					let exec_result = insert_batch(
+						executor,
+						&tables[offset as usize..limit as usize],
+						table_name.as_str(),
+					)
+					.await?;
+					result.rows_affected += exec_result.rows_affected;
+					result.last_insert_id = exec_result.last_insert_id;
+				}
+				Ok(result)
+			}
 
-            pub async fn insert(
-                executor: &dyn $crate::executor::Executor,
-                table: &$table,
-            ) -> std::result::Result<$crate::rbdc::db::ExecResult, $crate::rbdc::Error> {
-                <$table>::insert_batch(executor, std::slice::from_ref(table), 1).await
-            }
-        }
-    };
+			pub async fn insert(
+				executor: &dyn $crate::executor::Executor,
+				table: &$table,
+			) -> std::result::Result<$crate::rbdc::db::ExecResult, $crate::rbdc::Error>
+			{
+				<$table>::insert_batch(executor, std::slice::from_ref(table), 1)
+					.await
+			}
+		}
+	};
 }
 
 ///PySql: gen sql => SELECT (column1,column2,column3,...) FROM table_name (column1,column2,column3,...)  *** WHERE ***

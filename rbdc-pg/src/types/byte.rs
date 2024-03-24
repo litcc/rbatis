@@ -1,10 +1,16 @@
-use crate::arguments::PgArgumentBuffer;
-use crate::types::decode::Decode;
-use crate::types::encode::{Encode, IsNull};
-use crate::value::{PgValue, PgValueFormat};
+use std::fmt::{Display, Formatter};
+
 use rbdc::Error;
 use rbs::Value;
-use std::fmt::{Display, Formatter};
+
+use crate::{
+    arguments::PgArgumentBuffer,
+    types::{
+        decode::Decode,
+        encode::{Encode, IsNull},
+    },
+    value::{PgValue, PgValueFormat},
+};
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Eq, PartialEq)]
 #[serde(rename = "Bytea")]

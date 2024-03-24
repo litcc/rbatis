@@ -1,6 +1,6 @@
-use crate::result_set::MySqlTypeInfo;
-use crate::value::MySqlValue;
 use rbdc::Error;
+
+use crate::{result_set::MySqlTypeInfo, value::MySqlValue};
 
 pub mod date;
 pub mod datetime;

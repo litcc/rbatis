@@ -1,5 +1,6 @@
-use lru::LruCache;
 use std::num::NonZeroUsize;
+
+use lru::LruCache;
 
 /// A cache for prepared statements. When full, the least recently used
 /// statement gets removed.

@@ -1,8 +1,9 @@
-use crate::{SqliteColumn, SqliteTypeInfo};
+use std::{collections::HashMap, sync::Arc};
+
 use either::Either;
 use rbdc::ext::ustr::UStr;
-use std::collections::HashMap;
-use std::sync::Arc;
+
+use crate::{SqliteColumn, SqliteTypeInfo};
 
 mod handle;
 mod r#virtual;

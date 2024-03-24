@@ -1,6 +1,9 @@
+use std::{
+    error::Error,
+    fmt::{self, Debug, Display, Formatter},
+};
+
 use crate::protocol::response::ErrPacket;
-use std::error::Error;
-use std::fmt::{self, Debug, Display, Formatter};
 
 /// An error returned from the MySQL database.
 pub struct MySqlDatabaseError(pub(super) ErrPacket);

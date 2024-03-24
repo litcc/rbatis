@@ -16,6 +16,7 @@ homepage = "https://rbatis.github.io/rbatis.io"
 default = ["tls-rustls"]
 tls-rustls=["rbdc/tls-rustls"]
 tls-native-tls=["rbdc/tls-native-tls"]
+option = ["rbs/option"]
 [dependencies]
 rbs = { version = "4.5", path = "../rbs" }
 rbdc = { version = "4.5", path = "../rbdc", default-features = false, optional = true }

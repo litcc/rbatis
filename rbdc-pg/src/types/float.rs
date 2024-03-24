@@ -1,9 +1,14 @@
-use crate::arguments::PgArgumentBuffer;
-use crate::types::decode::Decode;
-use crate::types::encode::{Encode, IsNull};
-use crate::value::{PgValue, PgValueFormat};
 use byteorder::{BigEndian, ByteOrder};
 use rbdc::Error;
+
+use crate::{
+    arguments::PgArgumentBuffer,
+    types::{
+        decode::Decode,
+        encode::{Encode, IsNull},
+    },
+    value::{PgValue, PgValueFormat},
+};
 
 impl Decode for f64 {
     fn decode(value: PgValue) -> Result<Self, Error> {

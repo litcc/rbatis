@@ -1,11 +1,13 @@
-use crate::protocol::text::ColumnType;
-use crate::result_set::{MySqlColumn, MySqlTypeInfo};
-use crate::types::{Encode, TypeInfo};
-use rbdc::ext::ustr::UStr;
-use rbdc::Error;
+use std::{collections::HashMap, sync::Arc};
+
+use rbdc::{ext::ustr::UStr, Error};
 use rbs::Value;
-use std::collections::HashMap;
-use std::sync::Arc;
+
+use crate::{
+    protocol::text::ColumnType,
+    result_set::{MySqlColumn, MySqlTypeInfo},
+    types::{Encode, TypeInfo},
+};
 
 pub struct MySqlStatement {
     pub sql: String,

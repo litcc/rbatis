@@ -1,5 +1,6 @@
-use crate::table_sync::ColumMapper;
 use rbs::Value;
+
+use crate::table_sync::ColumMapper;
 
 pub struct MysqlTableMapper {}
 
@@ -35,6 +36,10 @@ impl ColumMapper for MysqlTableMapper {
             Value::Binary(_) => "BLOB".to_string(),
             Value::Array(_) => "JSON".to_string(),
             Value::Map(_) => "JSON".to_string(),
+
+            #[cfg(feature = "option")]
+            Value::Some(d) => self.get_column(column, &*d),
+
             Value::Ext(t, _v) => match *t {
                 "Date" => "DATE".to_string(),
                 "DateTime" => "DATETIME".to_string(),

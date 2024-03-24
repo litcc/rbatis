@@ -1,5 +1,6 @@
-use crate::ops::{Add, AsProxy};
 use rbs::Value;
+
+use crate::ops::{Add, AsProxy};
 
 fn op_add_u64(value: &Value, other: u64) -> u64 {
     value.u64() + other
@@ -98,6 +99,8 @@ fn op_add_value(left: Value, rhs: &Value) -> Value {
         Value::U64(s) => Value::U64(s + rhs.u64()),
         Value::F64(s) => Value::F64(s + rhs.f64()),
         Value::F32(v) => Value::F64(v as f64 + rhs.f64()),
+        #[cfg(feature = "option")]
+        Value::Some(v) => op_add_value(*v, rhs),
         Value::Ext(_, e) => op_add_value(*e, rhs),
         _ => Value::Null,
     }
@@ -329,8 +332,9 @@ impl Add<&&String> for &str {
 
 #[cfg(test)]
 mod test {
-    use crate::ops::Add;
     use rbs::{to_value, Value};
+
+    use crate::ops::Add;
 
     #[test]
     fn test_add() {

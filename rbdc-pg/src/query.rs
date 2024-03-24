@@ -1,7 +1,7 @@
-use crate::arguments::PgArguments;
-use crate::statement::PgStatement;
 use either::Either;
 use rbdc::Error;
+
+use crate::{arguments::PgArguments, statement::PgStatement};
 
 /// Raw SQL query with bind parameters. Returned by [`query`][crate::query::query].
 #[must_use = "query must be executed to affect database"]

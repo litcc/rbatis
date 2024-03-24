@@ -1,13 +1,13 @@
+use std::time::Duration;
+
 use dark_std::sync::AtomicDuration;
 use futures_core::future::BoxFuture;
-use rbdc::db::{Connection, ExecResult, Row};
-use rbdc::pool::conn_box::ConnectionBox;
-use rbdc::pool::conn_manager::ConnManager;
-use rbdc::pool::Pool;
-use rbdc::Error;
-use rbs::value::map::ValueMap;
-use rbs::Value;
-use std::time::Duration;
+use rbdc::{
+    db::{Connection, ExecResult, Row},
+    pool::{conn_box::ConnectionBox, conn_manager::ConnManager, Pool},
+    Error,
+};
+use rbs::{value::map::ValueMap, Value};
 
 #[derive(Debug)]
 pub struct FastPool {
@@ -57,7 +57,10 @@ impl Pool for FastPool {
         Ok(Box::new(proxy))
     }
 
-    async fn get_timeout(&self, mut d: Duration) -> Result<Box<dyn Connection>, Error> {
+    async fn get_timeout(
+        &self,
+        mut d: Duration,
+    ) -> Result<Box<dyn Connection>, Error> {
         if d.is_zero() {
             let state = self.inner.state();
             if state.in_use < state.max_open {
@@ -135,14 +138,22 @@ impl Connection for ConnManagerProxy {
         self.conn.as_mut().unwrap().get_rows(sql, params)
     }
 
-    fn get_values(&mut self, sql: &str, params: Vec<Value>) -> BoxFuture<Result<Vec<Value>, Error>> {
+    fn get_values(
+        &mut self,
+        sql: &str,
+        params: Vec<Value>,
+    ) -> BoxFuture<Result<Vec<Value>, Error>> {
         if self.conn.is_none() {
             return Box::pin(async { Err(Error::from("conn is drop")) });
         }
         self.conn.as_mut().unwrap().get_values(sql, params)
     }
 
-    fn exec(&mut self, sql: &str, params: Vec<Value>) -> BoxFuture<Result<ExecResult, Error>> {
+    fn exec(
+        &mut self,
+        sql: &str,
+        params: Vec<Value>,
+    ) -> BoxFuture<Result<ExecResult, Error>> {
         if self.conn.is_none() {
             return Box::pin(async { Err(Error::from("conn is drop")) });
         }

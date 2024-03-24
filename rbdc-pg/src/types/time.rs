@@ -1,12 +1,15 @@
-use rbdc::common::time::Time;
-use rbdc::Error;
-use std::str::FromStr;
-use std::time::Duration;
+use std::{str::FromStr, time::Duration};
 
-use crate::arguments::PgArgumentBuffer;
-use crate::types::decode::Decode;
-use crate::types::encode::{Encode, IsNull};
-use crate::value::{PgValue, PgValueFormat};
+use rbdc::{common::time::Time, Error};
+
+use crate::{
+    arguments::PgArgumentBuffer,
+    types::{
+        decode::Decode,
+        encode::{Encode, IsNull},
+    },
+    value::{PgValue, PgValueFormat},
+};
 
 impl Decode for Time {
     fn decode(value: PgValue) -> Result<Self, Error> {
@@ -42,7 +45,9 @@ impl Decode for Time {
                     hour: t.hour(),
                 }))
             }
-            PgValueFormat::Text => Ok(Time(fastdate::Time::from_str(value.as_str()?)?)),
+            PgValueFormat::Text => {
+                Ok(Time(fastdate::Time::from_str(value.as_str()?)?))
+            }
         }
     }
 }

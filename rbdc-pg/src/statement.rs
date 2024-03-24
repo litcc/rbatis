@@ -1,10 +1,9 @@
-use crate::column::PgColumn;
-use crate::type_info::PgTypeInfo;
+use std::{collections::HashMap, sync::Arc};
+
 use either::Either;
-use rbdc::ext::ustr::UStr;
-use rbdc::Error;
-use std::collections::HashMap;
-use std::sync::Arc;
+use rbdc::{ext::ustr::UStr, Error};
+
+use crate::{column::PgColumn, type_info::PgTypeInfo};
 
 #[derive(Debug, Clone)]
 pub struct PgStatement {

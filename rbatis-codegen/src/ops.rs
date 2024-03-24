@@ -1,6 +1,7 @@
-use rbs::Value;
 use std::cmp::Ordering;
 pub use std::ops::Index;
+
+use rbs::Value;
 
 /// convert Value to Value
 pub trait AsProxy {
@@ -40,6 +41,8 @@ impl AsProxy for Value {
     fn string(&self) -> String {
         match self {
             Value::String(v) => v.to_string(),
+            #[cfg(feature = "option")]
+            Value::Some(d) => d.string(),
             Value::Ext(_, ext) => ext.as_string().unwrap_or_default(),
             _ => self.to_string(),
         }
@@ -63,51 +66,27 @@ impl AsProxy for Value {
 
 impl AsProxy for bool {
     fn i32(&self) -> i32 {
-        if *self {
-            1
-        } else {
-            0
-        }
+        if *self { 1 } else { 0 }
     }
 
     fn i64(&self) -> i64 {
-        if *self {
-            1
-        } else {
-            0
-        }
+        if *self { 1 } else { 0 }
     }
 
     fn u32(&self) -> u32 {
-        if *self {
-            1
-        } else {
-            0
-        }
+        if *self { 1 } else { 0 }
     }
 
     fn u64(&self) -> u64 {
-        if *self {
-            1
-        } else {
-            0
-        }
+        if *self { 1 } else { 0 }
     }
 
     fn usize(&self) -> usize {
-        if *self {
-            1
-        } else {
-            0
-        }
+        if *self { 1 } else { 0 }
     }
 
     fn f64(&self) -> f64 {
-        if *self {
-            1.0
-        } else {
-            0.0
-        }
+        if *self { 1.0 } else { 0.0 }
     }
 
     fn bool(&self) -> bool {
@@ -119,11 +98,7 @@ impl AsProxy for bool {
     }
 
     fn as_binary(&self) -> Vec<u8> {
-        if *self {
-            vec![1u8]
-        } else {
-            vec![0u8]
-        }
+        if *self { vec![1u8] } else { vec![0u8] }
     }
 }
 
@@ -236,11 +211,7 @@ macro_rules! as_number {
 
             fn bool(&self) -> bool {
                 //*self==1
-                if *self == $bool_expr {
-                    true
-                } else {
-                    false
-                }
+                if *self == $bool_expr { true } else { false }
             }
 
             fn as_binary(&self) -> Vec<u8> {
@@ -578,8 +549,9 @@ pub trait Neg {
 
 #[cfg(test)]
 mod test {
-    use crate::ops::AsProxy;
     use rbs::to_value;
+
+    use crate::ops::AsProxy;
 
     #[test]
     fn test_cast() {

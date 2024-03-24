@@ -1,16 +1,16 @@
 use bytes::{Buf, Bytes};
+use rbdc::{io::Decode, Error};
 
-use crate::io::MySqlBufExt;
-use crate::protocol::Row;
-use crate::result_set::MySqlColumn;
-use rbdc::io::Decode;
-use rbdc::Error;
+use crate::{io::MySqlBufExt, protocol::Row, result_set::MySqlColumn};
 
 #[derive(Debug)]
 pub struct TextRow(pub Row);
 
 impl<'de> Decode<'de, &'de [MySqlColumn]> for TextRow {
-    fn decode_with(mut buf: Bytes, columns: &'de [MySqlColumn]) -> Result<Self, Error> {
+    fn decode_with(
+        mut buf: Bytes,
+        columns: &'de [MySqlColumn],
+    ) -> Result<Self, Error> {
         let storage = buf.clone();
         let offset = buf.len();
 

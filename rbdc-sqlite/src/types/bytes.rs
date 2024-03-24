@@ -1,9 +1,12 @@
-use crate::decode::Decode;
-use crate::encode::{Encode, IsNull};
-use crate::type_info::DataType;
-use crate::types::Type;
-use crate::{SqliteArgumentValue, SqliteTypeInfo, SqliteValue};
 use rbdc::error::Error;
+
+use crate::{
+    decode::Decode,
+    encode::{Encode, IsNull},
+    type_info::DataType,
+    types::Type,
+    SqliteArgumentValue, SqliteTypeInfo, SqliteValue,
+};
 
 impl Type for Vec<u8> {
     fn type_info(&self) -> SqliteTypeInfo {

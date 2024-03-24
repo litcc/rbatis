@@ -1,6 +1,7 @@
-use crate::{SqliteArguments, SqliteStatement};
 use either::Either;
 use rbdc::Error;
+
+use crate::{SqliteArguments, SqliteStatement};
 
 pub struct SqliteQuery {
     pub statement: Either<String, SqliteStatement>,

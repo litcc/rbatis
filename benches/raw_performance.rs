@@ -8,14 +8,16 @@
 #![feature(test)]
 extern crate test;
 
-use futures_core::future::BoxFuture;
-use rbatis::rbatis::RBatis;
-use rbatis::{impl_insert, impl_select};
-use rbdc::db::{ConnectOptions, Connection, Driver, ExecResult, Row};
-use rbdc::rt::block_on;
-use rbdc::Error;
-use rbs::Value;
 use std::any::Any;
+
+use futures_core::future::BoxFuture;
+use rbatis::{impl_insert, impl_select, rbatis::RBatis};
+use rbdc::{
+    db::{ConnectOptions, Connection, Driver, ExecResult, Row},
+    rt::block_on,
+    Error,
+};
+use rbs::Value;
 use test::Bencher;
 
 pub trait QPS {
@@ -164,7 +166,11 @@ impl Connection for MockConnection {
         Box::pin(async { Ok(vec![]) })
     }
 
-    fn exec(&mut self, sql: &str, params: Vec<Value>) -> BoxFuture<Result<ExecResult, Error>> {
+    fn exec(
+        &mut self,
+        sql: &str,
+        params: Vec<Value>,
+    ) -> BoxFuture<Result<ExecResult, Error>> {
         Box::pin(async {
             Ok(ExecResult {
                 rows_affected: 0,

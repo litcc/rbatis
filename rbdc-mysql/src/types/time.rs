@@ -1,10 +1,12 @@
-use bytes::Buf;
-use rbdc::types::time::Time;
-use rbdc::Error;
 use std::str::FromStr;
 
-use crate::types::{Decode, Encode};
-use crate::value::{MySqlValue, MySqlValueFormat};
+use bytes::Buf;
+use rbdc::{types::time::Time, Error};
+
+use crate::{
+    types::{Decode, Encode},
+    value::{MySqlValue, MySqlValueFormat},
+};
 
 impl Encode for Time {
     fn encode(self, buf: &mut Vec<u8>) -> Result<usize, Error> {
@@ -20,13 +22,7 @@ impl Decode for Time {
 
 impl Encode for fastdate::Time {
     fn encode(self, buf: &mut Vec<u8>) -> Result<usize, Error> {
-        let size = {
-            if self.nano == 0 {
-                3
-            } else {
-                7
-            }
-        };
+        let size = { if self.nano == 0 { 3 } else { 7 } };
         buf.push(size as u8);
 
         buf.push(self.hour as u8); //1

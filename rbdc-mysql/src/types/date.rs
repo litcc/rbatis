@@ -1,9 +1,12 @@
-use crate::types::{Decode, Encode};
-use crate::value::{MySqlValue, MySqlValueFormat};
-use byteorder::{ByteOrder, LittleEndian};
-use rbdc::date::Date;
-use rbdc::Error;
 use std::str::FromStr;
+
+use byteorder::{ByteOrder, LittleEndian};
+use rbdc::{date::Date, Error};
+
+use crate::{
+    types::{Decode, Encode},
+    value::{MySqlValue, MySqlValueFormat},
+};
 
 impl Encode for Date {
     fn encode(self, buf: &mut Vec<u8>) -> Result<usize, Error> {

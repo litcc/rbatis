@@ -1,5 +1,6 @@
-use crate::ops::Not;
 use rbs::Value;
+
+use crate::ops::Not;
 
 fn op_not(left: Value) -> Value {
     use std::ops::Not;
@@ -9,6 +10,8 @@ fn op_not(left: Value) -> Value {
         Value::U32(b) => Value::U32(b.not()),
         Value::U64(b) => Value::U64(b.not()),
         Value::Bool(b) => Value::Bool(b.not()),
+        #[cfg(feature = "option")]
+        Value::Some(v) => op_not(*v),
         Value::Ext(_, e) => op_not(*e),
         _ => Value::Null,
     }

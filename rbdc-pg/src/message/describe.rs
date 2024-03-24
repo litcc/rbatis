@@ -1,6 +1,6 @@
-use crate::io::PgBufMutExt;
-use crate::types::Oid;
 use rbdc::io::Encode;
+
+use crate::{io::PgBufMutExt, types::Oid};
 
 const DESCRIBE_PORTAL: u8 = b'P';
 const DESCRIBE_STATEMENT: u8 = b'S';

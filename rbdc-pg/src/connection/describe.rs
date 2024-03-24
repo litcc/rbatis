@@ -1,15 +1,16 @@
-use crate::column::PgColumn;
-use crate::connection::PgConnection;
-use crate::message::{ParameterDescription, RowDescription};
-use crate::type_info::{PgCustomType, PgType, PgTypeInfo, PgTypeKind};
-use crate::types::Oid;
+use std::{collections::HashMap, sync::Arc};
+
 use futures_core::future::BoxFuture;
-use rbdc::db::Connection;
-use rbdc::ext::ustr::UStr;
-use rbdc::Error;
+use rbdc::{db::Connection, ext::ustr::UStr, Error};
 use rbs::Value;
-use std::collections::HashMap;
-use std::sync::Arc;
+
+use crate::{
+    column::PgColumn,
+    connection::PgConnection,
+    message::{ParameterDescription, RowDescription},
+    type_info::{PgCustomType, PgType, PgTypeInfo, PgTypeKind},
+    types::Oid,
+};
 
 /// Describes the type of the `pg_type.typtype` column
 ///
@@ -181,7 +182,10 @@ impl PgConnection {
         }
     }
 
-    fn fetch_type_by_oid(&mut self, oid: Oid) -> BoxFuture<'_, Result<PgTypeInfo, Error>> {
+    fn fetch_type_by_oid(
+        &mut self,
+        oid: Oid,
+    ) -> BoxFuture<'_, Result<PgTypeInfo, Error>> {
         #[derive(serde::Serialize, serde::Deserialize)]
         pub struct PGType {
             pub typname: String,
@@ -209,8 +213,8 @@ impl PgConnection {
             };
             let rows =self.get_values("SELECT typname, typtype, typcategory, typrelid, typelem, typbasetype FROM pg_catalog.pg_type WHERE oid = $1", vec![oid.0.into()])
                 .await?;
-            let vs: Vec<PGType> =
-                rbs::from_value(Value::Array(rows)).map_err(|e| Error::from(e.to_string()))?;
+            let vs: Vec<PGType> = rbs::from_value(Value::Array(rows))
+                .map_err(|e| Error::from(e.to_string()))?;
             if let Some(x) = vs.into_iter().next() {
                 pg_type = x;
             }
@@ -265,7 +269,10 @@ impl PgConnection {
         })
     }
 
-    pub(crate) async fn fetch_type_id_by_name(&mut self, name: &str) -> Result<Oid, Error> {
+    pub(crate) async fn fetch_type_id_by_name(
+        &mut self,
+        name: &str,
+    ) -> Result<Oid, Error> {
         #[derive(serde::Serialize, serde::Deserialize)]
         pub struct V {
             pub oid: Oid,
@@ -282,8 +289,8 @@ impl PgConnection {
             )
             .await
             .map_err(|_| Error::from("TypeNotFound:".to_string() + name))?;
-        let vs: Vec<V> =
-            rbs::from_value(Value::Array(rows)).map_err(|e| Error::from(e.to_string()))?;
+        let vs: Vec<V> = rbs::from_value(Value::Array(rows))
+            .map_err(|e| Error::from(e.to_string()))?;
         if let Some(x) = vs.into_iter().next() {
             oid = x.oid;
         }
@@ -298,7 +305,8 @@ impl PgConnection {
         name: String,
     ) -> BoxFuture<'_, Result<PgTypeInfo, Error>> {
         Box::pin(async move {
-            let base_type = self.maybe_fetch_type_info_by_oid(base_type, true).await?;
+            let base_type =
+                self.maybe_fetch_type_info_by_oid(base_type, true).await?;
 
             Ok(PgTypeInfo(PgType::Custom(Arc::new(PgCustomType {
                 oid,
@@ -328,13 +336,14 @@ WHERE rngtypid = $1
                     vec![oid.0.into()],
                 )
                 .await?;
-            let vs: Vec<V> =
-                rbs::from_value(Value::Array(rows)).map_err(|e| Error::from(e.to_string()))?;
+            let vs: Vec<V> = rbs::from_value(Value::Array(rows))
+                .map_err(|e| Error::from(e.to_string()))?;
             let mut element_oid = Oid(0);
             if let Some(x) = vs.into_iter().next() {
                 element_oid = x.rngsubtype;
             }
-            let element = self.maybe_fetch_type_info_by_oid(element_oid, true).await?;
+            let element =
+                self.maybe_fetch_type_info_by_oid(element_oid, true).await?;
 
             Ok(PgTypeInfo(PgType::Custom(Arc::new(PgCustomType {
                 kind: PgTypeKind::Range(element),
@@ -344,7 +353,11 @@ WHERE rngtypid = $1
         })
     }
 
-    async fn fetch_enum_by_oid(&mut self, oid: Oid, name: String) -> Result<PgTypeInfo, Error> {
+    async fn fetch_enum_by_oid(
+        &mut self,
+        oid: Oid,
+        name: String,
+    ) -> Result<PgTypeInfo, Error> {
         #[derive(serde::Serialize, serde::Deserialize)]
         pub struct V {
             pub enumlabel: String,
@@ -360,8 +373,8 @@ ORDER BY enumsortorder
                 vec![oid.0.into()],
             )
             .await?;
-        let vs: Vec<V> =
-            rbs::from_value(Value::Array(rows)).map_err(|e| Error::from(e.to_string()))?;
+        let vs: Vec<V> = rbs::from_value(Value::Array(rows))
+            .map_err(|e| Error::from(e.to_string()))?;
 
         let mut variants = Vec::with_capacity(vs.len());
         for x in vs {
@@ -402,13 +415,14 @@ ORDER BY attnum
                 )
                 .await?;
 
-            let raw_fields: Vec<V> =
-                rbs::from_value(Value::Array(rows)).map_err(|e| Error::from(e.to_string()))?;
+            let raw_fields: Vec<V> = rbs::from_value(Value::Array(rows))
+                .map_err(|e| Error::from(e.to_string()))?;
 
             let mut fields = Vec::with_capacity(raw_fields.len());
 
             for v in raw_fields.into_iter() {
-                let field_type = self.maybe_fetch_type_info_by_oid(v.atttypid, true).await?;
+                let field_type =
+                    self.maybe_fetch_type_info_by_oid(v.atttypid, true).await?;
                 fields.push((v.attname, field_type));
             }
 

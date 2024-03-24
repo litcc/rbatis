@@ -1,15 +1,13 @@
 #[cfg(test)]
 mod test {
-    use rbdc::db::Placeholder;
-    use rbdc::impl_exchange;
+    use rbdc::{db::Placeholder, impl_exchange};
     use rbs::Value;
-
 
     #[test]
     fn test_bytes_iter() {
         let bytes1 = rbdc::Bytes::from(vec![1u8]);
-        for v in bytes1{
-            assert_eq!(v,1u8);
+        for v in bytes1 {
+            assert_eq!(v, 1u8);
         }
     }
 
@@ -59,6 +57,9 @@ mod test {
         let v = "insert into biz_activity (id,name,pc_link,h5_link,pc_banner_img,h5_banner_img,sort,status,remark,create_time,version,delete_flag) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
         let d = MyDriver {};
         let sql = d.exchange(v);
-        assert_eq!("insert into biz_activity (id,name,pc_link,h5_link,pc_banner_img,h5_banner_img,sort,status,remark,create_time,version,delete_flag) VALUES (@P1,@P2,@P3,@P4,@P5,@P6,@P7,@P8,@P9,@P10,@P11,@P12)", sql);
+        assert_eq!(
+            "insert into biz_activity (id,name,pc_link,h5_link,pc_banner_img,h5_banner_img,sort,status,remark,create_time,version,delete_flag) VALUES (@P1,@P2,@P3,@P4,@P5,@P6,@P7,@P8,@P9,@P10,@P11,@P12)",
+            sql
+        );
     }
 }

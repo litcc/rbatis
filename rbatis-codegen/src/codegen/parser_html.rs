@@ -1,18 +1,19 @@
-use std::collections::BTreeMap;
-use std::fs::File;
-use std::io::Read;
+use std::{collections::BTreeMap, fs::File, io::Read};
 
 use proc_macro2::{Ident, Span};
 use quote::{quote, ToTokens};
 use syn::{ItemFn, LitStr};
 use url::Url;
 
-use crate::codegen::loader_html::{load_html, Element};
-use crate::codegen::proc_macro::TokenStream;
-use crate::codegen::string_util::find_convert_string;
-use crate::codegen::ParseArgs;
-
-use crate::error::Error;
+use crate::{
+    codegen::{
+        loader_html::{load_html, Element},
+        proc_macro::TokenStream,
+        string_util::find_convert_string,
+        ParseArgs,
+    },
+    error::Error,
+};
 
 /// load a Map<id,Element>
 pub fn load_mapper_map(html: &str) -> Result<BTreeMap<String, Element>, Error> {
@@ -45,7 +46,11 @@ pub fn load_mapper_vec(html: &str) -> Result<Vec<Element>, Error> {
 }
 
 /// parse html to function TokenStream
-pub fn parse_html(html: &str, fn_name: &str, ignore: &mut Vec<String>) -> proc_macro2::TokenStream {
+pub fn parse_html(
+    html: &str,
+    fn_name: &str,
+    ignore: &mut Vec<String>,
+) -> proc_macro2::TokenStream {
     let html = html
         .replace("\\\"", "\"")
         .replace("\\n", "\n")
@@ -64,7 +69,10 @@ pub fn parse_html(html: &str, fn_name: &str, ignore: &mut Vec<String>) -> proc_m
     }
 }
 
-fn include_replace(htmls: Vec<Element>, sql_map: &mut BTreeMap<String, Element>) -> Vec<Element> {
+fn include_replace(
+    htmls: Vec<Element>,
+    sql_map: &mut BTreeMap<String, Element>,
+) -> Vec<Element> {
     let mut results = vec![];
     for mut x in htmls {
         match x.tag.as_str() {
@@ -79,12 +87,12 @@ fn include_replace(htmls: Vec<Element>, sql_map: &mut BTreeMap<String, Element>)
             }
             "include" => {
                 let ref_id = x
-                    .attrs
-                    .get("refid")
-                    .expect(
-                        "[rbatis-codegen] <include> element must have attr <include refid=\"\">!",
-                    )
-                    .clone();
+					.attrs
+					.get("refid")
+					.expect(
+						"[rbatis-codegen] <include> element must have attr <include refid=\"\">!",
+					)
+					.clone();
                 let url;
                 if ref_id.contains("://") {
                     url = Url::parse(&ref_id).expect(&format!(
@@ -92,12 +100,11 @@ fn include_replace(htmls: Vec<Element>, sql_map: &mut BTreeMap<String, Element>)
                         ref_id
                     ));
                 } else {
-                    url = Url::parse(&format!("current://current?refid={}", ref_id)).expect(
-                        &format!(
+                    url = Url::parse(&format!("current://current?refid={}", ref_id))
+                        .expect(&format!(
                             "[rbatis-codegen] parse <include refid=\"{}\"> fail!",
                             ref_id
-                        ),
-                    );
+                        ));
                 }
                 let path = url.host_str().unwrap_or_default().to_string()
                     + url.path().trim_end_matches("/").trim_end_matches("\\");
@@ -123,7 +130,9 @@ fn include_replace(htmls: Vec<Element>, sql_map: &mut BTreeMap<String, Element>)
                         let datas = load_mapper_vec(&html).expect("read fail");
                         let mut not_find = true;
                         for element in datas {
-                            if element.tag.eq("sql") && element.attrs.get("id").eq(&Some(&ref_id)) {
+                            if element.tag.eq("sql")
+                                && element.attrs.get("id").eq(&Some(&ref_id))
+                            {
                                 x = element.clone();
                                 not_find = false;
                             }
@@ -140,12 +149,12 @@ fn include_replace(htmls: Vec<Element>, sql_map: &mut BTreeMap<String, Element>)
                             }
                         }
                         let element = sql_map
-                            .get(ref_id_pair.as_str())
-                            .expect(&format!(
-                                "[rbatis-codegen] can not find element <include refid=\"{}\"> !",
-                                ref_id
-                            ))
-                            .clone();
+							.get(ref_id_pair.as_str())
+							.expect(&format!(
+								"[rbatis-codegen] can not find element <include refid=\"{}\"> !",
+								ref_id
+							))
+							.clone();
                         x = element;
                     }
                     _scheme => {
@@ -279,8 +288,10 @@ fn parse(
             }
             "trim" => {
                 let empty_string = String::new();
-                let prefix = x.attrs.get("prefix").unwrap_or(&empty_string).to_string();
-                let suffix = x.attrs.get("suffix").unwrap_or(&empty_string).to_string();
+                let prefix =
+                    x.attrs.get("prefix").unwrap_or(&empty_string).to_string();
+                let suffix =
+                    x.attrs.get("suffix").unwrap_or(&empty_string).to_string();
                 let prefix_overrides = x
                     .attrs
                     .get("start")
@@ -361,13 +372,15 @@ fn parse(
                 let mut inner_body = quote! {};
                 for x in &x.childs {
                     if x.tag.ne("when") && x.tag.ne("otherwise") {
-                        panic!("choose node's childs must be when node and otherwise node!");
+                        panic!(
+                            "choose node's childs must be when node and otherwise node!"
+                        );
                     }
                     if x.tag.eq("when") {
-                        let test_value = x
-                            .attrs
-                            .get("test")
-                            .expect(&format!("{} element must be have test field!", x.tag));
+                        let test_value = x.attrs.get("test").expect(&format!(
+                            "{} element must be have test field!",
+                            x.tag
+                        ));
                         let mut if_tag_body = quote! {};
                         if x.childs.len() != 0 {
                             if_tag_body = parse(&x.childs, methods, ignore, fn_name);
@@ -409,9 +422,11 @@ fn parse(
                     .unwrap_or(&empty_string)
                     .to_string();
                 let mut item = x.attrs.get("item").unwrap_or(&def_item).to_string();
-                let mut findex = x.attrs.get("index").unwrap_or(&def_index).to_string();
+                let mut findex =
+                    x.attrs.get("index").unwrap_or(&def_index).to_string();
                 let open = x.attrs.get("open").unwrap_or(&empty_string).to_string();
-                let close = x.attrs.get("close").unwrap_or(&empty_string).to_string();
+                let close =
+                    x.attrs.get("close").unwrap_or(&empty_string).to_string();
                 let separator = x
                     .attrs
                     .get("separator")
@@ -478,7 +493,8 @@ fn parse(
 
             "set" => {
                 impl_trim(
-                    " set ", " ", " |,", " |,", x, &mut body, arg, methods, ignore, fn_name,
+                    " set ", " ", " |,", " |,", x, &mut body, arg, methods, ignore,
+                    fn_name,
                 );
             }
 
@@ -598,20 +614,27 @@ fn remove_extra(txt: &str) -> String {
     data
 }
 
-fn impl_continue(_x: &Element, body: &mut proc_macro2::TokenStream, _ignore: &mut Vec<String>) {
+fn impl_continue(
+    _x: &Element,
+    body: &mut proc_macro2::TokenStream,
+    _ignore: &mut Vec<String>,
+) {
     *body = quote! {
          #body
          continue
     };
 }
 
-fn impl_break(_x: &Element, body: &mut proc_macro2::TokenStream, _ignore: &mut Vec<String>) {
+fn impl_break(
+    _x: &Element,
+    body: &mut proc_macro2::TokenStream,
+    _ignore: &mut Vec<String>,
+) {
     *body = quote! {
          #body
          break
     };
 }
-
 
 fn impl_if(
     test_value: &str,

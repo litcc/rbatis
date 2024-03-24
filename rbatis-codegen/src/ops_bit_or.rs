@@ -1,5 +1,6 @@
-use crate::ops::BitOr;
 use rbs::Value;
+
+use crate::ops::BitOr;
 
 impl BitOr for Value {
     type Output = bool;

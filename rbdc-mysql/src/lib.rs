@@ -17,5 +17,4 @@ pub mod row;
 pub mod types;
 pub mod value;
 
-pub use driver::MysqlDriver;
-pub use driver::MysqlDriver as Driver;
+pub use driver::{MysqlDriver, MysqlDriver as Driver};

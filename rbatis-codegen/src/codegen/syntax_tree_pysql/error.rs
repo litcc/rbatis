@@ -1,7 +1,9 @@
 //! Errorand Result types.
-use std::error::Error as StdError;
-use std::fmt::{self, Debug, Display};
-use std::io;
+use std::{
+    error::Error as StdError,
+    fmt::{self, Debug, Display},
+    io,
+};
 
 pub type Result<T> = std::result::Result<T, Error>;
 

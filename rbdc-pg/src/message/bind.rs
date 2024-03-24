@@ -1,7 +1,6 @@
-use crate::io::PgBufMutExt;
-use crate::types::Oid;
-use crate::value::PgValueFormat;
 use rbdc::io::Encode;
+
+use crate::{io::PgBufMutExt, types::Oid, value::PgValueFormat};
 
 #[derive(Debug)]
 pub struct Bind<'a> {

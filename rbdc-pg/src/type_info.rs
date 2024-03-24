@@ -1,11 +1,15 @@
 #![allow(dead_code)]
 
-use crate::types::Oid;
+use std::{
+    borrow::Cow,
+    fmt::{self, Display, Formatter},
+    ops::Deref,
+    sync::Arc,
+};
+
 use rbdc::ext::ustr::UStr;
-use std::borrow::Cow;
-use std::fmt::{self, Display, Formatter};
-use std::ops::Deref;
-use std::sync::Arc;
+
+use crate::types::Oid;
 
 /// Type information for a PostgreSQL type.
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -668,7 +672,9 @@ impl PgType {
             PgType::Circle => &PgTypeKind::Simple,
             PgType::CircleArray => &PgTypeKind::Array(PgTypeInfo(PgType::Circle)),
             PgType::Macaddr8 => &PgTypeKind::Simple,
-            PgType::Macaddr8Array => &PgTypeKind::Array(PgTypeInfo(PgType::Macaddr8)),
+            PgType::Macaddr8Array => {
+                &PgTypeKind::Array(PgTypeInfo(PgType::Macaddr8))
+            }
             PgType::Macaddr => &PgTypeKind::Simple,
             PgType::Inet => &PgTypeKind::Simple,
             PgType::BoolArray => &PgTypeKind::Array(PgTypeInfo(PgType::Bool)),
@@ -696,13 +702,19 @@ impl PgType {
             PgType::Date => &PgTypeKind::Simple,
             PgType::Time => &PgTypeKind::Simple,
             PgType::Timestamp => &PgTypeKind::Simple,
-            PgType::TimestampArray => &PgTypeKind::Array(PgTypeInfo(PgType::Timestamp)),
+            PgType::TimestampArray => {
+                &PgTypeKind::Array(PgTypeInfo(PgType::Timestamp))
+            }
             PgType::DateArray => &PgTypeKind::Array(PgTypeInfo(PgType::Date)),
             PgType::TimeArray => &PgTypeKind::Array(PgTypeInfo(PgType::Time)),
             PgType::Timestamptz => &PgTypeKind::Simple,
-            PgType::TimestamptzArray => &PgTypeKind::Array(PgTypeInfo(PgType::Timestamptz)),
+            PgType::TimestamptzArray => {
+                &PgTypeKind::Array(PgTypeInfo(PgType::Timestamptz))
+            }
             PgType::Interval => &PgTypeKind::Simple,
-            PgType::IntervalArray => &PgTypeKind::Array(PgTypeInfo(PgType::Interval)),
+            PgType::IntervalArray => {
+                &PgTypeKind::Array(PgTypeInfo(PgType::Interval))
+            }
             PgType::NumericArray => &PgTypeKind::Array(PgTypeInfo(PgType::Numeric)),
             PgType::Timetz => &PgTypeKind::Simple,
             PgType::TimetzArray => &PgTypeKind::Array(PgTypeInfo(PgType::Timetz)),
@@ -718,19 +730,31 @@ impl PgType {
             PgType::Jsonb => &PgTypeKind::Simple,
             PgType::JsonbArray => &PgTypeKind::Array(PgTypeInfo(PgType::Jsonb)),
             PgType::Int4Range => &PgTypeKind::Range(PgTypeInfo::INT4),
-            PgType::Int4RangeArray => &PgTypeKind::Array(PgTypeInfo(PgType::Int4Range)),
+            PgType::Int4RangeArray => {
+                &PgTypeKind::Array(PgTypeInfo(PgType::Int4Range))
+            }
             PgType::NumRange => &PgTypeKind::Range(PgTypeInfo::NUMERIC),
-            PgType::NumRangeArray => &PgTypeKind::Array(PgTypeInfo(PgType::NumRange)),
+            PgType::NumRangeArray => {
+                &PgTypeKind::Array(PgTypeInfo(PgType::NumRange))
+            }
             PgType::TsRange => &PgTypeKind::Range(PgTypeInfo::TIMESTAMP),
             PgType::TsRangeArray => &PgTypeKind::Array(PgTypeInfo(PgType::TsRange)),
             PgType::TstzRange => &PgTypeKind::Range(PgTypeInfo::TIMESTAMPTZ),
-            PgType::TstzRangeArray => &PgTypeKind::Array(PgTypeInfo(PgType::TstzRange)),
+            PgType::TstzRangeArray => {
+                &PgTypeKind::Array(PgTypeInfo(PgType::TstzRange))
+            }
             PgType::DateRange => &PgTypeKind::Range(PgTypeInfo::DATE),
-            PgType::DateRangeArray => &PgTypeKind::Array(PgTypeInfo(PgType::DateRange)),
+            PgType::DateRangeArray => {
+                &PgTypeKind::Array(PgTypeInfo(PgType::DateRange))
+            }
             PgType::Int8Range => &PgTypeKind::Range(PgTypeInfo::INT8),
-            PgType::Int8RangeArray => &PgTypeKind::Array(PgTypeInfo(PgType::Int8Range)),
+            PgType::Int8RangeArray => {
+                &PgTypeKind::Array(PgTypeInfo(PgType::Int8Range))
+            }
             PgType::Jsonpath => &PgTypeKind::Simple,
-            PgType::JsonpathArray => &PgTypeKind::Array(PgTypeInfo(PgType::Jsonpath)),
+            PgType::JsonpathArray => {
+                &PgTypeKind::Array(PgTypeInfo(PgType::Jsonpath))
+            }
             PgType::Money => &PgTypeKind::Simple,
             PgType::MoneyArray => &PgTypeKind::Array(PgTypeInfo(PgType::Money)),
 
@@ -739,10 +763,16 @@ impl PgType {
             PgType::Custom(ty) => &ty.kind,
 
             PgType::DeclareWithOid(oid) => {
-                unreachable!("(bug) use of unresolved type declaration [oid={}]", oid.0);
+                unreachable!(
+                    "(bug) use of unresolved type declaration [oid={}]",
+                    oid.0
+                );
             }
             PgType::DeclareWithName(name) => {
-                unreachable!("(bug) use of unresolved type declaration [name={}]", name);
+                unreachable!(
+                    "(bug) use of unresolved type declaration [name={}]",
+                    name
+                );
             }
         }
     }
@@ -811,9 +841,13 @@ impl PgType {
             PgType::Time => None,
             PgType::TimeArray => Some(Cow::Owned(PgTypeInfo(PgType::Time))),
             PgType::Timestamp => None,
-            PgType::TimestampArray => Some(Cow::Owned(PgTypeInfo(PgType::Timestamp))),
+            PgType::TimestampArray => {
+                Some(Cow::Owned(PgTypeInfo(PgType::Timestamp)))
+            }
             PgType::Timestamptz => None,
-            PgType::TimestamptzArray => Some(Cow::Owned(PgTypeInfo(PgType::Timestamptz))),
+            PgType::TimestamptzArray => {
+                Some(Cow::Owned(PgTypeInfo(PgType::Timestamptz)))
+            }
             PgType::Interval => None,
             PgType::IntervalArray => Some(Cow::Owned(PgTypeInfo(PgType::Interval))),
             PgType::Timetz => None,
@@ -831,17 +865,25 @@ impl PgType {
             PgType::Jsonb => None,
             PgType::JsonbArray => Some(Cow::Owned(PgTypeInfo(PgType::Jsonb))),
             PgType::Int4Range => None,
-            PgType::Int4RangeArray => Some(Cow::Owned(PgTypeInfo(PgType::Int4Range))),
+            PgType::Int4RangeArray => {
+                Some(Cow::Owned(PgTypeInfo(PgType::Int4Range)))
+            }
             PgType::NumRange => None,
             PgType::NumRangeArray => Some(Cow::Owned(PgTypeInfo(PgType::NumRange))),
             PgType::TsRange => None,
             PgType::TsRangeArray => Some(Cow::Owned(PgTypeInfo(PgType::TsRange))),
             PgType::TstzRange => None,
-            PgType::TstzRangeArray => Some(Cow::Owned(PgTypeInfo(PgType::TstzRange))),
+            PgType::TstzRangeArray => {
+                Some(Cow::Owned(PgTypeInfo(PgType::TstzRange)))
+            }
             PgType::DateRange => None,
-            PgType::DateRangeArray => Some(Cow::Owned(PgTypeInfo(PgType::DateRange))),
+            PgType::DateRangeArray => {
+                Some(Cow::Owned(PgTypeInfo(PgType::DateRange)))
+            }
             PgType::Int8Range => None,
-            PgType::Int8RangeArray => Some(Cow::Owned(PgTypeInfo(PgType::Int8Range))),
+            PgType::Int8RangeArray => {
+                Some(Cow::Owned(PgTypeInfo(PgType::Int8Range)))
+            }
             PgType::Jsonpath => None,
             PgType::JsonpathArray => Some(Cow::Owned(PgTypeInfo(PgType::Jsonpath))),
             // There is no `UnknownArray`
@@ -853,15 +895,23 @@ impl PgType {
                 PgTypeKind::Pseudo => None,
                 PgTypeKind::Domain(_) => None,
                 PgTypeKind::Composite(_) => None,
-                PgTypeKind::Array(ref elem_type_info) => Some(Cow::Borrowed(elem_type_info)),
+                PgTypeKind::Array(ref elem_type_info) => {
+                    Some(Cow::Borrowed(elem_type_info))
+                }
                 PgTypeKind::Enum(_) => None,
                 PgTypeKind::Range(_) => None,
             },
             PgType::DeclareWithOid(oid) => {
-                unreachable!("(bug) use of unresolved type declaration [oid={}]", oid.0);
+                unreachable!(
+                    "(bug) use of unresolved type declaration [oid={}]",
+                    oid.0
+                );
             }
             PgType::DeclareWithName(name) => {
-                unreachable!("(bug) use of unresolved type declaration [name={}]", name);
+                unreachable!(
+                    "(bug) use of unresolved type declaration [name={}]",
+                    name
+                );
             }
         }
     }

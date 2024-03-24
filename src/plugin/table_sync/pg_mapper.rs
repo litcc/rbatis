@@ -1,5 +1,6 @@
-use crate::table_sync::ColumMapper;
 use rbs::Value;
+
+use crate::table_sync::ColumMapper;
 
 pub struct PGTableMapper {}
 impl ColumMapper for PGTableMapper {
@@ -23,6 +24,10 @@ impl ColumMapper for PGTableMapper {
             Value::Binary(_) => "BYTEA".to_string(),
             Value::Array(_) => "JSON".to_string(),
             Value::Map(_) => "JSON".to_string(),
+
+            #[cfg(feature = "option")]
+            Value::Some(d) => self.get_column(_column, &*d),
+
             Value::Ext(t, _v) => match *t {
                 "Date" => "DATE".to_string(),
                 "DateTime" => "TIMESTAMP".to_string(),

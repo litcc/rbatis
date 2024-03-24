@@ -2,10 +2,7 @@ use std::str::from_utf8;
 
 use bytes::Bytes;
 use memchr::memchr;
-use rbdc::err_protocol;
-
-use rbdc::error::Error;
-use rbdc::io::Decode;
+use rbdc::{err_protocol, error::Error, io::Decode};
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 #[repr(u8)]
@@ -102,7 +99,8 @@ impl Notice {
     #[inline]
     fn get_cached_str(&self, cache: (u16, u16)) -> &str {
         // unwrap: this cannot fail at this stage
-        from_utf8(&self.storage[cache.0 as usize..cache.1 as usize]).unwrap_or_default()
+        from_utf8(&self.storage[cache.0 as usize..cache.1 as usize])
+            .unwrap_or_default()
     }
 }
 

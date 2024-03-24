@@ -4,10 +4,13 @@
 //!
 //! ```
 //! ```
+use std::{
+    fmt::{self, Debug, Display},
+    hash::{Hash, Hasher},
+    ops::Deref,
+};
+
 use crate::value::map::ValueMap;
-use std::fmt::{self, Debug, Display};
-use std::hash::{Hash, Hasher};
-use std::ops::Deref;
 
 pub mod ext;
 pub mod map;
@@ -17,6 +20,9 @@ pub mod map;
 pub enum Value {
     /// null
     Null,
+    /// Nestable optional types
+    #[cfg(feature = "option")]
+    Some(Box<Self>),
     /// true or false
     Bool(bool),
     /// Int32
@@ -55,10 +61,23 @@ impl Value {
     /// ```
     #[inline]
     pub fn is_null(&self) -> bool {
-        if let Value::Null = *self {
-            true
-        } else {
-            false
+        if let Value::Null = *self { true } else { false }
+    }
+
+    /// Returns true if the `Value` is an Some. Returns false otherwise.
+    #[cfg(feature = "option")]
+    #[inline]
+    pub fn is_some(&self) -> bool {
+        self.as_some().is_some()
+    }
+
+    /// Returns true if `Value` is set Some(None). otherwise returns false.
+    #[cfg(feature = "option")]
+    #[inline]
+    pub fn is_some_null(&self) -> bool {
+        match self.as_some() {
+            None => false,
+            Some(d) => d.is_null(),
         }
     }
 
@@ -166,7 +185,9 @@ impl Value {
     /// ```
     pub fn is_number(&self) -> bool {
         match *self {
-            Value::I64(..) | Value::U64(..) | Value::F32(..) | Value::F64(..) => true,
+            Value::I64(..) | Value::U64(..) | Value::F32(..) | Value::F64(..) => {
+                true
+            }
             _ => false,
         }
     }
@@ -227,6 +248,8 @@ impl Value {
     pub fn as_bool(&self) -> Option<bool> {
         match self {
             Value::Bool(v) => Some(*v),
+            #[cfg(feature = "option")]
+            Value::Some(d) => d.as_bool(),
             Value::Ext(_, e) => e.as_bool(),
             _ => None,
         }
@@ -244,6 +267,8 @@ impl Value {
             Value::U32(ref n) => Some(n.to_owned() as i64),
             Value::I64(ref n) => Some(n.to_owned()),
             Value::I32(ref n) => Some(n.to_owned() as i64),
+            #[cfg(feature = "option")]
+            Value::Some(ref d) => d.as_i64(),
             Value::Ext(_, ref e) => e.as_i64(),
             _ => None,
         }
@@ -261,6 +286,8 @@ impl Value {
             Value::I32(ref n) => Some(n.to_owned() as u64),
             Value::U64(ref n) => Some(n.to_owned()),
             Value::U32(ref n) => Some(n.to_owned() as u64),
+            #[cfg(feature = "option")]
+            Value::Some(ref d) => d.as_u64(),
             Value::Ext(_, ref e) => e.as_u64(),
             _ => None,
         }
@@ -290,6 +317,8 @@ impl Value {
             Value::U64(n) => Some(n as f64),
             Value::F32(n) => Some(From::from(n)),
             Value::F64(n) => Some(n),
+            #[cfg(feature = "option")]
+            Value::Some(ref d) => d.as_f64(),
             Value::Ext(_, ref e) => e.as_f64(),
             _ => None,
         }
@@ -311,6 +340,8 @@ impl Value {
     pub fn as_str(&self) -> Option<&str> {
         match self {
             Value::String(s) => Some(s),
+            #[cfg(feature = "option")]
+            Value::Some(val) => val.as_str(),
             Value::Ext(_, s) => s.as_str(),
             _ => None,
         }
@@ -321,6 +352,8 @@ impl Value {
         match self {
             Value::String(v) => Some(v.to_string()),
             Value::Ext(_, ext) => ext.as_string(),
+            #[cfg(feature = "option")]
+            Value::Some(val) => val.as_string(),
             _ => None,
         }
     }
@@ -329,6 +362,8 @@ impl Value {
     pub fn into_string(self) -> Option<String> {
         match self {
             Value::String(v) => Some(v),
+            #[cfg(feature = "option")]
+            Value::Some(val) => val.into_string(),
             Value::Ext(_, ext) => ext.into_string(),
             _ => None,
         }
@@ -339,6 +374,8 @@ impl Value {
     pub fn into_bytes(self) -> Option<Vec<u8>> {
         match self {
             Value::Binary(v) => Some(v),
+            #[cfg(feature = "option")]
+            Value::Some(val) => val.into_bytes(),
             Value::Ext(_, ext) => ext.into_bytes(),
             Value::Null => Some(vec![]),
             Value::Bool(v) => Some(v.to_string().into_bytes()),
@@ -367,14 +404,13 @@ impl Value {
     /// assert_eq!(None, Value::Bool(true).as_slice());
     /// ```
     pub fn as_slice(&self) -> Option<&[u8]> {
-        if let Value::Binary(ref val) = *self {
-            Some(val)
-        } else if let Value::String(ref val) = *self {
-            Some(val.as_bytes())
-        } else if let Value::Ext(_, ref val) = *self {
-            val.as_slice()
-        } else {
-            None
+        match self {
+            Value::Binary(val) => Some(val),
+            Value::String(val) => Some(val.as_bytes()),
+            #[cfg(feature = "option")]
+            Value::Some(val) => val.as_slice(),
+            Value::Ext(_, val) => val.as_slice(),
+            _ => None,
         }
     }
 
@@ -394,12 +430,12 @@ impl Value {
     /// ```
     #[inline]
     pub fn as_array(&self) -> Option<&Vec<Value>> {
-        if let Value::Array(ref array) = *self {
-            Some(&*array)
-        } else if let Value::Ext(_, ref ext) = *self {
-            ext.as_array()
-        } else {
-            None
+        match self {
+            Value::Array(array) => Some(array),
+            #[cfg(feature = "option")]
+            Value::Some(d) => d.as_array(),
+            Value::Ext(_, ext) => ext.as_array(),
+            _ => None,
         }
     }
 
@@ -408,10 +444,23 @@ impl Value {
     ///
     #[inline]
     pub fn as_map(&self) -> Option<&ValueMap> {
-        if let Value::Map(ref map) = *self {
-            Some(map)
-        } else if let Value::Ext(_, ref map) = *self {
-            map.as_map()
+        match self {
+            Value::Map(map) => Some(map),
+            #[cfg(feature = "option")]
+            Value::Some(val) => val.as_map(),
+            Value::Ext(_, map) => map.as_map(),
+            _ => None,
+        }
+    }
+
+    /// If the `Value` is an Option, returns the associated tuple with a ty and slice.
+    /// Returns None otherwise.
+    ///
+    #[cfg(feature = "option")]
+    #[inline]
+    pub fn as_some(&self) -> Option<&Box<Value>> {
+        if let Value::Some(data) = self {
+            Some(data)
         } else {
             None
         }
@@ -422,33 +471,40 @@ impl Value {
     ///
     #[inline]
     pub fn as_ext(&self) -> Option<(&str, &Box<Value>)> {
-        if let Value::Ext(ref ty, ref buf) = *self {
-            Some((ty, buf))
-        } else {
-            None
+        match self {
+            Value::Ext(ty, buf) => Some((ty, buf)),
+            #[cfg(feature = "option")]
+            Value::Some(val) => val.as_ext(),
+            _ => None,
         }
     }
 
     #[inline]
     pub fn into_map(self) -> Option<ValueMap> {
-        if let Value::Map(map) = self {
-            Some(map)
-        } else if let Value::Ext(_, map) = self {
-            map.into_map()
-        } else {
-            None
+        match self {
+            Value::Map(map) => Some(map),
+            #[cfg(feature = "option")]
+            Value::Some(val) => val.into_map(),
+            Value::Ext(_, map) => map.into_map(),
+            _ => None,
         }
     }
 
     #[inline]
     pub fn into_array(self) -> Option<Vec<Value>> {
-        if let Value::Array(array) = self {
-            Some(array)
-        } else if let Value::Ext(_, ext) = self {
-            ext.into_array()
-        } else {
-            None
+        match self {
+            Value::Array(array) => Some(array),
+            #[cfg(feature = "option")]
+            Value::Some(val) => val.into_array(),
+            Value::Ext(_, ext) => ext.into_array(),
+            _ => None,
         }
+    }
+}
+
+impl AsRef<Value> for Value {
+    fn as_ref(&self) -> &Value {
+        &self
     }
 }
 
@@ -577,11 +633,23 @@ impl From<Vec<Value>> for Value {
     }
 }
 
-
 ///from tuple for ext
 impl From<(&'static str, Value)> for Value {
     fn from(arg: (&'static str, Value)) -> Self {
         Value::Ext(arg.0, Box::new(arg.1))
+    }
+}
+
+#[cfg(feature = "option")]
+impl<T> From<Option<T>> for Value
+where
+    T: Into<Value>,
+{
+    fn from(value: Option<T>) -> Self {
+        match value {
+            None => Value::Null,
+            Some(data) => Value::Some(Box::new(data.into())),
+        }
     }
 }
 
@@ -608,10 +676,10 @@ impl Into<ValueMap> for Value {
 /// [`Array`](crate::Value::Array), rather than a
 /// [`Binary`](crate::Value::Binary)
 impl<V> FromIterator<V> for Value
-    where
-        V: Into<Value>,
+where
+    V: Into<Value>,
 {
-    fn from_iter<I: IntoIterator<Item=V>>(iter: I) -> Self {
+    fn from_iter<I: IntoIterator<Item = V>>(iter: I) -> Self {
         let v: Vec<Value> = iter.into_iter().map(|v| v.into()).collect();
         Value::Array(v)
     }
@@ -649,6 +717,11 @@ impl Display for Value {
                 Ok(())
             }
             Value::Map(ref vec) => Display::fmt(vec, f),
+            #[cfg(feature = "option")]
+            Value::Some(ref data) => {
+                Display::fmt(data, f)?;
+                Ok(())
+            }
             Value::Ext(_, ref data) => {
                 write!(f, "{}", data.deref())
             }
@@ -678,6 +751,8 @@ impl IntoIterator for Value {
                 }
                 v.into_iter()
             }
+            #[cfg(feature = "option")]
+            Value::Some(v) => v.into_iter(),
             Value::Ext(_, e) => e.into_iter(),
             _ => {
                 let v = ValueMap::with_capacity(0);
@@ -709,6 +784,8 @@ impl<'a> IntoIterator for &'a Value {
                 }
                 v.into_iter()
             }
+            #[cfg(feature = "option")]
+            Value::Some(v) => v.deref().into_iter(),
             Value::Ext(_, e) => e.deref().into_iter(),
             _ => {
                 let v = Vec::with_capacity(0);
@@ -840,14 +917,20 @@ impl Hash for Value {
                 s.hash(state);
                 v.hash(state);
             }
+            #[cfg(feature = "option")]
+            Value::Some(v) => {
+                state.write_u8(13);
+                v.hash(state);
+            }
         }
     }
 }
 
 #[cfg(test)]
 mod test {
-    use crate::Value;
     use std::collections::HashMap;
+
+    use crate::Value;
 
     #[test]
     fn test_iter() {

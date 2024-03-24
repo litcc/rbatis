@@ -16,6 +16,4 @@ pub mod type_info;
 pub mod types;
 pub mod value;
 
-pub use driver::PgDriver;
-pub use driver::PgDriver as PostgresDriver;
-pub use driver::PgDriver as Driver;
+pub use driver::{PgDriver, PgDriver as PostgresDriver, PgDriver as Driver};

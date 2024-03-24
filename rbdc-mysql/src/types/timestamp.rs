@@ -1,12 +1,11 @@
-use rbdc::date::Date;
 use std::str::FromStr;
 
-use crate::types::date::decode_date_buf;
-use crate::types::time::decode_time;
-use crate::types::{Decode, Encode};
-use crate::value::{MySqlValue, MySqlValueFormat};
-use rbdc::timestamp::Timestamp;
-use rbdc::Error;
+use rbdc::{date::Date, timestamp::Timestamp, Error};
+
+use crate::{
+    types::{date::decode_date_buf, time::decode_time, Decode, Encode},
+    value::{MySqlValue, MySqlValueFormat},
+};
 
 impl Encode for Timestamp {
     fn encode(self, buf: &mut Vec<u8>) -> Result<usize, Error> {
@@ -43,9 +42,10 @@ impl Encode for Timestamp {
 impl Decode for Timestamp {
     fn decode(value: MySqlValue) -> Result<Self, Error> {
         Ok(match value.format() {
-            MySqlValueFormat::Text => {
-                Self(fastdate::DateTime::from_str(value.as_str()?)?.unix_timestamp_millis())
-            }
+            MySqlValueFormat::Text => Self(
+                fastdate::DateTime::from_str(value.as_str()?)?
+                    .unix_timestamp_millis(),
+            ),
             MySqlValueFormat::Binary => {
                 let buf = value.as_bytes()?;
                 let len = buf[0];

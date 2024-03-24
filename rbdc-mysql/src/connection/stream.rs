@@ -1,17 +1,26 @@
-use std::collections::VecDeque;
-use std::ops::{Deref, DerefMut};
+use std::{
+    collections::VecDeque,
+    ops::{Deref, DerefMut},
+};
 
 use bytes::{Buf, Bytes};
+use rbdc::{
+    err_protocol,
+    io::{BufStream, Decode, Encode},
+    net::{MaybeTlsStream, Socket},
+    Error,
+};
 
-use crate::collation::{CharSet, Collation};
-use crate::error::MySqlDatabaseError;
-use crate::io::MySqlBufExt;
-use crate::options::MySqlConnectOptions;
-use crate::protocol::response::{EofPacket, ErrPacket, OkPacket, Status};
-use crate::protocol::{Capabilities, Packet};
-use rbdc::io::{BufStream, Decode, Encode};
-use rbdc::net::{MaybeTlsStream, Socket};
-use rbdc::{err_protocol, Error};
+use crate::{
+    collation::{CharSet, Collation},
+    error::MySqlDatabaseError,
+    io::MySqlBufExt,
+    options::MySqlConnectOptions,
+    protocol::{
+        response::{EofPacket, ErrPacket, OkPacket, Status},
+        Capabilities, Packet,
+    },
+};
 
 pub struct MySqlStream {
     stream: BufStream<MaybeTlsStream<Socket>>,
@@ -33,7 +42,9 @@ pub(crate) enum Waiting {
 }
 
 impl MySqlStream {
-    pub(super) async fn connect(options: &MySqlConnectOptions) -> Result<Self, Error> {
+    pub(super) async fn connect(
+        options: &MySqlConnectOptions,
+    ) -> Result<Self, Error> {
         let charset: CharSet = options.charset.parse()?;
         let collation: Collation = options
             .collation
@@ -114,7 +125,10 @@ impl MySqlStream {
         Ok(())
     }
 
-    pub(crate) async fn send_packet<'en, T>(&mut self, payload: T) -> Result<(), Error>
+    pub(crate) async fn send_packet<'en, T>(
+        &mut self,
+        payload: T,
+    ) -> Result<(), Error>
     where
         T: Encode<'en, Capabilities>,
     {
@@ -158,9 +172,11 @@ impl MySqlStream {
 
             // instead of letting this packet be looked at everywhere, we check here
             // and emit a proper Error
-            return Err(
-                MySqlDatabaseError(ErrPacket::decode_with(payload, self.capabilities)?).into(),
-            );
+            return Err(MySqlDatabaseError(ErrPacket::decode_with(
+                payload,
+                self.capabilities,
+            )?)
+            .into());
         }
 
         Ok(Packet(payload))
@@ -177,7 +193,9 @@ impl MySqlStream {
         self.recv_packet().await?.ok()
     }
 
-    pub(crate) async fn maybe_recv_eof(&mut self) -> Result<Option<EofPacket>, Error> {
+    pub(crate) async fn maybe_recv_eof(
+        &mut self,
+    ) -> Result<Option<EofPacket>, Error> {
         if self.capabilities.contains(Capabilities::DEPRECATE_EOF) {
             Ok(None)
         } else {
@@ -185,7 +203,10 @@ impl MySqlStream {
         }
     }
 
-    async fn skip_result_metadata(&mut self, mut packet: Packet<Bytes>) -> Result<(), Error> {
+    async fn skip_result_metadata(
+        &mut self,
+        mut packet: Packet<Bytes>,
+    ) -> Result<(), Error> {
         let num_columns: u64 = packet.get_uint_lenenc(); // column count
 
         for _ in 0..num_columns {

@@ -1,15 +1,18 @@
 #![allow(clippy::rc_buffer)]
 
-use crate::decode::Decode;
-use crate::statement::StatementHandle;
-use crate::{SqliteColumn, SqliteValue, SqliteValueRef};
-use rbdc::db::{MetaData, Row};
-use rbdc::error::Error;
-use rbdc::ext::ustr::UStr;
+use std::{collections::HashMap, fmt::Debug, sync::Arc};
+
+use rbdc::{
+    db::{MetaData, Row},
+    error::Error,
+    ext::ustr::UStr,
+};
 use rbs::Value;
-use std::collections::HashMap;
-use std::fmt::Debug;
-use std::sync::Arc;
+
+use crate::{
+    decode::Decode, statement::StatementHandle, SqliteColumn, SqliteValue,
+    SqliteValueRef,
+};
 
 /// Implementation of [`Row`] for SQLite.
 #[derive(Debug)]

@@ -57,7 +57,7 @@ impl Row {
                         return match self.storage[idx].take() {
                             None => None,
                             Some(v) => Some(v),
-                        }
+                        };
                     }
                 }
             }

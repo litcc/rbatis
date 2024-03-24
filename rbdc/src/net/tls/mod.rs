@@ -1,15 +1,18 @@
 #![allow(dead_code)]
 
-use std::io;
-use std::ops::{Deref, DerefMut};
-use std::path::PathBuf;
-use std::pin::Pin;
-use std::task::{Context, Poll};
+use std::{
+    io,
+    mem::replace,
+    ops::{Deref, DerefMut},
+    path::PathBuf,
+    pin::Pin,
+    task::{Context, Poll},
+};
 
-use crate::rt::{AsyncRead, AsyncWrite, TlsStream};
-
-use crate::Error;
-use std::mem::replace;
+use crate::{
+    rt::{AsyncRead, AsyncWrite, TlsStream},
+    Error,
+};
 
 /// X.509 Certificate input, either a file path or a PEM encoded inline certificate(s).
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
@@ -47,7 +50,9 @@ impl CertificateInput {
 impl std::fmt::Display for CertificateInput {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            CertificateInput::Inline(v) => write!(f, "{}", String::from_utf8_lossy(v.as_slice())),
+            CertificateInput::Inline(v) => {
+                write!(f, "{}", String::from_utf8_lossy(v.as_slice()))
+            }
             CertificateInput::File(path) => write!(f, "file: {}", path.display()),
         }
     }
@@ -99,13 +104,16 @@ where
             MaybeTlsStream::Upgrading => {
                 // we previously failed to upgrade and now hold no connection
                 // this should only happen from an internal misuse of this method
-                return Err(Error::from(io::ErrorKind::ConnectionAborted.to_string()));
+                return Err(Error::from(
+                    io::ErrorKind::ConnectionAborted.to_string(),
+                ));
             }
         };
 
         #[cfg(feature = "tls-rustls")]
-        let host = tokio_rustls::rustls::pki_types::ServerName::try_from(host.to_string())
-            .map_err(|err| Error::from(err.to_string()))?;
+        let host =
+            tokio_rustls::rustls::pki_types::ServerName::try_from(host.to_string())
+                .map_err(|err| Error::from(err.to_string()))?;
 
         *self = MaybeTlsStream::Tls(connector.connect(host, stream).await?);
 
@@ -155,7 +163,9 @@ where
             MaybeTlsStream::Raw(s) => Pin::new(s).poll_read(cx, buf),
             MaybeTlsStream::Tls(s) => Pin::new(s).poll_read(cx, buf),
 
-            MaybeTlsStream::Upgrading => Poll::Ready(Err(io::ErrorKind::ConnectionAborted.into())),
+            MaybeTlsStream::Upgrading => {
+                Poll::Ready(Err(io::ErrorKind::ConnectionAborted.into()))
+            }
         }
     }
 }
@@ -173,25 +183,37 @@ where
             MaybeTlsStream::Raw(s) => Pin::new(s).poll_write(cx, buf),
             MaybeTlsStream::Tls(s) => Pin::new(s).poll_write(cx, buf),
 
-            MaybeTlsStream::Upgrading => Poll::Ready(Err(io::ErrorKind::ConnectionAborted.into())),
+            MaybeTlsStream::Upgrading => {
+                Poll::Ready(Err(io::ErrorKind::ConnectionAborted.into()))
+            }
         }
     }
 
-    fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
+    fn poll_flush(
+        mut self: Pin<&mut Self>,
+        cx: &mut Context<'_>,
+    ) -> Poll<io::Result<()>> {
         match &mut *self {
             MaybeTlsStream::Raw(s) => Pin::new(s).poll_flush(cx),
             MaybeTlsStream::Tls(s) => Pin::new(s).poll_flush(cx),
 
-            MaybeTlsStream::Upgrading => Poll::Ready(Err(io::ErrorKind::ConnectionAborted.into())),
+            MaybeTlsStream::Upgrading => {
+                Poll::Ready(Err(io::ErrorKind::ConnectionAborted.into()))
+            }
         }
     }
 
-    fn poll_shutdown(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
+    fn poll_shutdown(
+        mut self: Pin<&mut Self>,
+        cx: &mut Context<'_>,
+    ) -> Poll<io::Result<()>> {
         match &mut *self {
             MaybeTlsStream::Raw(s) => Pin::new(s).poll_shutdown(cx),
             MaybeTlsStream::Tls(s) => Pin::new(s).poll_shutdown(cx),
 
-            MaybeTlsStream::Upgrading => Poll::Ready(Err(io::ErrorKind::ConnectionAborted.into())),
+            MaybeTlsStream::Upgrading => {
+                Poll::Ready(Err(io::ErrorKind::ConnectionAborted.into()))
+            }
         }
     }
 }

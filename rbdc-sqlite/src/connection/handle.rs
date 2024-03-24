@@ -1,10 +1,9 @@
-use std::ffi::CString;
-use std::ptr;
-use std::ptr::NonNull;
+use std::{ffi::CString, ptr, ptr::NonNull};
 
-use libsqlite3_sys::{sqlite3, sqlite3_close, sqlite3_exec, sqlite3_last_insert_rowid, SQLITE_OK};
-use rbdc::err_protocol;
-use rbdc::error::Error;
+use libsqlite3_sys::{
+    sqlite3, sqlite3_close, sqlite3_exec, sqlite3_last_insert_rowid, SQLITE_OK,
+};
+use rbdc::{err_protocol, error::Error};
 
 use crate::SqliteError;
 
@@ -58,7 +57,8 @@ impl ConnectionHandle {
 
     pub(crate) fn exec(&mut self, query: impl Into<String>) -> Result<(), Error> {
         let query = query.into();
-        let query = CString::new(query).map_err(|_| err_protocol!("query contains nul bytes"))?;
+        let query = CString::new(query)
+            .map_err(|_| err_protocol!("query contains nul bytes"))?;
 
         // SAFETY: we have exclusive access to the database handle
         unsafe {

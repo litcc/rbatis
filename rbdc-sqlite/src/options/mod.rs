@@ -7,22 +7,22 @@ mod locking_mode;
 mod parse;
 mod synchronous;
 
+use std::{borrow::Cow, cmp::Ordering, str::FromStr, sync::Arc, time::Duration};
+
 pub use auto_vacuum::SqliteAutoVacuum;
 use futures_core::future::BoxFuture;
+use indexmap::IndexMap;
 pub use journal_mode::SqliteJournalMode;
 pub use locking_mode::SqliteLockingMode;
-use std::cmp::Ordering;
-use std::str::FromStr;
-use std::sync::Arc;
-use std::{borrow::Cow, time::Duration};
+use rbdc::{
+    common::DebugFn,
+    db::{ConnectOptions, Connection},
+    Error,
+};
+use serde::{Deserialize, Deserializer};
 pub use synchronous::SqliteSynchronous;
 
 use crate::connection::collation::Collation;
-use indexmap::IndexMap;
-use rbdc::common::DebugFn;
-use rbdc::db::{ConnectOptions, Connection};
-use rbdc::Error;
-use serde::{Deserialize, Deserializer};
 
 /// Options and flags which can be used to configure a SQLite connection.
 ///
@@ -55,7 +55,8 @@ pub struct SqliteConnectOptions {
     pub(crate) collations: Vec<Collation>,
 
     pub(crate) serialized: bool,
-    pub(crate) thread_name: Arc<DebugFn<dyn Fn(u64) -> String + Send + Sync + 'static>>,
+    pub(crate) thread_name:
+        Arc<DebugFn<dyn Fn(u64) -> String + Send + Sync + 'static>>,
 }
 
 impl Default for SqliteConnectOptions {
@@ -109,7 +110,8 @@ impl SqliteConnectOptions {
     /// See the source of this method for the current defaults.
     pub fn new() -> Self {
         // set default pragmas
-        let mut pragmas: IndexMap<Cow<'static, str>, Cow<'static, str>> = IndexMap::new();
+        let mut pragmas: IndexMap<Cow<'static, str>, Cow<'static, str>> =
+            IndexMap::new();
 
         let locking_mode: SqliteLockingMode = Default::default();
         let auto_vacuum: SqliteAutoVacuum = Default::default();
@@ -147,7 +149,9 @@ impl SqliteConnectOptions {
             pragmas,
             collations: Default::default(),
             serialized: false,
-            thread_name: Arc::new(DebugFn(|id| format!("rbdc-sqlite-worker-{}", id))),
+            thread_name: Arc::new(DebugFn(|id| {
+                format!("rbdc-sqlite-worker-{}", id)
+            })),
             command_channel_size: 50,
             row_channel_size: 50,
         }
@@ -375,7 +379,8 @@ impl ConnectOptions for SqliteConnectOptions {
     }
 
     fn set_uri(&mut self, uri: &str) -> Result<(), Error> {
-        *self = SqliteConnectOptions::from_str(uri).map_err(|e| Error::from(e.to_string()))?;
+        *self = SqliteConnectOptions::from_str(uri)
+            .map_err(|e| Error::from(e.to_string()))?;
         self.create_if_missing = true;
         Ok(())
     }

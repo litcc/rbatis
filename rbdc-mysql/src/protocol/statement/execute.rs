@@ -1,6 +1,6 @@
-use crate::protocol::Capabilities;
-use crate::stmt::MySqlArguments;
 use rbdc::io::Encode;
+
+use crate::{protocol::Capabilities, stmt::MySqlArguments};
 
 // https://dev.mysql.com/doc/internals/en/com-stmt-execute.html
 

@@ -1,11 +1,16 @@
-use crate::arguments::PgArgumentBuffer;
-use crate::type_info::PgTypeInfo;
-use crate::types::decode::Decode;
-use crate::types::encode::{Encode, IsNull};
-use crate::types::TypeInfo;
-use crate::value::{PgValue, PgValueFormat};
 use byteorder::{BigEndian, ByteOrder};
 use rbdc::Error;
+
+use crate::{
+    arguments::PgArgumentBuffer,
+    type_info::PgTypeInfo,
+    types::{
+        decode::Decode,
+        encode::{Encode, IsNull},
+        TypeInfo,
+    },
+    value::{PgValue, PgValueFormat},
+};
 
 impl Decode for u64 {
     fn decode(value: PgValue) -> Result<Self, Error> {

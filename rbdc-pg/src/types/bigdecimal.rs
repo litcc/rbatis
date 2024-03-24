@@ -1,13 +1,18 @@
-use crate::arguments::PgArgumentBuffer;
-use crate::types::decode::Decode;
-use crate::types::encode::{Encode, IsNull};
-use crate::types::numeric::{PgNumeric, PgNumericSign};
-use crate::value::{PgValue, PgValueFormat};
+use std::{cmp, num::TryFromIntError};
+
 use bigdecimal::BigDecimal;
 use num_bigint::{BigInt, Sign};
 use rbdc::Error;
-use std::cmp;
-use std::num::TryFromIntError;
+
+use crate::{
+    arguments::PgArgumentBuffer,
+    types::{
+        decode::Decode,
+        encode::{Encode, IsNull},
+        numeric::{PgNumeric, PgNumericSign},
+    },
+    value::{PgValue, PgValueFormat},
+};
 
 impl TryFrom<PgNumeric> for BigDecimal {
     type Error = Error;
@@ -57,7 +62,8 @@ impl TryFrom<&'_ BigDecimal> for PgNumeric {
     type Error = Error;
 
     fn try_from(decimal: &BigDecimal) -> Result<Self, Error> {
-        let base_10_to_10000 = |chunk: &[u8]| chunk.iter().fold(0i16, |a, &d| a * 10 + d as i16);
+        let base_10_to_10000 =
+            |chunk: &[u8]| chunk.iter().fold(0i16, |a, &d| a * 10 + d as i16);
 
         // NOTE: this unfortunately copies the BigInt internally
         let (integer, exp) = decimal.as_bigint_and_exponent();
@@ -102,14 +108,16 @@ impl TryFrom<&'_ BigDecimal> for PgNumeric {
                 digits.push(base_10_to_10000(first));
             }
         } else if offset != 0 {
-            digits.push(base_10_to_10000(&base_10) * 10i16.pow((offset - base_10.len()) as u32));
+            digits.push(
+                base_10_to_10000(&base_10)
+                    * 10i16.pow((offset - base_10.len()) as u32),
+            );
         }
 
         if let Some(rest) = base_10.get(offset..) {
-            digits.extend(
-                rest.chunks(4)
-                    .map(|chunk| base_10_to_10000(chunk) * 10i16.pow(4 - chunk.len() as u32)),
-            );
+            digits.extend(rest.chunks(4).map(|chunk| {
+                base_10_to_10000(chunk) * 10i16.pow(4 - chunk.len() as u32)
+            }));
         }
 
         while let Some(&0) = digits.last() {
@@ -142,7 +150,9 @@ impl Encode for BigDecimal {
 impl Decode for BigDecimal {
     fn decode(value: PgValue) -> Result<Self, Error> {
         match value.format() {
-            PgValueFormat::Binary => PgNumeric::decode(value.as_bytes()?)?.try_into(),
+            PgValueFormat::Binary => {
+                PgNumeric::decode(value.as_bytes()?)?.try_into()
+            }
             PgValueFormat::Text => Ok(value
                 .as_str()?
                 .parse::<BigDecimal>()
@@ -153,8 +163,9 @@ impl Decode for BigDecimal {
 
 #[cfg(test)]
 mod bigdecimal_to_pgnumeric {
-    use super::{BigDecimal, PgNumeric, PgNumericSign};
     use std::convert::TryFrom;
+
+    use super::{BigDecimal, PgNumeric, PgNumericSign};
 
     #[test]
     fn zero() {

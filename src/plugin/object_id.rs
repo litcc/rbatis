@@ -1,13 +1,16 @@
 //! ObjectId
-use hex::{FromHexError};
-use rand::{thread_rng, Rng};
-use std::sync::OnceLock;
 use std::{
     error, fmt, result,
     str::FromStr,
-    sync::atomic::{AtomicUsize, Ordering},
+    sync::{
+        atomic::{AtomicUsize, Ordering},
+        OnceLock,
+    },
     time::SystemTime,
 };
+
+use hex::FromHexError;
+use rand::{thread_rng, Rng};
 
 const TIMESTAMP_SIZE: usize = 4;
 const PROCESS_ID_SIZE: usize = 5;
@@ -60,7 +63,9 @@ impl error::Error for Error {
 }
 
 /// A wrapper around raw 12-byte ObjectId representations.
-#[derive(Clone, PartialEq, PartialOrd, Eq, Ord, Hash, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Clone, PartialEq, PartialOrd, Eq, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub struct ObjectId {
     pub id: [u8; 12],
 }
@@ -109,7 +114,8 @@ impl ObjectId {
         let bytes: Vec<u8> = hex::decode(s.as_bytes())?;
         if bytes.len() != 12 {
             Err(Error::ArgumentError {
-                message: "Provided string must be a 12-byte hexadecimal string.".to_owned(),
+                message: "Provided string must be a 12-byte hexadecimal string."
+                    .to_owned(),
             })
         } else {
             let mut byte_array: [u8; 12] = [0; 12];
@@ -136,21 +142,24 @@ impl ObjectId {
 
         //5-PROCESS_ID_OFFSET 10
         let b: [u8; 8] = [
-            0u8, 0u8, 0u8, self.id[4], self.id[5], self.id[6], self.id[7], self.id[8],
+            0u8, 0u8, 0u8, self.id[4], self.id[5], self.id[6], self.id[7],
+            self.id[8],
         ];
         let u5 = u64::from_be_bytes(b.into());
 
         //3-COUNTER_OFFSET  8
         let b: [u8; 4] = [0u8, self.id[9], self.id[10], self.id[11]];
         let u3 = u32::from_be_bytes(b.into());
-        let v = u5 as u128 * 1000000000000000000 + u4 as u128 * 100000000 + u3 as u128;
+        let v =
+            u5 as u128 * 1000000000000000000 + u4 as u128 * 100000000 + u3 as u128;
         v
     }
 
     pub fn with_u128(arg: u128) -> Self {
         let u5 = (arg / 1000000000000000000) as u64;
         let u4 = ((arg - u5 as u128 * 1000000000000000000) / 100000000) as u32;
-        let u3 = (arg - u5 as u128 * 1000000000000000000 - u4 as u128 * 100000000) as u32;
+        let u3 =
+            (arg - u5 as u128 * 1000000000000000000 - u4 as u128 * 100000000) as u32;
 
         let u5 = u5.to_be_bytes();
         let u3 = u3.to_be_bytes();
@@ -158,7 +167,8 @@ impl ObjectId {
         //timestamp(4), PROCESS_ID(5),COUNTER(3)
         ObjectId {
             id: [
-                u4[0], u4[1], u4[2], u4[3], u5[3], u5[4], u5[5], u5[6], u5[7], u3[1], u3[2], u3[3],
+                u4[0], u4[1], u4[2], u4[3], u5[3], u5[4], u5[5], u5[6], u5[7],
+                u3[1], u3[2], u3[3],
             ],
         }
     }
@@ -218,9 +228,9 @@ impl fmt::Debug for ObjectId {
 
 #[cfg(test)]
 mod test {
+    use std::{thread::sleep, time::Duration};
+
     use crate::object_id::ObjectId;
-    use std::thread::sleep;
-    use std::time::Duration;
 
     #[test]
     fn test_new() {

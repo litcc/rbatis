@@ -17,6 +17,8 @@ homepage = "https://rbatis.github.io/rbatis.io"
 default = []
 #debug_mode will can see MapDeserializer key
 debug_mode = []
+# option: Optionally set the field to empty
+option = []
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]

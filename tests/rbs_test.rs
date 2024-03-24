@@ -1,19 +1,20 @@
 #[cfg(test)]
 mod test {
-    use rbatis_codegen::ops::{Add, BitAnd, BitOr, Div, Mul, Not, PartialEq, PartialOrd, Rem, Sub};
-    use rbdc::datetime::DateTime;
-    use rbdc::Timestamp;
-    use rbs::{to_value, Value};
-    use serde::{Deserialize, Serialize};
     use std::cmp::Ordering;
 
+    use rbatis_codegen::ops::{
+        Add, BitAnd, BitOr, Div, Mul, Not, PartialEq, PartialOrd, Rem, Sub,
+    };
+    use rbdc::{datetime::DateTime, Timestamp};
+    use rbs::{to_value, Value};
+    use serde::{Deserialize, Serialize};
 
     #[test]
     fn test_set() {
         let mut v = rbs::to_value! {};
-        v.insert(to_value!("a"),Value::Null);
+        v.insert(to_value!("a"), Value::Null);
         v["a"] = Value::I32(1);
-        assert_eq!(v["a"].as_i64().unwrap_or_default(),1);
+        assert_eq!(v["a"].as_i64().unwrap_or_default(), 1);
     }
 
     #[test]
@@ -161,7 +162,9 @@ mod test {
         use std::str::FromStr;
         let a = rbs::to_value!(true);
         let b = rbs::to_value!("11");
-        let c = rbs::to_value!(DateTime::from_str("2023-03-22T00:39:04.0278992Z").unwrap());
+        let c = rbs::to_value!(
+            DateTime::from_str("2023-03-22T00:39:04.0278992Z").unwrap()
+        );
         let d = rbs::to_value! {
             "1":1,
         };
@@ -238,7 +241,9 @@ mod test {
 
     #[test]
     fn test_ser_newtype_struct_timestamp_tz() {
-        #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Eq, PartialEq)]
+        #[derive(
+            serde::Serialize, serde::Deserialize, Debug, Clone, Eq, PartialEq,
+        )]
         #[serde(rename = "Timestamptz")]
         pub struct Timestamptz(pub i64, pub i32);
 
@@ -251,7 +256,6 @@ mod test {
             )
         );
     }
-
 
     #[test]
     fn test_de_string() {
@@ -292,7 +296,11 @@ mod test {
         };
         let v = rbs::from_value::<MockTable>(value).err().unwrap();
         println!("{}", v.to_string());
-        assert_eq!(v.to_string().contains("invalid type: integer `0`, expected a string, key ="), true);
+        assert_eq!(
+            v.to_string()
+                .contains("invalid type: integer `0`, expected a string, key ="),
+            true
+        );
         assert_eq!(v.to_string().contains("name"), true);
     }
 }

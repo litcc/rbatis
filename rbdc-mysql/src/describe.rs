@@ -1,6 +1,8 @@
-use crate::result_set::{MySqlColumn, MySqlTypeInfo};
-use either::Either;
 use std::convert::identity;
+
+use either::Either;
+
+use crate::result_set::{MySqlColumn, MySqlTypeInfo};
 
 /// Provides extended information on a statement.
 ///

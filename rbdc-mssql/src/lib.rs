@@ -4,20 +4,20 @@ pub mod decode;
 pub mod driver;
 pub mod encode;
 
-pub use crate::driver::MssqlDriver;
-pub use crate::driver::MssqlDriver as Driver;
-
-use crate::decode::Decode;
-use crate::encode::Encode;
-use futures_core::future::BoxFuture;
-use futures_core::Stream;
-use rbdc::db::{ConnectOptions, Connection, ExecResult, MetaData, Placeholder, Row};
-use rbdc::Error;
-use rbs::Value;
 use std::sync::Arc;
+
+use futures_core::{future::BoxFuture, Stream};
+use rbdc::{
+    db::{ConnectOptions, Connection, ExecResult, MetaData, Placeholder, Row},
+    Error,
+};
+use rbs::Value;
 use tiberius::{Client, Column, ColumnData, Config, Query};
 use tokio::net::TcpStream;
 use tokio_util::compat::{Compat, TokioAsyncWriteCompatExt};
+
+pub use crate::driver::{MssqlDriver, MssqlDriver as Driver};
+use crate::{decode::Decode, encode::Encode};
 
 pub struct MssqlConnection {
     inner: Option<Client<Compat<TcpStream>>>,
@@ -138,7 +138,11 @@ impl Connection for MssqlConnection {
         })
     }
 
-    fn exec(&mut self, sql: &str, params: Vec<Value>) -> BoxFuture<Result<ExecResult, Error>> {
+    fn exec(
+        &mut self,
+        sql: &str,
+        params: Vec<Value>,
+    ) -> BoxFuture<Result<ExecResult, Error>> {
         let sql = MssqlDriver {}.exchange(sql);
         Box::pin(async move {
             let mut q = Query::new(sql);

@@ -1,10 +1,15 @@
-use crate::arguments::PgArgumentBuffer;
-use crate::type_info::PgTypeInfo;
-use crate::types::decode::Decode;
-use crate::types::encode::{Encode, IsNull};
-use crate::types::TypeInfo;
-use crate::value::PgValue;
 use rbdc::Error;
+
+use crate::{
+    arguments::PgArgumentBuffer,
+    type_info::PgTypeInfo,
+    types::{
+        decode::Decode,
+        encode::{Encode, IsNull},
+        TypeInfo,
+    },
+    value::PgValue,
+};
 
 impl Decode for String {
     fn decode(value: PgValue) -> Result<Self, Error> {

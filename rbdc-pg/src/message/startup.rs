@@ -1,5 +1,6 @@
-use crate::io::PgBufMutExt;
 use rbdc::io::{BufMutExt, Encode};
+
+use crate::io::PgBufMutExt;
 
 // To begin a session, a frontend opens a connection to the server and sends a startup message.
 // This message includes the names of the user and of the database the user wants to connect to;
@@ -59,7 +60,8 @@ fn encode_startup_param(buf: &mut Vec<u8>, name: &str, value: &str) {
 
 #[test]
 fn test_encode_startup() {
-    const EXPECTED: &[u8] = b"\0\0\0)\0\x03\0\0user\0postgres\0database\0postgres\0\0";
+    const EXPECTED: &[u8] =
+        b"\0\0\0)\0\x03\0\0user\0postgres\0database\0postgres\0\0";
 
     let mut buf = Vec::new();
     let m = Startup {

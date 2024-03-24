@@ -1,9 +1,9 @@
 use std::fmt::Write;
 
 use md5::{Digest, Md5};
+use rbdc::io::{BufMutExt, Encode};
 
 use crate::io::PgBufMutExt;
-use rbdc::io::{BufMutExt, Encode};
 
 #[derive(Debug)]
 pub enum Password<'a> {

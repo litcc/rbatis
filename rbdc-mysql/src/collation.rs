@@ -1,5 +1,6 @@
-use rbdc::error::Error;
 use std::str::FromStr;
+
+use rbdc::error::Error;
 
 #[allow(non_camel_case_types)]
 #[derive(Copy, Clone)]
@@ -189,9 +190,10 @@ impl FromStr for CharSet {
             "utf8mb4" => CharSet::utf8mb4,
 
             _ => {
-                return Err(Error::from(
-                    format!("unsupported MySQL charset: {}", char_set),
-                ));
+                return Err(Error::from(format!(
+                    "unsupported MySQL charset: {}",
+                    char_set
+                )));
             }
         })
     }
@@ -891,9 +893,10 @@ impl FromStr for Collation {
             "cp1250_polish_ci" => Collation::cp1250_polish_ci,
 
             _ => {
-                return Err(Error::from(
-                    format!("unsupported MySQL collation: {}", collation),
-                ));
+                return Err(Error::from(format!(
+                    "unsupported MySQL collation: {}",
+                    collation
+                )));
             }
         })
     }

@@ -1,9 +1,13 @@
-use crate::Error;
+use std::{
+    fmt::{Debug, Display, Formatter},
+    ops::{Deref, DerefMut},
+    str::FromStr,
+};
+
 use rbs::Value;
 use serde::Deserializer;
-use std::fmt::{Debug, Display, Formatter};
-use std::ops::{Deref, DerefMut};
-use std::str::FromStr;
+
+use crate::Error;
 
 #[derive(serde::Serialize, Clone, Eq, PartialEq, Hash)]
 #[serde(rename = "Uuid")]

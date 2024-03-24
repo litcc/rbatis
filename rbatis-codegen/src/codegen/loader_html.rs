@@ -1,6 +1,9 @@
+use std::{
+    collections::HashMap,
+    fmt::{Debug, Display, Formatter},
+};
+
 use html_parser::{Dom, Node, Result};
-use std::collections::HashMap;
-use std::fmt::{Debug, Display, Formatter};
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct Element {
@@ -68,8 +71,10 @@ pub fn as_element(args: &Vec<Node>) -> Vec<Element> {
                     );
                 }
                 for (k, v) in &element.attributes {
-                    el.attrs
-                        .insert(k.clone(), v.as_ref().unwrap_or(&String::new()).clone());
+                    el.attrs.insert(
+                        k.clone(),
+                        v.as_ref().unwrap_or(&String::new()).clone(),
+                    );
                 }
                 if !element.children.is_empty() {
                     let childs = as_element(&element.children);
@@ -88,7 +93,7 @@ pub fn as_element(args: &Vec<Node>) -> Vec<Element> {
 pub fn load_html(html: &str) -> Result<Vec<Element>> {
     let mut html = html.to_string();
     html = html
-        .replace("<break>","<bk>")
+        .replace("<break>", "<bk>")
         .replace("<break/>", "<bk/>")
         .replace("</break>", "</bk>");
     let dom = Dom::parse(&html)?;

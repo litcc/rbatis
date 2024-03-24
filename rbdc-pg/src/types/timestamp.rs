@@ -1,10 +1,15 @@
-use crate::arguments::PgArgumentBuffer;
-use crate::types::decode::Decode;
-use crate::types::encode::{Encode, IsNull};
-use crate::value::{PgValue, PgValueFormat};
-use rbdc::timestamp::Timestamp;
-use rbdc::Error;
 use std::str::FromStr;
+
+use rbdc::{timestamp::Timestamp, Error};
+
+use crate::{
+    arguments::PgArgumentBuffer,
+    types::{
+        decode::Decode,
+        encode::{Encode, IsNull},
+    },
+    value::{PgValue, PgValueFormat},
+};
 
 impl Encode for Timestamp {
     fn encode(self, buf: &mut PgArgumentBuffer) -> Result<IsNull, Error> {
@@ -47,7 +52,10 @@ impl Decode for Timestamp {
             PgValueFormat::Text => {
                 //2023-11-08 16:38:06.157
                 let s = value.as_str()?;
-                Timestamp(fastdate::DateTime::from_str(&format!("{}Z", s))?.unix_timestamp_millis())
+                Timestamp(
+                    fastdate::DateTime::from_str(&format!("{}Z", s))?
+                        .unix_timestamp_millis(),
+                )
             }
         })
     }

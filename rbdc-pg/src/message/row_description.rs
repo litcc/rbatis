@@ -1,8 +1,10 @@
 use bytes::{Buf, Bytes};
+use rbdc::{
+    error::Error,
+    io::{BufExt, Decode},
+};
 
 use crate::types::Oid;
-use rbdc::error::Error;
-use rbdc::io::{BufExt, Decode};
 
 #[derive(Debug)]
 pub struct RowDescription {

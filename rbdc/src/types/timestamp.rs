@@ -1,9 +1,13 @@
-use crate::{DateTime, Error};
+use std::{
+    fmt::{Debug, Display, Formatter},
+    ops::{Deref, DerefMut},
+    str::FromStr,
+};
+
 use rbs::Value;
 use serde::Deserializer;
-use std::fmt::{Debug, Display, Formatter};
-use std::ops::{Deref, DerefMut};
-use std::str::FromStr;
+
+use crate::{DateTime, Error};
 
 /// Timestamp(timestamp_millis:u64)
 #[derive(serde::Serialize, Clone, Eq, PartialEq, Hash)]
@@ -100,8 +104,9 @@ impl Into<DateTime> for Timestamp {
 
 #[cfg(test)]
 mod test {
-    use crate::timestamp::Timestamp;
     use rbs::Value;
+
+    use crate::timestamp::Timestamp;
 
     #[test]
     fn test_ser_de() {
@@ -120,7 +125,8 @@ mod test {
     fn test_decode_timestamp_ext() {
         assert_eq!(
             Timestamp(1),
-            rbs::from_value(Value::Ext("Timestamp", Box::new(Value::U64(1)))).unwrap()
+            rbs::from_value(Value::Ext("Timestamp", Box::new(Value::U64(1))))
+                .unwrap()
         );
     }
 }

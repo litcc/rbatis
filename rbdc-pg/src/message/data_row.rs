@@ -2,8 +2,7 @@ use std::ops::Range;
 
 use byteorder::{BigEndian, ByteOrder};
 use bytes::Bytes;
-use rbdc::io::Decode;
-use rbdc::Error;
+use rbdc::{io::Decode, Error};
 
 /// A row of data from the database.
 #[derive(Debug)]
@@ -49,7 +48,7 @@ impl DataRow {
                         return match self.storage[idx].take() {
                             None => None,
                             Some(v) => Some(v),
-                        }
+                        };
                     }
                 }
             }
@@ -76,7 +75,8 @@ impl Decode<'_> for DataRow {
             if length < 0 {
                 values.push(None);
             } else {
-                values.push(Some(offset as usize..(offset + length as u32) as usize));
+                values
+                    .push(Some(offset as usize..(offset + length as u32) as usize));
                 offset += length as u32;
             }
         }

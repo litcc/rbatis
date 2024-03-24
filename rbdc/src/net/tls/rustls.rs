@@ -1,15 +1,16 @@
-use crate::net::CertificateInput;
+use std::{io::Cursor, sync::Arc};
 
-use crate::Error;
-use rustls::client::danger::HandshakeSignatureValid;
-use rustls::client::danger::ServerCertVerifier;
-use rustls::client::WebPkiServerVerifier as WebPkiVerifier;
-use rustls::crypto::{verify_tls12_signature, verify_tls13_signature};
-use rustls::pki_types::ServerName;
-use rustls::pki_types::{CertificateDer, TrustAnchor, UnixTime};
-use rustls::{CertificateError, ClientConfig, DigitallySignedStruct, RootCertStore};
-use std::io::Cursor;
-use std::sync::Arc;
+use rustls::{
+    client::{
+        danger::{HandshakeSignatureValid, ServerCertVerifier},
+        WebPkiServerVerifier as WebPkiVerifier,
+    },
+    crypto::{verify_tls12_signature, verify_tls13_signature},
+    pki_types::{CertificateDer, ServerName, TrustAnchor, UnixTime},
+    CertificateError, ClientConfig, DigitallySignedStruct, RootCertStore,
+};
+
+use crate::{net::CertificateInput, Error};
 
 pub async fn configure_tls_connector(
     accept_invalid_certs: bool,
@@ -23,17 +24,20 @@ pub async fn configure_tls_connector(
             .with_no_client_auth()
     } else {
         let mut cert_store = RootCertStore::empty();
-        cert_store.extend(webpki_roots::TLS_SERVER_ROOTS.iter().map(|ta| TrustAnchor {
-            subject: ta.subject.clone(),
-            subject_public_key_info: ta.subject_public_key_info.clone(),
-            name_constraints: ta.name_constraints.clone(),
+        cert_store.extend(webpki_roots::TLS_SERVER_ROOTS.iter().map(|ta| {
+            TrustAnchor {
+                subject: ta.subject.clone(),
+                subject_public_key_info: ta.subject_public_key_info.clone(),
+                name_constraints: ta.name_constraints.clone(),
+            }
         }));
         if let Some(ca) = root_cert_path {
             let data = ca.data().await?;
             let mut cursor = Cursor::new(data);
             for cert_result in rustls_pemfile::certs(&mut cursor) {
-                let cert =
-                    cert_result.map_err(|_| Error::from(format!("Invalid certificate {}", ca)))?;
+                let cert = cert_result.map_err(|_| {
+                    Error::from(format!("Invalid certificate {}", ca))
+                })?;
                 cert_store
                     .add(cert)
                     .map_err(|err| Error::from(err.to_string()))?;
@@ -44,7 +48,9 @@ pub async fn configure_tls_connector(
                 .build()
                 .map_err(|e| Error::from(e.to_string()))?;
             config
-                .with_custom_certificate_verifier(Arc::new(NoHostnameTlsVerifier { verifier }))
+                .with_custom_certificate_verifier(Arc::new(NoHostnameTlsVerifier {
+                    verifier,
+                }))
                 .with_no_client_auth()
         } else {
             config
@@ -82,7 +88,8 @@ impl ServerCertVerifier for DummyTlsVerifier {
             message,
             cert,
             dss,
-            &rustls::crypto::ring::default_provider().signature_verification_algorithms,
+            &rustls::crypto::ring::default_provider()
+                .signature_verification_algorithms,
         )
     }
 
@@ -96,7 +103,8 @@ impl ServerCertVerifier for DummyTlsVerifier {
             message,
             cert,
             dss,
-            &rustls::crypto::ring::default_provider().signature_verification_algorithms,
+            &rustls::crypto::ring::default_provider()
+                .signature_verification_algorithms,
         )
     }
 
@@ -139,7 +147,7 @@ impl ServerCertVerifier for NoHostnameTlsVerifier {
                         }
                     }
                     _ => Err(e),
-                }
+                };
             }
         }
     }
@@ -154,7 +162,8 @@ impl ServerCertVerifier for NoHostnameTlsVerifier {
             message,
             cert,
             dss,
-            &rustls::crypto::ring::default_provider().signature_verification_algorithms,
+            &rustls::crypto::ring::default_provider()
+                .signature_verification_algorithms,
         )
     }
 
@@ -168,7 +177,8 @@ impl ServerCertVerifier for NoHostnameTlsVerifier {
             message,
             cert,
             dss,
-            &rustls::crypto::ring::default_provider().signature_verification_algorithms,
+            &rustls::crypto::ring::default_provider()
+                .signature_verification_algorithms,
         )
     }
 

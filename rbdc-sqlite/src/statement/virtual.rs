@@ -1,21 +1,25 @@
 #![allow(clippy::rc_buffer)]
 
-use crate::connection::ConnectionHandle;
-use crate::statement::StatementHandle;
-use crate::{SqliteColumn, SqliteError};
+use std::{
+    cmp,
+    collections::HashMap,
+    i32,
+    os::raw::c_char,
+    ptr::{null, null_mut, NonNull},
+    sync::Arc,
+};
+
 use bytes::{Buf, Bytes};
 use libsqlite3_sys::{
     sqlite3, sqlite3_prepare_v3, sqlite3_stmt, SQLITE_OK, SQLITE_PREPARE_PERSISTENT,
 };
-use rbdc::err_protocol;
-use rbdc::error::Error;
-use rbdc::ext::ustr::UStr;
+use rbdc::{err_protocol, error::Error, ext::ustr::UStr};
 use smallvec::SmallVec;
-use std::collections::HashMap;
-use std::os::raw::c_char;
-use std::ptr::{null, null_mut, NonNull};
-use std::sync::Arc;
-use std::{cmp, i32};
+
+use crate::{
+    connection::ConnectionHandle, statement::StatementHandle, SqliteColumn,
+    SqliteError,
+};
 
 // A virtual statement consists of *zero* or more raw SQLite3 statements. We chop up a SQL statement
 // on `;` to support multiple statements in one query.
@@ -87,7 +91,9 @@ impl VirtualStatement {
                 return Ok(None);
             }
 
-            if let Some(statement) = prepare(conn.as_ptr(), &mut self.tail, self.persistent)? {
+            if let Some(statement) =
+                prepare(conn.as_ptr(), &mut self.tail, self.persistent)?
+            {
                 let num = statement.column_count();
 
                 let mut columns = Vec::with_capacity(num);

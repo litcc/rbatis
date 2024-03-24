@@ -1,28 +1,30 @@
-use std::ffi::c_void;
-use std::ffi::CStr;
-
-use crate::type_info::DataType;
-use crate::{SqliteError, SqliteTypeInfo};
-use libsqlite3_sys::{
-    sqlite3, sqlite3_bind_blob64, sqlite3_bind_double, sqlite3_bind_int, sqlite3_bind_int64,
-    sqlite3_bind_null, sqlite3_bind_parameter_count, sqlite3_bind_parameter_name,
-    sqlite3_bind_text64, sqlite3_changes, sqlite3_clear_bindings, sqlite3_column_blob,
-    sqlite3_column_bytes, sqlite3_column_count, sqlite3_column_database_name,
-    sqlite3_column_decltype, sqlite3_column_double, sqlite3_column_int, sqlite3_column_int64,
-    sqlite3_column_name, sqlite3_column_origin_name, sqlite3_column_table_name,
-    sqlite3_column_type, sqlite3_column_value, sqlite3_db_handle, sqlite3_finalize, sqlite3_reset,
-    sqlite3_sql, sqlite3_step, sqlite3_stmt, sqlite3_stmt_readonly, sqlite3_table_column_metadata,
-    sqlite3_unlock_notify, sqlite3_value, SQLITE_DONE, SQLITE_LOCKED_SHAREDCACHE, SQLITE_MISUSE,
-    SQLITE_OK, SQLITE_ROW, SQLITE_TRANSIENT, SQLITE_UTF8,
+use std::{
+    ffi::{c_void, CStr},
+    os::raw::{c_char, c_int},
+    ptr,
+    ptr::NonNull,
+    slice::from_raw_parts,
+    str::{from_utf8, from_utf8_unchecked},
 };
-use parking_lot::Condvar;
-use parking_lot::Mutex;
+
+use libsqlite3_sys::{
+    sqlite3, sqlite3_bind_blob64, sqlite3_bind_double, sqlite3_bind_int,
+    sqlite3_bind_int64, sqlite3_bind_null, sqlite3_bind_parameter_count,
+    sqlite3_bind_parameter_name, sqlite3_bind_text64, sqlite3_changes,
+    sqlite3_clear_bindings, sqlite3_column_blob, sqlite3_column_bytes,
+    sqlite3_column_count, sqlite3_column_database_name, sqlite3_column_decltype,
+    sqlite3_column_double, sqlite3_column_int, sqlite3_column_int64,
+    sqlite3_column_name, sqlite3_column_origin_name, sqlite3_column_table_name,
+    sqlite3_column_type, sqlite3_column_value, sqlite3_db_handle, sqlite3_finalize,
+    sqlite3_reset, sqlite3_sql, sqlite3_step, sqlite3_stmt, sqlite3_stmt_readonly,
+    sqlite3_table_column_metadata, sqlite3_unlock_notify, sqlite3_value,
+    SQLITE_DONE, SQLITE_LOCKED_SHAREDCACHE, SQLITE_MISUSE, SQLITE_OK, SQLITE_ROW,
+    SQLITE_TRANSIENT, SQLITE_UTF8,
+};
+use parking_lot::{Condvar, Mutex};
 use rbdc::Error;
-use std::os::raw::{c_char, c_int};
-use std::ptr;
-use std::ptr::NonNull;
-use std::slice::from_raw_parts;
-use std::str::{from_utf8, from_utf8_unchecked};
+
+use crate::{type_info::DataType, SqliteError, SqliteTypeInfo};
 
 #[derive(Debug)]
 pub(crate) struct StatementHandle(NonNull<sqlite3_stmt>);
@@ -95,7 +97,10 @@ impl StatementHandle {
         SqliteTypeInfo(DataType::from_code(self.column_type(index)))
     }
 
-    pub(crate) fn column_type_info_opt(&self, index: usize) -> Option<SqliteTypeInfo> {
+    pub(crate) fn column_type_info_opt(
+        &self,
+        index: usize,
+    ) -> Option<SqliteTypeInfo> {
         match DataType::from_code(self.column_type(index)) {
             DataType::Null => None,
             dt => Some(SqliteTypeInfo(dt)),
@@ -119,7 +124,10 @@ impl StatementHandle {
         }
     }
 
-    pub(crate) fn column_nullable(&self, index: usize) -> Result<Option<bool>, Error> {
+    pub(crate) fn column_nullable(
+        &self,
+        index: usize,
+    ) -> Result<Option<bool>, Error> {
         unsafe {
             // https://sqlite.org/c3ref/column_database_name.html
             //
@@ -128,9 +136,12 @@ impl StatementHandle {
             // sqlite3_finalize() or until the statement is automatically reprepared by the
             // first call to sqlite3_step() for a particular run or until the same information
             // is requested again in a different encoding.
-            let db_name = sqlite3_column_database_name(self.0.as_ptr(), index as c_int);
-            let table_name = sqlite3_column_table_name(self.0.as_ptr(), index as c_int);
-            let origin_name = sqlite3_column_origin_name(self.0.as_ptr(), index as c_int);
+            let db_name =
+                sqlite3_column_database_name(self.0.as_ptr(), index as c_int);
+            let table_name =
+                sqlite3_column_table_name(self.0.as_ptr(), index as c_int);
+            let origin_name =
+                sqlite3_column_origin_name(self.0.as_ptr(), index as c_int);
 
             if db_name.is_null() || table_name.is_null() || origin_name.is_null() {
                 return Ok(None);
@@ -277,7 +288,8 @@ impl StatementHandle {
             return &[];
         }
 
-        let ptr = unsafe { sqlite3_column_blob(self.0.as_ptr(), index) } as *const u8;
+        let ptr =
+            unsafe { sqlite3_column_blob(self.0.as_ptr(), index) } as *const u8;
         debug_assert!(!ptr.is_null());
 
         unsafe { from_raw_parts(ptr, len) }

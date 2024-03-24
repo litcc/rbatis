@@ -1,19 +1,21 @@
+use std::{
+    cmp::Ordering,
+    fmt::{self, Debug, Formatter},
+    ptr::NonNull,
+};
+
 use futures_core::future::BoxFuture;
 use futures_intrusive::sync::MutexGuard;
 use futures_util::future;
-use libsqlite3_sys::sqlite3;
-use std::cmp::Ordering;
-use std::fmt::{self, Debug, Formatter};
-use std::ptr::NonNull;
-
 pub(crate) use handle::{ConnectionHandle, ConnectionHandleRaw};
+use libsqlite3_sys::sqlite3;
+use rbdc::{error::Error, StatementCache};
 
-use crate::connection::establish::EstablishParams;
-use crate::connection::worker::ConnectionWorker;
-use crate::statement::VirtualStatement;
-use crate::SqliteConnectOptions;
-use rbdc::error::Error;
-use rbdc::StatementCache;
+use crate::{
+    connection::{establish::EstablishParams, worker::ConnectionWorker},
+    statement::VirtualStatement,
+    SqliteConnectOptions,
+};
 
 pub(crate) mod collation;
 mod establish;
@@ -57,7 +59,9 @@ pub(crate) struct Statements {
 }
 
 impl SqliteConnection {
-    pub(crate) async fn establish(options: &SqliteConnectOptions) -> Result<Self, Error> {
+    pub(crate) async fn establish(
+        options: &SqliteConnectOptions,
+    ) -> Result<Self, Error> {
         let params = EstablishParams::from_options(options)?;
         let worker = ConnectionWorker::establish(params).await?;
         Ok(Self {
@@ -74,7 +78,9 @@ impl SqliteConnection {
     ///
     /// You probably want to use [`.lock_handle()`][Self::lock_handle] to ensure that the worker thread is not using
     /// the database concurrently.
-    #[deprecated(note = "Unsynchronized access is unsafe. See documentation for details.")]
+    #[deprecated(
+        note = "Unsynchronized access is unsafe. See documentation for details."
+    )]
     pub fn as_raw_handle(&mut self) -> *mut sqlite3 {
         self.worker.handle_raw.as_ptr()
     }
@@ -208,7 +214,11 @@ impl Statements {
         }
     }
 
-    fn get(&mut self, query: &str, persistent: bool) -> Result<&mut VirtualStatement, Error> {
+    fn get(
+        &mut self,
+        query: &str,
+        persistent: bool,
+    ) -> Result<&mut VirtualStatement, Error> {
         if !persistent || !self.cached.is_enabled() {
             return Ok(self.temp.insert(VirtualStatement::new(query, false)?));
         }

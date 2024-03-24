@@ -1,11 +1,15 @@
 use bytes::{Buf, Bytes};
+use rbdc::{
+    err_protocol,
+    io::{BufExt, Decode},
+    Error,
+};
 
-use crate::io::MySqlBufExt;
-use crate::protocol::text::ColumnType;
-use crate::protocol::Row;
-use crate::result_set::MySqlColumn;
-use rbdc::io::{BufExt, Decode};
-use rbdc::{err_protocol, Error};
+use crate::{
+    io::MySqlBufExt,
+    protocol::{text::ColumnType, Row},
+    result_set::MySqlColumn,
+};
 
 // https://dev.mysql.com/doc/internals/en/binary-protocol-resultset-row.html#packet-ProtocolBinary::ResultsetRow
 // https://dev.mysql.com/doc/internals/en/binary-protocol-value.html
@@ -14,7 +18,10 @@ use rbdc::{err_protocol, Error};
 pub struct BinaryRow(pub Row);
 
 impl<'de> Decode<'de, &'de [MySqlColumn]> for BinaryRow {
-    fn decode_with(mut buf: Bytes, columns: &'de [MySqlColumn]) -> Result<Self, Error> {
+    fn decode_with(
+        mut buf: Bytes,
+        columns: &'de [MySqlColumn],
+    ) -> Result<Self, Error> {
         let header = buf.get_u8();
         if header != 0 {
             return Err(err_protocol!(
@@ -34,8 +41,9 @@ impl<'de> Decode<'de, &'de [MySqlColumn]> for BinaryRow {
         for (column_idx, column) in columns.iter().enumerate() {
             // NOTE: the column index starts at the 3rd bit
             let column_null_idx = column_idx + 2;
-            let is_null =
-                null_bitmap[column_null_idx / 8] & (1 << (column_null_idx % 8) as u8) != 0;
+            let is_null = null_bitmap[column_null_idx / 8]
+                & (1 << (column_null_idx % 8) as u8)
+                != 0;
 
             if is_null {
                 values.push(None);

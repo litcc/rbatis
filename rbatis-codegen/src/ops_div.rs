@@ -1,6 +1,6 @@
-use crate::ops::AsProxy;
-use crate::ops::Div;
 use rbs::Value;
+
+use crate::ops::{AsProxy, Div};
 
 fn op_div_u64(value: &Value, other: u64) -> u64 {
     if other == 0 {
@@ -42,11 +42,7 @@ fn op_div_u64_value(value: &Value, other: u64) -> u64 {
 
 fn op_div_f64_value(value: &Value, other: f64) -> f64 {
     let v = value.f64();
-    if v == 0.0 {
-        0.0
-    } else {
-        other / v
-    }
+    if v == 0.0 { 0.0 } else { other / v }
 }
 
 macro_rules! impl_numeric_div {
@@ -169,6 +165,8 @@ fn op_div_value(left: Value, rhs: Value) -> Value {
             }
             Value::F64(s / rhs)
         }
+        #[cfg(feature = "option")]
+        Value::Some(v) => op_div_value(*v, rhs),
         Value::Ext(_, e) => op_div_value(*e, rhs),
         _ => Value::Null,
     }

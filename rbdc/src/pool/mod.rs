@@ -1,13 +1,12 @@
 pub mod conn_box;
 pub mod conn_manager;
 
-use crate::db::Connection;
-use crate::pool::conn_manager::ConnManager;
-use crate::Error;
+use std::{fmt::Debug, time::Duration};
+
 use async_trait::async_trait;
 use rbs::Value;
-use std::fmt::Debug;
-use std::time::Duration;
+
+use crate::{db::Connection, pool::conn_manager::ConnManager, Error};
 
 #[async_trait]
 pub trait Pool: Sync + Send + Debug {

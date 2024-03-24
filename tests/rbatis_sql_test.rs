@@ -1,8 +1,7 @@
 #[cfg(test)]
 mod test {
     use rbatis_macro_driver::rb_py;
-    use rbs::value::map::ValueMap;
-    use rbs::Value;
+    use rbs::{value::map::ValueMap, Value};
 
     #[rb_py(
         "
@@ -87,7 +86,9 @@ mod test {
 
     #[test]
     fn test_two_eq() {
-        #[rb_py("select * from test where  coalesce(user_id,#{data.user_id})=#{data.user_id}")]
+        #[rb_py(
+            "select * from test where  coalesce(user_id,#{data.user_id})=#{data.user_id}"
+        )]
         pub fn test_py_sql(arg: &mut rbs::Value, _tag: char) {}
         let mut data = ValueMap::new();
         data.insert(

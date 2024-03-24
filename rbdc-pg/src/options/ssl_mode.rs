@@ -1,10 +1,13 @@
-use rbdc::Error;
 use std::str::FromStr;
+
+use rbdc::Error;
 
 /// Options for controlling the level of protection provided for PostgreSQL SSL connections.
 ///
 /// It is used by the [`ssl_mode`](super::PgConnectOptions::ssl_mode) method.
-#[derive(Debug, Clone, Copy, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Debug, Clone, Copy, Eq, PartialEq, serde::Serialize, serde::Deserialize,
+)]
 pub enum PgSslMode {
     /// Only try a non-SSL connection.
     Disable,
@@ -47,7 +50,10 @@ impl FromStr for PgSslMode {
             "verify-full" => PgSslMode::VerifyFull,
 
             _ => {
-                return Err(Error::from(format!("unknown value {:?} for `ssl_mode`", s)));
+                return Err(Error::from(format!(
+                    "unknown value {:?} for `ssl_mode`",
+                    s
+                )));
             }
         })
     }

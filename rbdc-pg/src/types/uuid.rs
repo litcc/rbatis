@@ -1,14 +1,20 @@
-use crate::arguments::PgArgumentBuffer;
-use crate::types::decode::Decode;
-use crate::types::encode::{Encode, IsNull};
-use crate::value::{PgValue, PgValueFormat};
-use rbdc::uuid::Uuid;
-use rbdc::Error;
 use std::str::FromStr;
+
+use rbdc::{uuid::Uuid, Error};
+
+use crate::{
+    arguments::PgArgumentBuffer,
+    types::{
+        decode::Decode,
+        encode::{Encode, IsNull},
+    },
+    value::{PgValue, PgValueFormat},
+};
 
 impl Encode for Uuid {
     fn encode(self, buf: &mut PgArgumentBuffer) -> Result<IsNull, Error> {
-        let uuid = uuid::Uuid::from_str(&self.0).map_err(|e| Error::from(e.to_string()))?;
+        let uuid =
+            uuid::Uuid::from_str(&self.0).map_err(|e| Error::from(e.to_string()))?;
         buf.extend_from_slice(uuid.as_bytes());
         Ok(IsNull::No)
     }

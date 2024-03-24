@@ -2,11 +2,13 @@
 /// The syntax tree we use is the html tag structure loader_html.rs Element struct
 extern crate proc_macro;
 
-use syn::{parse_macro_input, ItemFn, Token};
-
 use proc_macro::TokenStream;
-use syn::parse::{Parse, ParseStream};
-use syn::punctuated::Punctuated;
+use syn::{
+    parse::{Parse, ParseStream},
+    parse_macro_input,
+    punctuated::Punctuated,
+    ItemFn, Token,
+};
 
 pub mod func;
 pub mod loader_html;

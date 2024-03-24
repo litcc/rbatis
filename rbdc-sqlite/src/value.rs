@@ -1,18 +1,15 @@
-use std::ptr::NonNull;
-use std::slice::from_raw_parts;
-use std::str::from_utf8;
-use std::sync::Arc;
+use std::{
+    borrow::Cow, ptr::NonNull, slice::from_raw_parts, str::from_utf8, sync::Arc,
+};
 
 use libsqlite3_sys::{
     sqlite3_value, sqlite3_value_blob, sqlite3_value_bytes, sqlite3_value_double,
     sqlite3_value_dup, sqlite3_value_free, sqlite3_value_int, sqlite3_value_int64,
     sqlite3_value_type, SQLITE_NULL,
 };
-
-use crate::type_info::DataType;
-use crate::SqliteTypeInfo;
 use rbdc::error::Error;
-use std::borrow::Cow;
+
+use crate::{type_info::DataType, SqliteTypeInfo};
 
 enum SqliteValueData<'r> {
     Value(&'r SqliteValue),
@@ -90,19 +87,24 @@ unsafe impl Send for ValueHandle {}
 unsafe impl Sync for ValueHandle {}
 
 impl SqliteValue {
-    pub(crate) unsafe fn new(value: *mut sqlite3_value, type_info: SqliteTypeInfo) -> Self {
+    pub(crate) unsafe fn new(
+        value: *mut sqlite3_value,
+        type_info: SqliteTypeInfo,
+    ) -> Self {
         debug_assert!(!value.is_null());
 
         Self {
             type_info,
-            handle: Arc::new(ValueHandle(NonNull::new_unchecked(sqlite3_value_dup(
-                value,
-            )))),
+            handle: Arc::new(ValueHandle(NonNull::new_unchecked(
+                sqlite3_value_dup(value),
+            ))),
         }
     }
 
     pub fn type_info_opt(&self) -> Option<SqliteTypeInfo> {
-        let dt = DataType::from_code(unsafe { sqlite3_value_type(self.handle.0.as_ptr()) });
+        let dt = DataType::from_code(unsafe {
+            sqlite3_value_type(self.handle.0.as_ptr())
+        });
 
         if let DataType::Null = dt {
             None

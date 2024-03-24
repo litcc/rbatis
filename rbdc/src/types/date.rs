@@ -1,8 +1,12 @@
-use crate::Error;
+use std::{
+    fmt::{Debug, Display, Formatter},
+    str::FromStr,
+};
+
 use fastdate::DateTime;
 use rbs::Value;
-use std::fmt::{Debug, Display, Formatter};
-use std::str::FromStr;
+
+use crate::Error;
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, Eq, PartialEq, Hash)]
 #[serde(rename = "Date")]

@@ -1,7 +1,8 @@
-use crate::ops::AsProxy;
-use crate::ops::PartialOrd;
-use rbs::Value;
 use std::cmp::{Ordering, PartialOrd as P};
+
+use rbs::Value;
+
+use crate::ops::{AsProxy, PartialOrd};
 
 #[inline]
 fn cmp_u64(value: u64, rhs: u64) -> Option<Ordering> {

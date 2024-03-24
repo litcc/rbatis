@@ -1,7 +1,6 @@
 #[cfg(test)]
 mod test {
-    use rbatis::plugin::snowflake::new_snowflake_id;
-    use rbatis::snowflake::Snowflake;
+    use rbatis::{plugin::snowflake::new_snowflake_id, snowflake::Snowflake};
 
     #[test]
     fn test_new_snowflake_id() {

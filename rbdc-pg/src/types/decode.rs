@@ -1,5 +1,6 @@
-use crate::value::PgValue;
 use rbdc::Error;
+
+use crate::value::PgValue;
 
 pub trait Decode: Sized {
     /// Decode a new value of this type using a raw value from the database.

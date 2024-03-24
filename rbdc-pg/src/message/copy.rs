@@ -1,7 +1,11 @@
-use bytes::{Buf, BufMut, Bytes};
-use rbdc::io::{BufExt, BufMutExt, Decode, Encode};
-use rbdc::{err_protocol, Error};
 use std::ops::Deref;
+
+use bytes::{Buf, BufMut, Bytes};
+use rbdc::{
+    err_protocol,
+    io::{BufExt, BufMutExt, Decode, Encode},
+    Error,
+};
 
 /// The same structure is sent for both `CopyInResponse` and `CopyOutResponse`
 pub struct CopyResponse {

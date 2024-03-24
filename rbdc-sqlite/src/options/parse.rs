@@ -1,10 +1,14 @@
-use crate::SqliteConnectOptions;
+use std::{
+    borrow::Cow,
+    path::{Path, PathBuf},
+    str::FromStr,
+    sync::atomic::{AtomicUsize, Ordering},
+};
+
 use percent_encoding::percent_decode_str;
 use rbdc::error::Error;
-use std::borrow::Cow;
-use std::path::{Path, PathBuf};
-use std::str::FromStr;
-use std::sync::atomic::{AtomicUsize, Ordering};
+
+use crate::SqliteConnectOptions;
 
 // https://www.sqlite.org/uri.html
 
@@ -29,7 +33,8 @@ impl FromStr for SqliteConnectOptions {
             options.in_memory = true;
             options.shared_cache = true;
             let seqno = IN_MEMORY_DB_SEQ.fetch_add(1, Ordering::Relaxed);
-            options.filename = Cow::Owned(PathBuf::from(format!("file:rbdc-in-memory-{}", seqno)));
+            options.filename =
+                Cow::Owned(PathBuf::from(format!("file:rbdc-in-memory-{}", seqno)));
         } else {
             // % decode to allow for `?` or `#` in the filename
             options.filename = Cow::Owned(
@@ -112,12 +117,10 @@ impl FromStr for SqliteConnectOptions {
                     },
 
                     _ => {
-                        return Err(Error::from(
-                            format!(
-                                "Configuration:unknown query parameter `{}` while parsing connection URI",
-                                key
-                            )
-                        ));
+                        return Err(Error::from(format!(
+                            "Configuration:unknown query parameter `{}` while parsing connection URI",
+                            key
+                        )));
                     }
                 }
             }
@@ -141,7 +144,8 @@ fn test_parse_in_memory() -> Result<(), Error> {
     assert!(options.in_memory);
     assert!(options.shared_cache);
 
-    let options: SqliteConnectOptions = "sqlite://?mode=memory&cache=private".parse()?;
+    let options: SqliteConnectOptions =
+        "sqlite://?mode=memory&cache=private".parse()?;
     assert!(options.in_memory);
     assert!(!options.shared_cache);
 

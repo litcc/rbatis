@@ -1,8 +1,7 @@
 use bytes::{Buf, Bytes};
+use rbdc::{err_protocol, io::Decode, Error};
 
 use crate::protocol::Capabilities;
-use rbdc::io::Decode;
-use rbdc::{err_protocol, Error};
 
 // https://dev.mysql.com/doc/internals/en/com-stmt-prepare-response.html#packet-COM_STMT_PREPARE_OK
 

@@ -1,8 +1,8 @@
+use std::str::FromStr;
+
 use rbdc::Error;
 use rbs::Value;
-use std::str::FromStr;
-use tiberius::numeric::BigDecimal;
-use tiberius::{Query, Uuid};
+use tiberius::{numeric::BigDecimal, Query, Uuid};
 
 pub trait Encode {
     fn encode(self, q: &mut Query) -> Result<(), Error>;
@@ -53,6 +53,8 @@ impl Encode for Value {
             }
             Value::Array(_) => Err(Error::from("unimplemented")),
             Value::Map(_) => Err(Error::from("unimplemented")),
+            #[cfg(feature = "option")]
+            Value::Some(v) => v.encode(q),
             Value::Ext(t, v) => match t {
                 "Date" => {
                     q.bind(
@@ -62,7 +64,9 @@ impl Encode for Value {
                     Ok(())
                 }
                 "DateTime" => {
-                    let date = fastdate::DateTime::from_str(&v.as_str().unwrap_or_default())?;
+                    let date = fastdate::DateTime::from_str(
+                        &v.as_str().unwrap_or_default(),
+                    )?;
                     q.bind(
                         chrono::NaiveDateTime::from_str(&date.display(false))
                             .map_err(|e| Error::from(e.to_string()))?,
@@ -90,7 +94,8 @@ impl Encode for Value {
                 }
                 "Uuid" => {
                     q.bind(
-                        Uuid::from_str(&v.into_string().unwrap_or_default()).unwrap_or_default(),
+                        Uuid::from_str(&v.into_string().unwrap_or_default())
+                            .unwrap_or_default(),
                     );
                     Ok(())
                 }

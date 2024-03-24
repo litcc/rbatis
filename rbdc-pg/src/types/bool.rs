@@ -1,8 +1,13 @@
-use crate::arguments::PgArgumentBuffer;
-use crate::types::decode::Decode;
-use crate::types::encode::{Encode, IsNull};
-use crate::value::{PgValue, PgValueFormat};
 use rbdc::Error;
+
+use crate::{
+    arguments::PgArgumentBuffer,
+    types::{
+        decode::Decode,
+        encode::{Encode, IsNull},
+    },
+    value::{PgValue, PgValueFormat},
+};
 
 impl Encode for bool {
     fn encode(self, buf: &mut PgArgumentBuffer) -> Result<IsNull, Error> {
@@ -21,7 +26,9 @@ impl Decode for bool {
                 "f" => false,
 
                 s => {
-                    return Err(format!("unexpected value {:?} for boolean", s).into());
+                    return Err(
+                        format!("unexpected value {:?} for boolean", s).into()
+                    );
                 }
             },
         })

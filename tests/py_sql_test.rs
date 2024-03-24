@@ -11,20 +11,27 @@ extern crate rbatis;
 
 #[cfg(test)]
 mod test {
+    use std::{
+        any::Any,
+        collections::HashMap,
+        fmt::{Debug, Formatter},
+        sync::Arc,
+    };
+
     use dark_std::sync::SyncVec;
     use futures_core::future::BoxFuture;
-    use rbatis::executor::{Executor, RBatisConnExecutor};
-    use rbatis::intercept::{Intercept, ResultType};
-    use rbatis::plugin::PageRequest;
-    use rbatis::{Error, RBatis};
-    use rbdc::datetime::DateTime;
-    use rbdc::db::{ConnectOptions, Connection, Driver, ExecResult, MetaData, Row};
-    use rbdc::rt::block_on;
+    use rbatis::{
+        executor::{Executor, RBatisConnExecutor},
+        intercept::{Intercept, ResultType},
+        plugin::PageRequest,
+        Error, RBatis,
+    };
+    use rbdc::{
+        datetime::DateTime,
+        db::{ConnectOptions, Connection, Driver, ExecResult, MetaData, Row},
+        rt::block_on,
+    };
     use rbs::{from_value, to_value, Value};
-    use std::any::Any;
-    use std::collections::HashMap;
-    use std::fmt::{Debug, Formatter};
-    use std::sync::Arc;
 
     #[derive(Debug)]
     pub struct MockIntercept {
@@ -45,7 +52,10 @@ mod test {
             rb: &dyn Executor,
             sql: &mut String,
             args: &mut Vec<Value>,
-            _result: ResultType<&mut Result<ExecResult, Error>, &mut Result<Vec<Value>, Error>>,
+            _result: ResultType<
+                &mut Result<ExecResult, Error>,
+                &mut Result<Vec<Value>, Error>,
+            >,
         ) -> Result<bool, Error> {
             self.sql_args.push((sql.to_string(), args.clone()));
             Ok(true)
@@ -60,15 +70,22 @@ mod test {
             "test"
         }
 
-        fn connect(&self, _url: &str) -> BoxFuture<Result<Box<dyn Connection>, Error>> {
-            Box::pin(async { Ok(Box::new(MockConnection {}) as Box<dyn Connection>) })
+        fn connect(
+            &self,
+            _url: &str,
+        ) -> BoxFuture<Result<Box<dyn Connection>, Error>> {
+            Box::pin(async {
+                Ok(Box::new(MockConnection {}) as Box<dyn Connection>)
+            })
         }
 
         fn connect_opt<'a>(
             &'a self,
             _opt: &'a dyn ConnectOptions,
         ) -> BoxFuture<Result<Box<dyn Connection>, Error>> {
-            Box::pin(async { Ok(Box::new(MockConnection {}) as Box<dyn Connection>) })
+            Box::pin(async {
+                Ok(Box::new(MockConnection {}) as Box<dyn Connection>)
+            })
         }
 
         fn default_option(&self) -> Box<dyn ConnectOptions> {
@@ -149,7 +166,11 @@ mod test {
             })
         }
 
-        fn exec(&mut self, sql: &str, params: Vec<Value>) -> BoxFuture<Result<ExecResult, Error>> {
+        fn exec(
+            &mut self,
+            sql: &str,
+            params: Vec<Value>,
+        ) -> BoxFuture<Result<ExecResult, Error>> {
             Box::pin(async move {
                 Ok(ExecResult {
                     rows_affected: 0,
@@ -172,7 +193,9 @@ mod test {
 
     impl ConnectOptions for MockConnectOptions {
         fn connect(&self) -> BoxFuture<Result<Box<dyn Connection>, Error>> {
-            Box::pin(async { Ok(Box::new(MockConnection {}) as Box<dyn Connection>) })
+            Box::pin(async {
+                Ok(Box::new(MockConnection {}) as Box<dyn Connection>)
+            })
         }
 
         fn set_uri(&mut self, _uri: &str) -> Result<(), Error> {
@@ -206,7 +229,10 @@ mod test {
             let queue = Arc::new(SyncVec::new());
             rb.set_intercepts(vec![Arc::new(MockIntercept::new(queue.clone()))]);
             #[py_sql("select ${id},${id},#{id},#{id} ")]
-            pub async fn test_same_id(rb: &RBatis, id: &u64) -> Result<Value, Error> {
+            pub async fn test_same_id(
+                rb: &RBatis,
+                id: &u64,
+            ) -> Result<Value, Error> {
                 impled!()
             }
             let r = test_same_id(&mut rb, &1).await.unwrap();

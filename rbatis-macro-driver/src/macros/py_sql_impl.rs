@@ -1,13 +1,14 @@
-use crate::ParseArgs;
+use std::{fs::File, io::Read};
+
 use proc_macro2::{Ident, Span};
-use quote::quote;
-use quote::ToTokens;
-use std::fs::File;
-use std::io::Read;
+use quote::{quote, ToTokens};
 use syn::{FnArg, ItemFn, Pat};
 
-use crate::proc_macro::TokenStream;
-use crate::util::{find_fn_body, find_return_type, get_fn_args, is_query, is_rb_ref};
+use crate::{
+    proc_macro::TokenStream,
+    util::{find_fn_body, find_return_type, get_fn_args, is_query, is_rb_ref},
+    ParseArgs,
+};
 
 ///py_sql macro
 ///support args for rb:&RBatis
@@ -36,7 +37,10 @@ pub(crate) fn impl_macro_py_sql(target_fn: &ItemFn, args: ParseArgs) -> TokenStr
     let mut sql_ident = quote!();
     if args.sqls.len() >= 1 {
         if rbatis_name.is_empty() {
-            panic!("[rbatis] you should add rbatis ref param  rb:&RBatis  or rb: &mut Executor  on '{}()'!", target_fn.sig.ident);
+            panic!(
+                "[rbatis] you should add rbatis ref param  rb:&RBatis  or rb: &mut Executor  on '{}()'!",
+                target_fn.sig.ident
+            );
         }
         let mut s = "".to_string();
         for v in &args.sqls {
@@ -47,16 +51,15 @@ pub(crate) fn impl_macro_py_sql(target_fn: &ItemFn, args: ParseArgs) -> TokenStr
                         .trim_start_matches(r#"include_str!(""#)
                         .trim_end_matches(r#"")"#)
                         .to_string();
-                    let mut f =
-                        File::open(&file_name).expect(&format!("can't find file={}", file_name));
+                    let mut f = File::open(&file_name)
+                        .expect(&format!("can't find file={}", file_name));
                     let mut data = String::new();
                     _ = f.read_to_string(&mut data);
                     data = data.replace("\r\n", "\n");
 
                     #[cfg(feature = "debug_mode")]
                     if cfg!(debug_assertions) {
-                        use std::env::current_dir;
-                        use std::path::PathBuf;
+                        use std::{env::current_dir, path::PathBuf};
                         let current_dir = current_dir().unwrap();
                         let mut include_file_name = file_name.to_string();
                         if !PathBuf::from(&file_name).is_absolute() {
@@ -66,8 +69,7 @@ pub(crate) fn impl_macro_py_sql(target_fn: &ItemFn, args: ParseArgs) -> TokenStr
                                 file_name
                             );
                         }
-                        include_data =
-                            quote! {#include_data  let _ = include_bytes!(#include_file_name);};
+                        include_data = quote! {#include_data  let _ = include_bytes!(#include_file_name);};
                     }
                     s.push_str(&data);
                     continue;
@@ -122,7 +124,8 @@ pub(crate) fn impl_macro_py_sql(target_fn: &ItemFn, args: ParseArgs) -> TokenStr
         #sql_ident
     };
     let gen_func: proc_macro2::TokenStream =
-        rbatis_codegen::rb_py(gen_target_macro_arg.into(), gen_target_method.into()).into();
+        rbatis_codegen::rb_py(gen_target_macro_arg.into(), gen_target_method.into())
+            .into();
 
     let generic = target_fn.sig.generics.clone();
 

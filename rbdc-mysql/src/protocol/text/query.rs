@@ -1,5 +1,6 @@
-use crate::protocol::Capabilities;
 use rbdc::io::Encode;
+
+use crate::protocol::Capabilities;
 
 // https://dev.mysql.com/doc/internals/en/com-query.html
 

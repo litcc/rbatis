@@ -1,6 +1,7 @@
-use crate::{SqliteArgumentValue, SqliteArguments};
 use rbdc::Error;
 use rbs::Value;
+
+use crate::{SqliteArgumentValue, SqliteArguments};
 
 pub trait Encode {
     fn encode(self, args: &mut Vec<SqliteArgumentValue>) -> Result<IsNull, Error>;

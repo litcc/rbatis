@@ -1,9 +1,10 @@
-use crate::executor::Executor;
-use crate::Error;
+use std::fmt::Debug;
+
 use async_trait::async_trait;
 use rbdc::db::ExecResult;
 use rbs::Value;
-use std::fmt::Debug;
+
+use crate::{executor::Executor, Error};
 
 #[derive(Debug, Clone)]
 pub enum ResultType<A, B> {
@@ -64,7 +65,10 @@ pub trait Intercept: Send + Sync + Debug {
         _rb: &dyn Executor,
         _sql: &mut String,
         _args: &mut Vec<Value>,
-        _result: ResultType<&mut Result<ExecResult, Error>, &mut Result<Vec<Value>, Error>>,
+        _result: ResultType<
+            &mut Result<ExecResult, Error>,
+            &mut Result<Vec<Value>, Error>,
+        >,
     ) -> Result<bool, Error> {
         Ok(true)
     }
@@ -78,7 +82,10 @@ pub trait Intercept: Send + Sync + Debug {
         _rb: &dyn Executor,
         _sql: &mut String,
         _args: &mut Vec<Value>,
-        _result: ResultType<&mut Result<ExecResult, Error>, &mut Result<Vec<Value>, Error>>,
+        _result: ResultType<
+            &mut Result<ExecResult, Error>,
+            &mut Result<Vec<Value>, Error>,
+        >,
     ) -> Result<bool, Error> {
         Ok(true)
     }

@@ -1,10 +1,13 @@
+use std::{
+    collections::HashMap,
+    fmt::{Debug, Formatter},
+    ops::Deref,
+    sync::Arc,
+};
+
+use rbdc::{db::MetaData, ext::ustr::UStr};
+
 use crate::result_set::MySqlTypeInfo;
-use rbdc::db::MetaData;
-use rbdc::ext::ustr::UStr;
-use std::collections::HashMap;
-use std::fmt::{Debug, Formatter};
-use std::ops::Deref;
-use std::sync::Arc;
 
 pub struct MysqlMetaData {
     pub inner: Arc<HashMap<UStr, (usize, MySqlTypeInfo)>>,

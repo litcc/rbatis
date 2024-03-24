@@ -1,11 +1,9 @@
-use base64::engine::general_purpose::STANDARD;
-use base64::Engine;
 use std::str::from_utf8;
 
+use base64::{engine::general_purpose::STANDARD, Engine};
 use bytes::{Buf, Bytes};
 use memchr::memchr;
-use rbdc::io::Decode;
-use rbdc::{err_protocol, Error};
+use rbdc::{err_protocol, io::Decode, Error};
 
 // On startup, the server sends an appropriate authentication request message,
 // to which the frontend must reply with an appropriate authentication
@@ -74,7 +72,9 @@ impl Decode<'_> for Authentication {
             }
 
             10 => Authentication::Sasl(AuthenticationSasl(buf)),
-            11 => Authentication::SaslContinue(AuthenticationSaslContinue::decode(buf)?),
+            11 => Authentication::SaslContinue(AuthenticationSaslContinue::decode(
+                buf,
+            )?),
             12 => Authentication::SaslFinal(AuthenticationSaslFinal::decode(buf)?),
 
             ty => {
@@ -112,7 +112,8 @@ impl<'a> Iterator for SaslMechanisms<'a> {
             return None;
         }
 
-        let mechanism = memchr(b'\0', self.0).and_then(|nul| from_utf8(&self.0[..nul]).ok())?;
+        let mechanism =
+            memchr(b'\0', self.0).and_then(|nul| from_utf8(&self.0[..nul]).ok())?;
 
         self.0 = &self.0[(mechanism.len() + 1)..];
 

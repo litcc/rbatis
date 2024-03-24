@@ -5,10 +5,12 @@ extern crate core;
 pub mod index;
 pub mod value;
 
+pub use value::{
+    ext::{from_value, from_value_ref, to_value, to_value_def},
+    Value,
+};
+
 pub use crate::value::ext::Error;
-pub use value::ext::{from_value, from_value_ref};
-pub use value::ext::{to_value, to_value_def};
-pub use value::Value;
 
 impl Value {
     pub fn into_ext(self, name: &'static str) -> Self {
@@ -33,6 +35,8 @@ impl Value {
             Value::Array(v) => v.is_empty(),
             Value::Map(v) => v.is_empty(),
             Value::Ext(_, v) => v.is_empty(),
+            #[cfg(feature = "option")]
+            Value::Some(v) => v.is_empty(),
         }
     }
 
@@ -51,6 +55,8 @@ impl Value {
             Value::Binary(v) => v.len(),
             Value::Array(v) => v.len(),
             Value::Map(v) => v.len(),
+            #[cfg(feature = "option")]
+            Value::Some(v) => v.len(),
             Value::Ext(_, v) => v.len(),
         }
     }
@@ -77,14 +83,17 @@ macro_rules! to_value {
     };
 }
 
-
 /// is debug mode
 pub fn is_debug_mode() -> bool {
     if cfg!(debug_assertions) {
         #[cfg(feature = "debug_mode")]
-        {true}
+        {
+            true
+        }
         #[cfg(not(feature = "debug_mode"))]
-        {false}
+        {
+            false
+        }
     } else {
         false
     }

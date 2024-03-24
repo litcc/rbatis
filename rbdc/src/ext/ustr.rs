@@ -1,8 +1,10 @@
-use std::borrow::Borrow;
-use std::fmt::{self, Debug, Display, Formatter};
-use std::hash::{Hash, Hasher};
-use std::ops::Deref;
-use std::sync::Arc;
+use std::{
+    borrow::Borrow,
+    fmt::{self, Debug, Display, Formatter},
+    hash::{Hash, Hasher},
+    ops::Deref,
+    sync::Arc,
+};
 
 // U meaning micro
 // a micro-string is either a reference-counted string or a static string
@@ -85,7 +87,9 @@ impl Display for UStr {
 // manual impls because otherwise things get a little screwy with lifetimes
 
 impl<'de> serde::Deserialize<'de> for UStr {
-    fn deserialize<D>(deserializer: D) -> Result<Self, <D as serde::Deserializer<'de>>::Error>
+    fn deserialize<D>(
+        deserializer: D,
+    ) -> Result<Self, <D as serde::Deserializer<'de>>::Error>
     where
         D: serde::Deserializer<'de>,
     {

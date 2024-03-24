@@ -1,8 +1,8 @@
-use crate::protocol::text::ColumnType;
-use crate::result_set::MySqlTypeInfo;
+use std::{borrow::Cow, str::from_utf8};
+
 use rbdc::Error;
-use std::borrow::Cow;
-use std::str::from_utf8;
+
+use crate::{protocol::text::ColumnType, result_set::MySqlTypeInfo};
 
 #[derive(Debug, Clone, Copy)]
 #[repr(u8)]

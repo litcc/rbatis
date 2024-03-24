@@ -1,8 +1,10 @@
-use crate::io::MySqlBufMutExt;
-use crate::types::{Decode, Encode};
-use crate::value::MySqlValue;
-use rbdc::json::Json;
-use rbdc::Error;
+use rbdc::{json::Json, Error};
+
+use crate::{
+    io::MySqlBufMutExt,
+    types::{Decode, Encode},
+    value::MySqlValue,
+};
 
 impl Encode for Json {
     fn encode(self, buf: &mut Vec<u8>) -> Result<usize, Error> {
@@ -28,7 +30,6 @@ pub fn encode_json(arg: rbs::Value, buf: &mut Vec<u8>) -> Result<usize, Error> {
     buf.put_bytes_lenenc(bytes);
     Ok(len)
 }
-
 
 pub fn decode_json(value: MySqlValue) -> Result<rbs::Value, Error> {
     let v = value.as_str().unwrap_or("null").to_string();

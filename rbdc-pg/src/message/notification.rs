@@ -1,7 +1,8 @@
 use bytes::{Buf, Bytes};
-
-use rbdc::error::Error;
-use rbdc::io::{BufExt, Decode};
+use rbdc::{
+    error::Error,
+    io::{BufExt, Decode},
+};
 
 #[derive(Debug)]
 pub struct Notification {
@@ -27,7 +28,8 @@ impl Decode<'_> for Notification {
 
 #[test]
 fn test_decode_notification_response() {
-    const NOTIFICATION_RESPONSE: &[u8] = b"\x34\x20\x10\x02TEST-CHANNEL\0THIS IS A TEST\0";
+    const NOTIFICATION_RESPONSE: &[u8] =
+        b"\x34\x20\x10\x02TEST-CHANNEL\0THIS IS A TEST\0";
 
     let message = Notification::decode(Bytes::from(NOTIFICATION_RESPONSE)).unwrap();
 
