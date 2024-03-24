@@ -2,9 +2,15 @@ name: ci
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - '**'
+    branches-ignore:
+      - 'master'
   pull_request:
-    branches: [ master ]
+    branches:
+      - '**'
+    branches-ignore:
+      - 'master'
 
 env:
   CARGO_TERM_COLOR: always
