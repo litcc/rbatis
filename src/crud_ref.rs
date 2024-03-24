@@ -1,14 +1,14 @@
 #[macro_export]
-macro_rules! crud_ref_ext {
+macro_rules! crud_ext {
     ($table:ty{}) => {
-        $crate:impl_insert_ext!($table {});
-        $crate:impl_select_ext!($table {});
+        $crate::impl_insert_ext!($table {});
+        $crate::impl_select_ext!($table {});
         $crate::impl_update_ext!($table {});
         $crate::impl_delete_ext!($table {});
     };
     ($table:ty{},$table_name:expr) => {
-        $crate:impl_insert_ext!($table {}, $table_name);
-        $crate:impl_select_ext!($table {}, $table_name);
+        $crate::impl_insert_ext!($table {}, $table_name);
+        $crate::impl_select_ext!($table {}, $table_name);
         $crate::impl_update_ext!($table {}, $table_name);
         $crate::impl_delete_ext!($table {}, $table_name);
     };
