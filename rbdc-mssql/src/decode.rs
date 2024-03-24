@@ -212,10 +212,12 @@ impl DateTimeFromNativeDatetime for fastdate::DateTime {
 
 impl DateTimeFromDateTimeFixedOffset for fastdate::DateTime {
     fn from(arg: chrono::DateTime<FixedOffset>) -> Self {
+        let dd = arg.offset();
+        //offset_sec()
         fastdate::DateTime::from_timestamp_nano(arg.timestamp_nanos_opt().expect(
             "value can not be represented in a timestamp with nanosecond precision.",
         ) as i128)
-        .set_offset(offset_sec())
+        .set_offset(dd.local_minus_utc())
     }
 }
 
@@ -236,9 +238,9 @@ mod test {
                 NaiveDateTime::from_timestamp_opt(1697801035, 0).unwrap(),
                 offset,
             );
-        println!("{}", dt.to_string());
+        println!("{}", dt.to_string()); // 2023-10-20T19:23:55+08:00
         let de = <DateTime as DateTimeFromDateTimeFixedOffset>::from(dt);
-        println!("{}", de.to_string());
+        println!("{}", de.to_string()); // 2023-10-20T11:23:55Z
         assert_eq!(
             dt.to_string().replacen(" ", "T", 1).replace(" ", ""),
             de.display(true)
