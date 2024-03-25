@@ -54,14 +54,11 @@ impl Decode for Value {
             ColumnData::Numeric(v) => match v {
                 None => Value::Null,
                 Some(_) => {
-                    let v: tiberius::Result<Option<BigDecimal>> =
-                        tiberius::FromSql::from_sql(row);
+                    let v: tiberius::Result<Option<BigDecimal>> = tiberius::FromSql::from_sql(row);
                     match v {
                         Ok(v) => match v {
                             None => Value::Null,
-                            Some(v) => {
-                                Value::String(v.to_string()).into_ext("Decimal")
-                            }
+                            Some(v) => Value::String(v.to_string()).into_ext("Decimal"),
                         },
                         Err(e) => {
                             return Err(Error::from(e.to_string()));
@@ -168,15 +165,9 @@ impl Decode for Value {
                         Ok(v) => match v {
                             None => Value::Null,
                             Some(v) => {
-                                let dt = DateTime(
-									fastdate::DateTime::from_timestamp_nano(
-										v.timestamp_nanos_opt().expect(
-											"value can not be represented in a timestamp with nanosecond precision.",
-										) as i128 - (v.offset().utc_minus_local()
-											* 60) as i128,
-									)
-									.set_offset(v.offset().utc_minus_local() * 60),
-								);
+                                let dt = DateTime(fastdate::DateTime::from_timestamp_nano(
+                                    v.timestamp_nanos_opt()
+                                        .expect("value can not be represented in a timestamp with nanosecond precision.") as i128 - (v.offset().utc_minus_local() * 60) as i128).set_offset(v.offset().utc_minus_local() * 60));
                                 to_value!(dt)
                             }
                         },
@@ -212,12 +203,12 @@ impl DateTimeFromNativeDatetime for fastdate::DateTime {
 
 impl DateTimeFromDateTimeFixedOffset for fastdate::DateTime {
     fn from(arg: chrono::DateTime<FixedOffset>) -> Self {
-        let dd = arg.offset();
-        //offset_sec()
-        fastdate::DateTime::from_timestamp_nano(arg.timestamp_nanos_opt().expect(
-            "value can not be represented in a timestamp with nanosecond precision.",
-        ) as i128)
-        .set_offset(dd.local_minus_utc())
+        fastdate::DateTime::from_timestamp_nano(
+            arg.timestamp_nanos_opt()
+                .expect("value can not be represented in a timestamp with nanosecond precision.")
+                as i128,
+        )
+        .set_offset(arg.offset().local_minus_utc())
     }
 }
 
@@ -238,9 +229,9 @@ mod test {
                 NaiveDateTime::from_timestamp_opt(1697801035, 0).unwrap(),
                 offset,
             );
-        println!("{}", dt.to_string()); // 2023-10-20T19:23:55+08:00
+        println!("{}", dt.to_string());
         let de = <DateTime as DateTimeFromDateTimeFixedOffset>::from(dt);
-        println!("{}", de.to_string()); // 2023-10-20T11:23:55Z
+        println!("{}", de.to_string());
         assert_eq!(
             dt.to_string().replacen(" ", "T", 1).replace(" ", ""),
             de.display(true)
