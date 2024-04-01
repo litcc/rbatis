@@ -1,18 +1,13 @@
-use std::{cmp, num::TryFromIntError};
-
+use crate::arguments::PgArgumentBuffer;
+use crate::types::decode::Decode;
+use crate::types::encode::{Encode, IsNull};
+use crate::types::numeric::{PgNumeric, PgNumericSign};
+use crate::value::{PgValue, PgValueFormat};
 use bigdecimal::BigDecimal;
 use num_bigint::{BigInt, Sign};
 use rbdc::Error;
-
-use crate::{
-    arguments::PgArgumentBuffer,
-    types::{
-        decode::Decode,
-        encode::{Encode, IsNull},
-        numeric::{PgNumeric, PgNumericSign},
-    },
-    value::{PgValue, PgValueFormat},
-};
+use std::cmp;
+use std::num::TryFromIntError;
 
 impl TryFrom<PgNumeric> for BigDecimal {
     type Error = Error;
@@ -163,8 +158,6 @@ impl Decode for BigDecimal {
 
 #[cfg(test)]
 mod bigdecimal_to_pgnumeric {
-    use std::convert::TryFrom;
-
     use super::{BigDecimal, PgNumeric, PgNumericSign};
 
     #[test]

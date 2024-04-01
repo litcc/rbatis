@@ -1,22 +1,14 @@
-use std::{
-    fmt::{Display, Formatter},
-    io::Cursor,
-    str::FromStr,
-};
-
+use crate::arguments::PgArgumentBuffer;
+use crate::types::decode::Decode;
+use crate::types::encode::{Encode, IsNull};
+use crate::value::{PgValue, PgValueFormat};
 use byteorder::{BigEndian, ReadBytesExt};
 use fastdate::offset_sec;
 use rbdc::Error;
 use rbs::Value;
-
-use crate::{
-    arguments::PgArgumentBuffer,
-    types::{
-        decode::Decode,
-        encode::{Encode, IsNull},
-    },
-    value::{PgValue, PgValueFormat},
-};
+use std::fmt::{Display, Formatter};
+use std::io::Cursor;
+use std::str::FromStr;
 
 /// (timestamp,offset sec)
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Eq, PartialEq)]
@@ -45,9 +37,8 @@ impl Display for Timestamptz {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "Timestamptz({})",
-            fastdate::DateTime::from_timestamp_millis(self.0 as i64)
-                .set_offset(self.1)
+            "{}",
+            fastdate::DateTime::from_timestamp_millis(self.0 as i64).set_offset(self.1)
         )
     }
 }

@@ -16,7 +16,7 @@ pub struct DateTime(pub fastdate::DateTime);
 
 impl Display for DateTime {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "DateTime({})", self.0)
+        write!(f, "{}", self.0)
     }
 }
 
@@ -454,7 +454,7 @@ mod test {
     fn test_default() {
         let dt = DateTime::default();
         println!("{}", dt);
-        assert_eq!(dt.to_string(), "DateTime(1970-01-01T00:00:00Z)");
+        assert_eq!(dt.to_string(), "1970-01-01T00:00:00Z");
     }
 
     #[test]

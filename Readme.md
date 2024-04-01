@@ -1,4 +1,4 @@
-[WebSite](https://rbatis.github.io/rbatis.io) | [Showcase](https://github.com/rbatis/rbatis/network/dependents) | [Example](https://github.com/rbatis/example)
+[WebSite](https://rbatis.github.io/rbatis.io) | [Showcase](https://github.com/rbatis/rbatis/network/dependents) | [Example](https://github.com/rbatis/rbatis/tree/master/example)
 
 [![Build Status](https://github.com/rbatis/rbatis/workflows/ci/badge.svg)](https://github.com/zhuxiujia/rbatis/actions)
 [![doc.rs](https://docs.rs/rbatis/badge.svg)](https://docs.rs/rbatis/)
@@ -360,7 +360,12 @@ You are welcome to submit the merge, and make sure that any functionality you ad
 - [x] customize connection pooling,connection pool add more dynamically configured parameters
 - [ ] V5 version
 
-# Contact/donation, or click on star [rbatis](https://github.com/rbatis/rbatis)
+# Ask AI For Help(AI帮助)
+
+<a href="https://chatglm.cn/main/gdetail/6604ffe818d17f1aaa8d9cf8">
+<img style="width: 200px;height: 300px;" width="200" height="300" src="ai.jpg" alt="" />
+</a>
+
 
 * [![discussions](https://img.shields.io/github/discussions/rbatis/rbatis)](https://github.com/rbatis/rbatis/discussions)
 

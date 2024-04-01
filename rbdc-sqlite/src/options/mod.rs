@@ -7,22 +7,22 @@ mod locking_mode;
 mod parse;
 mod synchronous;
 
-use std::{borrow::Cow, cmp::Ordering, str::FromStr, sync::Arc, time::Duration};
-
 pub use auto_vacuum::SqliteAutoVacuum;
 use futures_core::future::BoxFuture;
-use indexmap::IndexMap;
 pub use journal_mode::SqliteJournalMode;
 pub use locking_mode::SqliteLockingMode;
-use rbdc::{
-    common::DebugFn,
-    db::{ConnectOptions, Connection},
-    Error,
-};
-use serde::{Deserialize, Deserializer};
+use std::cmp::Ordering;
+use std::str::FromStr;
+use std::sync::Arc;
+use std::{borrow::Cow, time::Duration};
 pub use synchronous::SqliteSynchronous;
 
 use crate::connection::collation::Collation;
+use indexmap::IndexMap;
+use rbdc::common::DebugFn;
+use rbdc::db::{ConnectOptions, Connection};
+use rbdc::Error;
+use serde::{Deserialize, Deserializer};
 
 /// Options and flags which can be used to configure a SQLite connection.
 ///
@@ -55,8 +55,7 @@ pub struct SqliteConnectOptions {
     pub(crate) collations: Vec<Collation>,
 
     pub(crate) serialized: bool,
-    pub(crate) thread_name:
-        Arc<DebugFn<dyn Fn(u64) -> String + Send + Sync + 'static>>,
+    pub(crate) thread_name: Arc<DebugFn<dyn Fn(u64) -> String + Send + Sync + 'static>>,
 }
 
 impl Default for SqliteConnectOptions {
@@ -110,8 +109,7 @@ impl SqliteConnectOptions {
     /// See the source of this method for the current defaults.
     pub fn new() -> Self {
         // set default pragmas
-        let mut pragmas: IndexMap<Cow<'static, str>, Cow<'static, str>> =
-            IndexMap::new();
+        let mut pragmas: IndexMap<Cow<'static, str>, Cow<'static, str>> = IndexMap::new();
 
         let locking_mode: SqliteLockingMode = Default::default();
         let auto_vacuum: SqliteAutoVacuum = Default::default();
@@ -141,7 +139,7 @@ impl SqliteConnectOptions {
             filename: Cow::Borrowed(Path::new(":memory:")),
             in_memory: false,
             read_only: false,
-            create_if_missing: false,
+            create_if_missing: true,
             shared_cache: false,
             statement_cache_capacity: 100,
             busy_timeout: Duration::from_secs(5),
@@ -379,9 +377,7 @@ impl ConnectOptions for SqliteConnectOptions {
     }
 
     fn set_uri(&mut self, uri: &str) -> Result<(), Error> {
-        *self = SqliteConnectOptions::from_str(uri)
-            .map_err(|e| Error::from(e.to_string()))?;
-        self.create_if_missing = true;
+        *self = SqliteConnectOptions::from_str(uri).map_err(|e| Error::from(e.to_string()))?;
         Ok(())
     }
 }
