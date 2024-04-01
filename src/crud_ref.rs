@@ -39,15 +39,14 @@ macro_rules! impl_insert_ext {
                              trim ',':
                                for k,v in table:
                                   ${k},
-                             `) VALUES `
-                          (
+                             `) VALUES ( `
                           trim ',':
                            for k,v in table:
                              if v.is_null():
-                                ` NULL, `
+                                ` DEFAULT,`
                                 continue:
                              #{v},
-                          ),
+                          `)`
                         "
                     )]
                     async fn inner_insert_batch_ref<'__ref>(

@@ -54,7 +54,7 @@ impl TryFrom<&Value> for DateTime {
                 Self(fastdate::DateTime::from_str(s).map_err(|e| e.to_string())?)
             }),
             #[cfg(feature = "option")]
-            Value::Some(s) => Ok({ Self::try_from(s.deref())? }),
+            Value::Some(s) => Ok(Self::try_from(s.deref())?),
             _ => {
                 return Err(format!("unsupported type DateTime({})", value));
             }
