@@ -39,28 +39,21 @@ mod test {
             _rb: &dyn Executor,
             sql: &mut String,
             args: &mut Vec<Value>,
-            _result: ResultType<
-                &mut Result<ExecResult, Error>,
-                &mut Result<Vec<Value>, Error>,
-            >,
-        ) -> Result<bool, Error> {
+            _result: ResultType<&mut Result<ExecResult, Error>, &mut Result<Vec<Value>, Error>>,
+        ) -> Result<Option<bool>, Error> {
             self.sql_args.push((sql.to_string(), args.clone()));
-            Ok(true)
+            Ok(Some(true))
         }
-
         async fn after(
             &self,
             _task_id: i64,
             _rb: &dyn Executor,
             _sql: &mut String,
             _args: &mut Vec<Value>,
-            _result: ResultType<
-                &mut Result<ExecResult, Error>,
-                &mut Result<Vec<Value>, Error>,
-            >,
-        ) -> Result<bool, Error> {
+            _result: ResultType<&mut Result<ExecResult, Error>, &mut Result<Vec<Value>, Error>>,
+        ) -> Result<Option<bool>, Error> {
             println!("_result:{:?}", _result);
-            Ok(true)
+            Ok(Some(true))
         }
     }
 

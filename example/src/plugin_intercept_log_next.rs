@@ -51,9 +51,16 @@ pub async fn main() {
     println!("this is no log print by 'DisableLogIntercept'");
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct DisableLogIntercept {
     pub skip_sql: SyncVec<String>,
+}
+impl Default for DisableLogIntercept{
+    fn default() -> Self {
+        DisableLogIntercept{
+            skip_sql: SyncVec::<String>::new(),
+        }
+    }
 }
 
 #[async_trait]
