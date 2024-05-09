@@ -36,6 +36,8 @@ impl TypeInfo for Value {
             Value::Binary(_) => MySqlTypeInfo::from_type(ColumnType::Blob),
             Value::Array(_) => MySqlTypeInfo::from_type(ColumnType::Json),
             Value::Map(_) => MySqlTypeInfo::from_type(ColumnType::Json),
+            #[cfg(feature = "option")]
+            Value::Some(v) => v.type_info(),
             Value::Ext(ext_type, _) => {
                 match *ext_type {
                     "Uuid" => MySqlTypeInfo::from_type(ColumnType::VarChar),

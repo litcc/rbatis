@@ -109,6 +109,8 @@ impl From<Value> for Json {
             Value::Binary(v) => Json(unsafe { String::from_utf8_unchecked(v) }),
             Value::Array(_) => Json(v.to_string()),
             Value::Map(v) => Json(v.to_string()),
+            #[cfg(feature = "option")]
+            Value::Some(d) => Json::from(*d),
             Value::Ext(_name, v) => Json::from(*v),
         }
     }
