@@ -62,7 +62,16 @@ where
                     || type_name == std::any::type_name::<u64>()
                     || type_name == std::any::type_name::<String>()
                     || type_name == std::any::type_name::<bool>()
+                    || type_name == std::any::type_name::<Option<i32>>()
+                    || type_name == std::any::type_name::<Option<i64>>()
+                    || type_name == std::any::type_name::<Option<f32>>()
+                    || type_name == std::any::type_name::<Option<f64>>()
+                    || type_name == std::any::type_name::<Option<u32>>()
+                    || type_name == std::any::type_name::<Option<u64>>()
+                    || type_name == std::any::type_name::<Option<String>>()
+                    || type_name == std::any::type_name::<Option<bool>>()
                     || type_name.starts_with("rbdc::types::")
+                    || type_name.starts_with("core::option::Option<rbdc::types::")
                 {
                     let (_, value) = map.into_iter().next().unwrap();
                     return Ok(rbs::from_value_ref::<T>(value)?);
@@ -91,18 +100,16 @@ pub fn is_debug_mode() -> bool {
 
 #[cfg(test)]
 mod test {
-    use std::collections::HashMap;
-
-    use rbs::{value::map::ValueMap, Value};
-
     use crate::decode::decode;
+    use rbs::value::map::ValueMap;
+    use rbs::Value;
+    use std::collections::HashMap;
 
     #[test]
     fn test_decode_hashmap() {
         let mut v = ValueMap::new();
         v.insert(1.into(), 2.into());
-        let m: HashMap<i32, Value> =
-            decode(Value::Array(vec![Value::Map(v)])).unwrap();
+        let m: HashMap<i32, Value> = decode(Value::Array(vec![Value::Map(v)])).unwrap();
         println!("{:#?}", m);
         assert_eq!(m.get(&1).unwrap().as_i64(), Value::I32(2).as_i64());
     }

@@ -1,17 +1,11 @@
-use std::{
-    fmt,
-    fmt::{Debug, Display, Formatter},
-    ops::{Index, IndexMut},
-};
-
-use indexmap::IndexMap;
-use serde::{
-    de::{MapAccess, Visitor},
-    ser::SerializeMap,
-    Deserializer, Serializer,
-};
-
 use crate::Value;
+use indexmap::IndexMap;
+use serde::de::{MapAccess, Visitor};
+use serde::ser::SerializeMap;
+use serde::{Deserializer, Serializer};
+use std::fmt;
+use std::fmt::{Debug, Display, Formatter};
+use std::ops::{Index, IndexMut};
 
 #[derive(PartialEq)]
 pub struct ValueMap(pub IndexMap<Value, Value>);

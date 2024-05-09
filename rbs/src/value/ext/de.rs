@@ -1,12 +1,10 @@
+use indexmap::IndexMap;
 use std::fmt::{self, Debug, Display, Formatter};
 
-use indexmap::IndexMap;
-use serde::{
-    de::{DeserializeSeed, IntoDeserializer, SeqAccess, Unexpected, Visitor},
-    Deserialize, Deserializer,
-};
-
-use crate::value::{map::ValueMap, Value};
+use crate::value::map::ValueMap;
+use crate::value::Value;
+use serde::de::{DeserializeSeed, IntoDeserializer, SeqAccess, Unexpected, Visitor};
+use serde::{Deserialize, Deserializer};
 
 /// from_value
 #[inline]
@@ -179,10 +177,7 @@ impl<'de> Deserialize<'de> for Value {
                 Ok(Value::Map(ValueMap(pairs)))
             }
 
-            fn visit_newtype_struct<D>(
-                self,
-                deserializer: D,
-            ) -> Result<Self::Value, D::Error>
+            fn visit_newtype_struct<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
             where
                 D: Deserializer<'de>,
             {
@@ -280,8 +275,7 @@ impl<'de> Deserializer<'de> for &Value {
                         &"must be object map {\"Key\":\"Value\"}",
                     ));
                 }
-                let variant =
-                    m.0.iter().next().unwrap().0.as_str().unwrap_or_default();
+                let variant = m.0.iter().next().unwrap().0.as_str().unwrap_or_default();
                 visitor.visit_enum(EnumDeserializer {
                     variant: variant,
                     value: Some(Value::Map(m.clone())),
@@ -353,10 +347,7 @@ where
 {
     type Error = crate::Error;
 
-    fn next_element_seed<T>(
-        &mut self,
-        seed: T,
-    ) -> Result<Option<T::Value>, Self::Error>
+    fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>
     where
         T: DeserializeSeed<'de>,
     {
@@ -481,10 +472,7 @@ impl<'de, 'a> serde::de::EnumAccess<'de> for EnumDeserializer<'a> {
     type Error = crate::Error;
     type Variant = VariantDeserializer;
 
-    fn variant_seed<V>(
-        self,
-        seed: V,
-    ) -> Result<(V::Value, VariantDeserializer), crate::Error>
+    fn variant_seed<V>(self, seed: V) -> Result<(V::Value, VariantDeserializer), crate::Error>
     where
         V: DeserializeSeed<'de>,
     {
@@ -541,11 +529,7 @@ impl<'de> serde::de::VariantAccess<'de> for VariantDeserializer {
         }
     }
 
-    fn tuple_variant<V>(
-        self,
-        _len: usize,
-        _visitor: V,
-    ) -> Result<V::Value, crate::Error>
+    fn tuple_variant<V>(self, _len: usize, _visitor: V) -> Result<V::Value, crate::Error>
     where
         V: Visitor<'de>,
     {

@@ -164,6 +164,8 @@ impl DateTime {
     /// format support token = ["YYYY","MM","DD","hh","mm","ss",".000000",".000000000","+00:00"]
     /// ```
     ///   let dt = rbdc::DateTime::now();
+    ///   println!("{}",dt.format("YYYY-MM-DD hh:mm:ss"));
+    ///   println!("{}",dt.format("YYYY-MM-DD hh:mm:ss.000000"));
     ///   println!("{}",dt.format("YYYY/MM/DD/hh/mm/ss/.000000/+00:00"));
     ///   println!("{}",dt.format("YYYY-MM-DD/hh/mm/ss"));
     /// ```
@@ -396,6 +398,7 @@ mod test {
     fn test_ser_de() {
         let dt = DateTime::now();
         let v = serde_json::to_value(&dt).unwrap();
+        println!("{}", v);
         let new_dt: DateTime = serde_json::from_value(v).unwrap();
         assert_eq!(new_dt, dt);
     }

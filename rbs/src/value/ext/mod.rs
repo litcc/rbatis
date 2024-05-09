@@ -1,12 +1,8 @@
-use std::{
-    error,
-    fmt::{self, Display, Formatter},
-};
+use std::error;
+use std::fmt::{self, Display, Formatter};
 
-pub use self::{
-    de::{from_value, from_value_ref},
-    se::{to_value, to_value_def},
-};
+pub use self::de::{from_value, from_value_ref};
+pub use self::se::{to_value, to_value_def};
 
 mod de;
 mod se;

@@ -1,12 +1,9 @@
-use std::{
-    cmp::Ordering,
-    fmt::{Debug, Formatter},
-    hash::{Hash, Hasher},
-    ops::{Deref, DerefMut},
-    vec::IntoIter,
-};
-
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use std::cmp::Ordering;
+use std::fmt::{Debug, Formatter};
+use std::hash::{Hash, Hasher};
+use std::ops::{Deref, DerefMut};
+use std::vec::IntoIter;
 
 /// rbatis bytes use serde_bytes
 ///

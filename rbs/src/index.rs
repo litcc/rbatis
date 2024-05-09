@@ -1,6 +1,5 @@
-use std::ops::{Index, IndexMut};
-
 use crate::Value;
+use std::ops::{Index, IndexMut};
 
 impl Index<usize> for Value {
     type Output = Value;

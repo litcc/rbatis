@@ -11,33 +11,25 @@ extern crate rbatis;
 
 #[cfg(test)]
 mod test {
-    use std::{
-        any::Any,
-        collections::HashMap,
-        future::Future,
-        pin::Pin,
-        str::FromStr,
-        sync::{
-            atomic::{AtomicI32, Ordering},
-            Arc,
-        },
-    };
-
     use dark_std::sync::SyncVec;
     use futures_core::future::BoxFuture;
-    use rbatis::{
-        executor::{Executor, RBatisConnExecutor},
-        intercept::{Intercept, ResultType},
-        plugin::PageRequest,
-        DefaultPool, Error, RBatis,
-    };
-    use rbdc::{
-        datetime::DateTime,
-        db::{ConnectOptions, Connection, Driver, ExecResult, MetaData, Row},
-        pool::{conn_manager::ConnManager, Pool},
-        rt::block_on,
-    };
+    use rbatis::executor::{Executor, RBatisConnExecutor};
+    use rbatis::intercept::{Intercept, ResultType};
+    use rbatis::plugin::PageRequest;
+    use rbatis::{DefaultPool, Error, RBatis};
+    use rbdc::datetime::DateTime;
+    use rbdc::db::{ConnectOptions, Connection, Driver, ExecResult, MetaData, Row};
+    use rbdc::pool::conn_manager::ConnManager;
+    use rbdc::pool::Pool;
+    use rbdc::rt::block_on;
     use rbs::{from_value, to_value, Value};
+    use std::any::Any;
+    use std::collections::HashMap;
+    use std::future::Future;
+    use std::pin::Pin;
+    use std::str::FromStr;
+    use std::sync::atomic::{AtomicI32, Ordering};
+    use std::sync::Arc;
 
     #[derive(Debug)]
     pub struct MockIntercept {
@@ -58,13 +50,10 @@ mod test {
             rb: &dyn Executor,
             sql: &mut String,
             args: &mut Vec<Value>,
-            _result: ResultType<
-                &mut Result<ExecResult, Error>,
-                &mut Result<Vec<Value>, Error>,
-            >,
-        ) -> Result<bool, Error> {
+            _result: ResultType<&mut Result<ExecResult, Error>, &mut Result<Vec<Value>, Error>>,
+        ) -> Result<Option<bool>, Error> {
             self.sql_args.push((sql.to_string(), args.clone()));
-            Ok(true)
+            Ok(Some(true))
         }
     }
 
@@ -76,22 +65,15 @@ mod test {
             "test"
         }
 
-        fn connect(
-            &self,
-            _url: &str,
-        ) -> BoxFuture<Result<Box<dyn Connection>, Error>> {
-            Box::pin(async {
-                Ok(Box::new(MockConnection {}) as Box<dyn Connection>)
-            })
+        fn connect(&self, _url: &str) -> BoxFuture<Result<Box<dyn Connection>, Error>> {
+            Box::pin(async { Ok(Box::new(MockConnection {}) as Box<dyn Connection>) })
         }
 
         fn connect_opt<'a>(
             &'a self,
             _opt: &'a dyn ConnectOptions,
         ) -> BoxFuture<Result<Box<dyn Connection>, Error>> {
-            Box::pin(async {
-                Ok(Box::new(MockConnection {}) as Box<dyn Connection>)
-            })
+            Box::pin(async { Ok(Box::new(MockConnection {}) as Box<dyn Connection>) })
         }
 
         fn default_option(&self) -> Box<dyn ConnectOptions> {
@@ -172,11 +154,7 @@ mod test {
             })
         }
 
-        fn exec(
-            &mut self,
-            sql: &str,
-            params: Vec<Value>,
-        ) -> BoxFuture<Result<ExecResult, Error>> {
+        fn exec(&mut self, sql: &str, params: Vec<Value>) -> BoxFuture<Result<ExecResult, Error>> {
             Box::pin(async move {
                 Ok(ExecResult {
                     rows_affected: 0,
@@ -199,9 +177,7 @@ mod test {
 
     impl ConnectOptions for MockConnectOptions {
         fn connect(&self) -> BoxFuture<Result<Box<dyn Connection>, Error>> {
-            Box::pin(async {
-                Ok(Box::new(MockConnection {}) as Box<dyn Connection>)
-            })
+            Box::pin(async { Ok(Box::new(MockConnection {}) as Box<dyn Connection>) })
         }
 
         fn set_uri(&mut self, _uri: &str) -> Result<(), Error> {
@@ -298,8 +274,7 @@ mod test {
         let f = async move {
             let rb = RBatis::new();
             rb.init(MockDriver {}, "test").unwrap();
-            let mut tx =
-                rb.acquire_begin().await.unwrap().defer_async(|tx| async {});
+            let mut tx = rb.acquire_begin().await.unwrap().defer_async(|tx| async {});
             let r: Vec<MockTable> = tx
                 .query_decode("select * from mock_table", vec![])
                 .await
@@ -325,11 +300,8 @@ mod test {
             let mut rb = RBatis::new();
             let mut opts = MockConnectOptions {};
             opts.set_uri("test");
-            rb.init_option::<MockDriver, MockConnectOptions, DefaultPool>(
-                MockDriver {},
-                opts,
-            )
-            .unwrap();
+            rb.init_option::<MockDriver, MockConnectOptions, DefaultPool>(MockDriver {}, opts)
+                .unwrap();
             rb.acquire().await.unwrap();
         };
         block_on(f);
@@ -387,10 +359,7 @@ mod test {
             let r = MockTable::insert(&mut rb, &t).await.unwrap();
             let (sql, args) = queue.pop().unwrap();
             println!("{}", sql);
-            assert_eq!(
-                sql,
-                "insert into mock_table (id,name,pc_link,h5_link,status,remark,create_time,version,delete_flag,count) VALUES (?,?,?,?,?,?,?,?,?,?)"
-            );
+            assert_eq!(sql, "insert into mock_table (id,name,pc_link,h5_link,status,remark,create_time,version,delete_flag,count) VALUES (?,?,?,?,?,?,?,?,?,?)");
             assert_eq!(
                 args,
                 vec![
@@ -438,10 +407,7 @@ mod test {
             let r = MockTable::insert_batch(&mut rb, &ts, 10).await.unwrap();
             let (sql, args) = queue.pop().unwrap();
             println!("{}", sql);
-            assert_eq!(
-                sql,
-                "insert into mock_table (id,name,pc_link,h5_link,status,remark,create_time,version,delete_flag,count) VALUES (?,?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?,?)"
-            );
+            assert_eq!(sql, "insert into mock_table (id,name,pc_link,h5_link,status,remark,create_time,version,delete_flag,count) VALUES (?,?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?,?)");
             assert_eq!(
                 args,
                 vec![
@@ -499,10 +465,7 @@ mod test {
 
             let (sql, args) = queue.pop().unwrap();
             println!("{}", sql);
-            assert_eq!(
-                sql,
-                "update mock_table set name=?,pc_link=?,h5_link=?,status=?,remark=?,create_time=?,version=?,delete_flag=?,count=? where id = ?"
-            );
+            assert_eq!(sql, "update mock_table set name=?,pc_link=?,h5_link=?,status=?,remark=?,create_time=?,version=?,delete_flag=?,count=? where id = ?");
             assert_eq!(args.len(), 10);
             assert_eq!(
                 args,
@@ -551,10 +514,7 @@ mod test {
 
             let (sql, args) = queue.pop().unwrap();
             println!("{}", sql);
-            assert_eq!(
-                sql,
-                "update mock_table set name=?,pc_link=?,h5_link=?,pc_banner_img=?,h5_banner_img=?,sort=?,status=?,remark=?,create_time=?,version=?,delete_flag=?,count=? where id = ?"
-            );
+            assert_eq!(sql, "update mock_table set name=?,pc_link=?,h5_link=?,pc_banner_img=?,h5_banner_img=?,sort=?,status=?,remark=?,create_time=?,version=?,delete_flag=?,count=? where id = ?");
             assert_eq!(args.len(), 13);
             assert_eq!(
                 args,
@@ -593,62 +553,59 @@ mod test {
                 _rb: &dyn Executor,
                 sql: &mut String,
                 args: &mut Vec<Value>,
-                _result: ResultType<
-                    &mut Result<ExecResult, Error>,
-                    &mut Result<Vec<Value>, Error>,
-                >,
-            ) -> Result<bool, Error> {
-                assert_eq!(
-                    sql,
-                    "update mock_table set name=?,pc_link=?,h5_link=?,status=?,remark=?,create_time=?,version=?,delete_flag=?,count=? where id = ?"
-                );
+                _result: ResultType<&mut Result<ExecResult, Error>, &mut Result<Vec<Value>, Error>>,
+            ) -> Result<Option<bool>, Error> {
+                assert_eq!(sql, "update mock_table set name=?,pc_link=?,h5_link=?,status=?,remark=?,create_time=?,version=?,delete_flag=?,count=? where id = ?");
                 let num = self.num.load(Ordering::Relaxed) + 1;
                 println!("{}", sql);
                 println!("{}", Value::Array(args.clone()));
-                assert_eq!(args, {
-                    #[cfg(not(feature = "option"))]
+                assert_eq!(
+                    args,
                     {
-                        &[
-                            Value::String(num.to_string()),
-                            Value::String(num.to_string()),
-                            Value::String(num.to_string()),
-                            Value::I32(num),
-                            Value::String(num.to_string()),
-                            Value::Ext(
-                                "DateTime",
-                                Box::new(Value::String(
-                                    "2023-10-10T00:00:00+08:00".to_string(),
-                                )),
-                            ),
-                            Value::I64(num as i64),
-                            Value::I32(num),
-                            Value::U64(num as u64),
-                            Value::String(num.to_string()),
-                        ]
+                        #[cfg(not(feature = "option"))]
+                        {
+                            &[
+                                Value::String(num.to_string()),
+                                Value::String(num.to_string()),
+                                Value::String(num.to_string()),
+                                Value::I32(num),
+                                Value::String(num.to_string()),
+                                Value::Ext(
+                                    "DateTime",
+                                    Box::new(Value::String(
+                                        "2023-10-10T00:00:00+08:00".to_string(),
+                                    )),
+                                ),
+                                Value::I64(num as i64),
+                                Value::I32(num),
+                                Value::U64(num as u64),
+                                Value::String(num.to_string()),
+                            ]
+                        }
+                        #[cfg(feature = "option")]
+                        {
+                            &[
+                                Value::Some(Box::new(Value::String(num.to_string()))),
+                                Value::Some(Box::new(Value::String(num.to_string()))),
+                                Value::Some(Box::new(Value::String(num.to_string()))),
+                                Value::Some(Box::new(Value::I32(num))),
+                                Value::Some(Box::new(Value::String(num.to_string()))),
+                                Value::Some(Box::new(Value::Ext(
+                                    "DateTime",
+                                    Box::new(Value::String(
+                                        "2023-10-10T00:00:00+08:00".to_string(),
+                                    )),
+                                ))),
+                                Value::Some(Box::new(Value::I64(num as i64))),
+                                Value::Some(Box::new(Value::I32(num))),
+                                Value::U64(num as u64),
+                                Value::Some(Box::new(Value::String(num.to_string()))),
+                            ]
+                        }
                     }
-                    #[cfg(feature = "option")]
-                    {
-                        &[
-                            Value::Some(Box::new(Value::String(num.to_string()))),
-                            Value::Some(Box::new(Value::String(num.to_string()))),
-                            Value::Some(Box::new(Value::String(num.to_string()))),
-                            Value::Some(Box::new(Value::I32(num))),
-                            Value::Some(Box::new(Value::String(num.to_string()))),
-                            Value::Some(Box::new(Value::Ext(
-                                "DateTime",
-                                Box::new(Value::String(
-                                    "2023-10-10T00:00:00+08:00".to_string(),
-                                )),
-                            ))),
-                            Value::Some(Box::new(Value::I64(num as i64))),
-                            Value::Some(Box::new(Value::I32(num))),
-                            Value::U64(num as u64),
-                            Value::Some(Box::new(Value::String(num.to_string()))),
-                        ]
-                    }
-                });
+                );
                 self.num.fetch_add(1, Ordering::Relaxed);
-                return Ok(true);
+                return Ok(Some(true));
             }
         }
         let f = async move {
@@ -668,9 +625,7 @@ mod test {
                     sort: None,
                     status: Some(1),
                     remark: Some("1".into()),
-                    create_time: Some(
-                        DateTime::from_str("2023-10-10 00:00:00+08:00").unwrap(),
-                    ),
+                    create_time: Some(DateTime::from_str("2023-10-10 00:00:00+08:00").unwrap()),
                     version: Some(1),
                     delete_flag: Some(1),
                     count: 1,
@@ -685,9 +640,7 @@ mod test {
                     sort: None,
                     status: Some(2),
                     remark: Some("2".into()),
-                    create_time: Some(
-                        DateTime::from_str("2023-10-10 00:00:00+08:00").unwrap(),
-                    ),
+                    create_time: Some(DateTime::from_str("2023-10-10 00:00:00+08:00").unwrap()),
                     version: Some(2),
                     delete_flag: Some(2),
                     count: 2,
@@ -702,9 +655,7 @@ mod test {
                     sort: None,
                     status: Some(3),
                     remark: Some("3".into()),
-                    create_time: Some(
-                        DateTime::from_str("2023-10-10 00:00:00+08:00").unwrap(),
-                    ),
+                    create_time: Some(DateTime::from_str("2023-10-10 00:00:00+08:00").unwrap()),
                     version: Some(3),
                     delete_flag: Some(3),
                     count: 3,
@@ -719,9 +670,7 @@ mod test {
                     sort: None,
                     status: Some(4),
                     remark: Some("4".into()),
-                    create_time: Some(
-                        DateTime::from_str("2023-10-10 00:00:00+08:00").unwrap(),
-                    ),
+                    create_time: Some(DateTime::from_str("2023-10-10 00:00:00+08:00").unwrap()),
                     version: Some(4),
                     delete_flag: Some(4),
                     count: 4,
@@ -756,13 +705,9 @@ mod test {
             let queue = Arc::new(SyncVec::new());
             rb.set_intercepts(vec![Arc::new(MockIntercept::new(queue.clone()))]);
             rb.init(MockDriver {}, "test").unwrap();
-            let r = MockTable::delete_by_column(
-                &mut rb,
-                "1",
-                &Value::String("1".to_string()),
-            )
-            .await
-            .unwrap();
+            let r = MockTable::delete_by_column(&mut rb, "1", &Value::String("1".to_string()))
+                .await
+                .unwrap();
             let (sql, args) = queue.pop().unwrap();
             println!("{}", sql);
             assert_eq!(sql, "delete from mock_table where 1 = ?");
@@ -786,11 +731,8 @@ mod test {
                 _rb: &dyn Executor,
                 sql: &mut String,
                 args: &mut Vec<Value>,
-                _result: ResultType<
-                    &mut Result<ExecResult, Error>,
-                    &mut Result<Vec<Value>, Error>,
-                >,
-            ) -> Result<bool, Error> {
+                _result: ResultType<&mut Result<ExecResult, Error>, &mut Result<Vec<Value>, Error>>,
+            ) -> Result<Option<bool>, Error> {
                 if self.num.load(Ordering::Relaxed) == 0 {
                     assert_eq!(sql, "delete from mock_table where 1 in (?,?)");
                     assert_eq!(args, &vec![to_value!("1"), to_value!("2")]);
@@ -799,7 +741,7 @@ mod test {
                     assert_eq!(args, &vec![to_value!("3"), to_value!("4")]);
                 }
                 self.num.fetch_add(1, Ordering::Relaxed);
-                return Ok(true);
+                return Ok(Some(true));
             }
         }
         let f = async move {
@@ -808,14 +750,9 @@ mod test {
                 num: Default::default(),
             })]);
             rb.init(MockDriver {}, "test").unwrap();
-            let r = MockTable::delete_by_column_batch(
-                &mut rb,
-                "1",
-                &["1", "2", "3", "4"],
-                2,
-            )
-            .await
-            .unwrap();
+            let r = MockTable::delete_by_column_batch(&mut rb, "1", &["1", "2", "3", "4"], 2)
+                .await
+                .unwrap();
         };
         block_on(f);
     }
@@ -909,10 +846,7 @@ mod test {
                 .unwrap();
             let (sql, args) = queue.pop().unwrap();
             println!("{}", sql);
-            assert_eq!(
-                sql,
-                "update mock_table set id=?,name=?,pc_link=?,h5_link=?,status=?,remark=?,create_time=?,version=?,delete_flag=?,count=? where id = '2'"
-            );
+            assert_eq!(sql, "update mock_table set id=?,name=?,pc_link=?,h5_link=?,status=?,remark=?,create_time=?,version=?,delete_flag=?,count=? where id = '2'");
             assert_eq!(
                 args,
                 vec![
@@ -966,10 +900,7 @@ mod test {
             .unwrap();
             let (sql, args) = queue.pop().unwrap();
             println!("{}", sql);
-            assert_eq!(
-                sql,
-                "update mock_table set id=?,name=?,pc_link=?,h5_link=?,status=?,remark=?,create_time=?,version=?,delete_flag=?,count=? where id = '2'"
-            );
+            assert_eq!(sql, "update mock_table set id=?,name=?,pc_link=?,h5_link=?,status=?,remark=?,create_time=?,version=?,delete_flag=?,count=? where id = '2'");
             assert_eq!(
                 args,
                 vec![
@@ -1040,14 +971,9 @@ mod test {
             let queue = Arc::new(SyncVec::new());
             rb.set_intercepts(vec![Arc::new(MockIntercept::new(queue.clone()))]);
             rb.init(MockDriver {}, "test").unwrap();
-            let r = MockTable::select_page_by_name(
-                &mut rb,
-                &PageRequest::new(1, 10),
-                "",
-                "",
-            )
-            .await
-            .unwrap();
+            let r = MockTable::select_page_by_name(&mut rb, &PageRequest::new(1, 10), "", "")
+                .await
+                .unwrap();
             let (sql, args) = queue.pop().unwrap();
             println!("{}", sql);
             assert_eq!(sql, "select * from mock_table where name != '' limit 0,10");
@@ -1088,10 +1014,9 @@ mod test {
             let queue = Arc::new(SyncVec::new());
             rb.set_intercepts(vec![Arc::new(MockIntercept::new(queue.clone()))]);
             rb.init(MockDriver {}, "test").unwrap();
-            let r =
-                MockTable::select_from_table_name_by_id(&mut rb, "1", "mock_table2")
-                    .await
-                    .unwrap();
+            let r = MockTable::select_from_table_name_by_id(&mut rb, "1", "mock_table2")
+                .await
+                .unwrap();
             let (sql, args) = queue.pop().unwrap();
             println!("{}", sql);
             assert_eq!(sql, "select * from mock_table2 where id = ?");
@@ -1109,11 +1034,9 @@ mod test {
             let queue = Arc::new(SyncVec::new());
             rb.set_intercepts(vec![Arc::new(MockIntercept::new(queue.clone()))]);
             rb.init(MockDriver {}, "test").unwrap();
-            let r = MockTable::select_table_column_from_table_name_by_id(
-                &mut rb, "1", "id,name",
-            )
-            .await
-            .unwrap();
+            let r = MockTable::select_table_column_from_table_name_by_id(&mut rb, "1", "id,name")
+                .await
+                .unwrap();
             let (sql, args) = queue.pop().unwrap();
             println!("{}", sql);
             assert_eq!(sql, "select id,name from mock_table where id = ?");
@@ -1231,10 +1154,9 @@ mod test {
             let queue = Arc::new(SyncVec::new());
             rb.set_intercepts(vec![Arc::new(MockIntercept::new(queue.clone()))]);
             rb.init(MockDriver {}, "test").unwrap();
-            let r =
-                htmlsql_select_page_by_name(&mut rb, &PageRequest::new(1, 10), "")
-                    .await
-                    .unwrap();
+            let r = htmlsql_select_page_by_name(&mut rb, &PageRequest::new(1, 10), "")
+                .await
+                .unwrap();
             let (sql, args) = queue.pop().unwrap();
             println!("{}", sql);
             assert_eq!(sql, "select * from table limit 0,10");

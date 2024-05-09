@@ -1,8 +1,9 @@
-use std::{borrow::Cow, cmp::PartialEq as PE, ops::Deref};
-
+use crate::ops::AsProxy;
+use crate::ops::PartialEq;
 use rbs::Value;
-
-use crate::ops::{AsProxy, PartialEq};
+use std::borrow::Cow;
+use std::cmp::PartialEq as PE;
+use std::ops::Deref;
 
 impl PartialEq<Value> for &'_ Value {
     fn op_eq(&self, other: &Value) -> bool {
@@ -287,9 +288,8 @@ impl_str_eq! {
 
 #[cfg(test)]
 mod test {
-    use rbs::{to_value, Value};
-
     use crate::ops::{Add, PartialEq};
+    use rbs::{to_value, Value};
 
     #[test]
     fn test_eq() {

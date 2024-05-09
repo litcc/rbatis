@@ -2,20 +2,14 @@
 extern crate proc_macro;
 extern crate rbatis_codegen;
 
-use syn::{
-    parse::{Parse, ParseStream},
-    parse_macro_input,
-    punctuated::Punctuated,
-    ItemFn, Token,
-};
+use syn::parse::{Parse, ParseStream};
+use syn::punctuated::Punctuated;
+use syn::{parse_macro_input, ItemFn, Token};
 
-use crate::{
-    macros::{
-        html_sql_impl::impl_macro_html_sql, py_sql_impl::impl_macro_py_sql,
-        sql_impl::impl_macro_sql,
-    },
-    proc_macro::TokenStream,
-};
+use crate::macros::html_sql_impl::impl_macro_html_sql;
+use crate::macros::py_sql_impl::impl_macro_py_sql;
+use crate::macros::sql_impl::impl_macro_sql;
+use crate::proc_macro::TokenStream;
 
 mod macros;
 mod util;

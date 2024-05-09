@@ -1,4 +1,4 @@
-
+use rbatis::dark_std::defer;
 use rbatis::executor::Executor;
 use rbatis::intercept::{Intercept, ResultType};
 use rbatis::rbdc::datetime::DateTime;
@@ -7,7 +7,6 @@ use rbatis::{async_trait, crud, Error, RBatis};
 use rbs::Value;
 use serde_json::json;
 use std::sync::Arc;
-use rbatis::dark_std::defer;
 
 /// Postgres insert sql returning id Intercept
 #[derive(Debug)]
@@ -22,7 +21,7 @@ impl Intercept for ReturningIdPlugin {
         sql: &mut String,
         args: &mut Vec<Value>,
         result: ResultType<&mut Result<ExecResult, Error>, &mut Result<Vec<Value>, Error>>,
-    ) -> Result<bool, Error> {
+    ) -> Result<Option<bool>, Error> {
         if sql.contains("insert into") {
             let new_sql = format!("{} {}", sql, "returning id");
             let new_args = args.clone();
@@ -33,12 +32,12 @@ impl Intercept for ReturningIdPlugin {
                     let mut exec = ExecResult::default();
                     exec.last_insert_id = id.into();
                     *exec_r = Ok(exec);
-                    Ok(false)
+                    Ok(None)
                 }
-                ResultType::Query(_) => Ok(true),
+                ResultType::Query(_) => Ok(Some(true)),
             }
         } else {
-            Ok(true)
+            Ok(Some(true))
         }
     }
 }
@@ -65,7 +64,11 @@ crud!(Activity {});
 //docker run -d --name postgres  -e POSTGRES_PASSWORD=123456 -p 5432:5432 -d postgres
 #[tokio::main]
 pub async fn main() {
-    _ = fast_log::init(fast_log::Config::new().console().level(log::LevelFilter::Debug));
+    _ = fast_log::init(
+        fast_log::Config::new()
+            .console()
+            .level(log::LevelFilter::Debug),
+    );
     defer!(|| log::logger().flush());
     let rb = RBatis::new();
     rb.init(

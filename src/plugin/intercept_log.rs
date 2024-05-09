@@ -1,20 +1,14 @@
-use std::{
-    fmt::{Display, Formatter},
-    ops::Deref,
-    sync::atomic::{AtomicUsize, Ordering},
-};
-
+use crate::decode::is_debug_mode;
+use crate::executor::Executor;
+use crate::intercept::{Intercept, ResultType};
+use crate::Error;
 use async_trait::async_trait;
 use log::{log, Level, LevelFilter};
 use rbdc::db::ExecResult;
 use rbs::Value;
-
-use crate::{
-    decode::is_debug_mode,
-    executor::Executor,
-    intercept::{Intercept, ResultType},
-    Error,
-};
+use std::fmt::{Display, Formatter};
+use std::ops::Deref;
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 struct RbsValueDisplay<'a> {
     inner: &'a Vec<Value>,
@@ -113,13 +107,10 @@ impl Intercept for LogInterceptor {
         _rb: &dyn Executor,
         sql: &mut String,
         args: &mut Vec<Value>,
-        _result: ResultType<
-            &mut Result<ExecResult, Error>,
-            &mut Result<Vec<Value>, Error>,
-        >,
-    ) -> Result<bool, Error> {
+        _result: ResultType<&mut Result<ExecResult, Error>, &mut Result<Vec<Value>, Error>>,
+    ) -> Result<Option<bool>, Error> {
         if self.get_level_filter() == LevelFilter::Off {
-            return Ok(true);
+            return Ok(Some(true));
         }
         let level = self.to_level().unwrap();
         //send sql/args
@@ -130,7 +121,7 @@ impl Intercept for LogInterceptor {
             &sql,
             RbsValueDisplay::new(args)
         );
-        return Ok(true);
+        return Ok(Some(true));
     }
 
     async fn after(
@@ -139,25 +130,17 @@ impl Intercept for LogInterceptor {
         _rb: &dyn Executor,
         _sql: &mut String,
         _args: &mut Vec<Value>,
-        result: ResultType<
-            &mut Result<ExecResult, Error>,
-            &mut Result<Vec<Value>, Error>,
-        >,
-    ) -> Result<bool, Error> {
+        result: ResultType<&mut Result<ExecResult, Error>, &mut Result<Vec<Value>, Error>>,
+    ) -> Result<Option<bool>, Error> {
         if self.get_level_filter() == LevelFilter::Off {
-            return Ok(true);
+            return Ok(Some(true));
         }
         let level = self.to_level().unwrap();
         //ResultType
         match result {
             ResultType::Exec(result) => match result {
                 Ok(result) => {
-                    log!(
-                        level,
-                        "[rbatis] [{}] <= rows_affected={}",
-                        task_id,
-                        result
-                    );
+                    log!(level, "[rbatis] [{}] <= rows_affected={}", task_id, result);
                 }
                 Err(e) => {
                     log!(level, "[rbatis] [{}] <= {}", task_id, e);
@@ -174,12 +157,7 @@ impl Intercept for LogInterceptor {
                             RbsValueDisplay { inner: result }
                         );
                     } else {
-                        log!(
-                            level,
-                            "[rbatis] [{}] <= len={}",
-                            task_id,
-                            result.len()
-                        );
+                        log!(level, "[rbatis] [{}] <= len={}", task_id, result.len());
                     }
                 }
                 Err(e) => {
@@ -187,6 +165,7 @@ impl Intercept for LogInterceptor {
                 }
             },
         }
-        return Ok(true);
+        return Ok(Some(true));
     }
 }
+

@@ -62,19 +62,18 @@ macro_rules! crud {
 ///
 #[macro_export]
 macro_rules! impl_insert {
-	($table:ty{}) => {
-		$crate::impl_insert!($table {}, "");
-	};
-	($table:ty{},$table_name:expr) => {
-		impl $table {
-			pub async fn insert_batch(
-				executor: &dyn $crate::executor::Executor,
-				tables: &[$table],
-				batch_size: u64,
-			) -> std::result::Result<$crate::rbdc::db::ExecResult, $crate::rbdc::Error>
-			{
-				#[$crate::py_sql(
-					"`insert into ${table_name} `
+    ($table:ty{}) => {
+        $crate::impl_insert!($table {}, "");
+    };
+    ($table:ty{},$table_name:expr) => {
+        impl $table {
+            pub async fn insert_batch(
+                executor: &dyn $crate::executor::Executor,
+                tables: &[$table],
+                batch_size: u64,
+            ) -> std::result::Result<$crate::rbdc::db::ExecResult, $crate::rbdc::Error> {
+                #[$crate::py_sql(
+                    "`insert into ${table_name} `
                     trim ',':
                      for idx,table in tables:
                       if idx == 0:
@@ -93,59 +92,53 @@ macro_rules! impl_insert {
                          #{v},
                       ),
                     "
-				)]
-				async fn insert_batch(
-					executor: &dyn $crate::executor::Executor,
-					tables: &[$table],
-					table_name: &str,
-				) -> std::result::Result<
-					$crate::rbdc::db::ExecResult,
-					$crate::rbdc::Error,
-				> {
-					impled!()
-				}
-				if tables.is_empty() {
-					return Err($crate::rbdc::Error::from(
-						"insert can not insert empty array tables!",
-					));
-				}
-				#[$crate::snake_name($table)]
-				fn snake_name() {}
-				let mut table_name = $table_name.to_string();
-				if table_name.is_empty() {
-					table_name = snake_name();
-				}
-				let mut result = $crate::rbdc::db::ExecResult {
-					rows_affected: 0,
-					last_insert_id: rbs::Value::Null,
-				};
-				let ranges = $crate::plugin::Page::<()>::make_ranges(
-					tables.len() as u64,
-					batch_size,
-				);
-				for (offset, limit) in ranges {
-					let exec_result = insert_batch(
-						executor,
-						&tables[offset as usize..limit as usize],
-						table_name.as_str(),
-					)
-					.await?;
-					result.rows_affected += exec_result.rows_affected;
-					result.last_insert_id = exec_result.last_insert_id;
-				}
-				Ok(result)
-			}
+                )]
+                async fn insert_batch(
+                    executor: &dyn $crate::executor::Executor,
+                    tables: &[$table],
+                    table_name: &str,
+                ) -> std::result::Result<$crate::rbdc::db::ExecResult, $crate::rbdc::Error>
+                {
+                    impled!()
+                }
+                if tables.is_empty() {
+                    return Err($crate::rbdc::Error::from(
+                        "insert can not insert empty array tables!",
+                    ));
+                }
+                #[$crate::snake_name($table)]
+                fn snake_name() {}
+                let mut table_name = $table_name.to_string();
+                if table_name.is_empty() {
+                    table_name = snake_name();
+                }
+                let mut result = $crate::rbdc::db::ExecResult {
+                    rows_affected: 0,
+                    last_insert_id: rbs::Value::Null,
+                };
+                let ranges =
+                    $crate::plugin::Page::<()>::make_ranges(tables.len() as u64, batch_size);
+                for (offset, limit) in ranges {
+                    let exec_result = insert_batch(
+                        executor,
+                        &tables[offset as usize..limit as usize],
+                        table_name.as_str(),
+                    )
+                    .await?;
+                    result.rows_affected += exec_result.rows_affected;
+                    result.last_insert_id = exec_result.last_insert_id;
+                }
+                Ok(result)
+            }
 
-			pub async fn insert(
-				executor: &dyn $crate::executor::Executor,
-				table: &$table,
-			) -> std::result::Result<$crate::rbdc::db::ExecResult, $crate::rbdc::Error>
-			{
-				<$table>::insert_batch(executor, std::slice::from_ref(table), 1)
-					.await
-			}
-		}
-	};
+            pub async fn insert(
+                executor: &dyn $crate::executor::Executor,
+                table: &$table,
+            ) -> std::result::Result<$crate::rbdc::db::ExecResult, $crate::rbdc::Error> {
+                <$table>::insert_batch(executor, std::slice::from_ref(table), 1).await
+            }
+        }
+    };
 }
 
 ///PySql: gen sql => SELECT (column1,column2,column3,...) FROM table_name (column1,column2,column3,...)  *** WHERE ***
@@ -157,10 +150,10 @@ macro_rules! impl_insert {
 /// pub struct MockTable{ pub id: Option<String> }
 /// /// default
 ///rbatis::impl_select!(MockTable{});
-///rbatis::impl_select!(MockTable{select_all_by_id(id:&str,name:&str) => "where id = #{id} and name = #{name}"});
+///rbatis::impl_select!(MockTable{select_all_by_id(id:&str,name:&str) => "`where id = #{id} and name = #{name}`"});
 /// /// container result
-///rbatis::impl_select!(MockTable{select_by_id(id:String) -> Option => "where id = #{id} limit 1"});
-///rbatis::impl_select!(MockTable{select_by_id2(id:String) -> Vec => "where id = #{id} limit 1"});
+///rbatis::impl_select!(MockTable{select_by_id(id:String) -> Option => "`where id = #{id} limit 1`"});
+///rbatis::impl_select!(MockTable{select_by_id2(id:String) -> Vec => "`where id = #{id} limit 1`"});
 ///
 /// //usage
 /// async fn test_select(rb:&RBatis) -> Result<(),Error>{
@@ -653,13 +646,21 @@ macro_rules! raw_sql {
 }
 
 /// use macro wrapper #[py_sql]
-/// for example:
+/// for query example:
 /// ```rust
 /// use rbatis::executor::Executor;
 /// rbatis::pysql!(test_same_id(rb: &dyn Executor, id: &u64)  -> Result<rbs::Value, rbatis::Error> =>
 /// "select * from table where ${id} = 1
 ///  if id != 0:
 ///    `id = #{id}`"
+/// );
+/// ```
+/// for exec example:
+/// ```rust
+/// use rbatis::executor::Executor;
+/// use rbdc::db::ExecResult;
+/// rbatis::pysql!(test_same_id(rb: &dyn Executor, id: &u64)  -> Result<ExecResult, rbatis::Error> =>
+/// "`update activity set name = '1' where id = #{id}`"
 /// );
 /// ```
 #[macro_export]
@@ -679,19 +680,36 @@ macro_rules! pysql {
 }
 
 /// use macro wrapper #[html_sql]
-/// for example:
+/// for example query rbs::Value:
 /// ```rust
 /// use rbatis::executor::Executor;
-/// rbatis::htmlsql!(test_same_id(rb: &dyn Executor, id: &u64)  -> Result<rbs::Value, rbatis::Error> => r#"<mapper>
+/// rbatis::htmlsql!(test_select_column(rb: &dyn Executor, id: &u64)  -> Result<rbs::Value, rbatis::Error> => r#"
+///             <mapper>
 ///             <select id="test_same_id">
-///             select ${id},${id},#{id},#{id}
+///               `select ${id} from my_table`
 ///             </select>
 ///             </mapper>"#);
 /// ```
-/// or load from file
+/// exec (from file)
 /// ```rust
-/// //use rbatis::executor::Executor;
-/// //rbatis::htmlsql!(test_same_id(rb: &dyn Executor, id: &u64)  -> Result<rbs::Value, rbatis::Error> => "example.html");
+/// use rbatis::executor::Executor;
+/// use rbdc::db::ExecResult;
+/// rbatis::htmlsql!(update_by_id(rb: &dyn Executor, id: &u64)  -> Result<ExecResult, rbatis::Error> => "example/example.html");
+/// ```
+/// query
+/// ```rust
+/// use rbatis::executor::Executor;
+/// #[derive(serde::Serialize, serde::Deserialize)]
+/// pub struct MyTable{
+///      pub id:Option<u64>,
+///      pub name:Option<String>,
+/// }
+/// rbatis::htmlsql!(test_select_table(rb: &dyn Executor, id: &u64)  -> Result<Vec<MyTable>, rbatis::Error> => r#"
+///             <mapper>
+///               <select id="test_same_id">
+///                 `select * from my_table`
+///               </select>
+///             </mapper>"#);
 /// ```
 #[macro_export]
 macro_rules! htmlsql {

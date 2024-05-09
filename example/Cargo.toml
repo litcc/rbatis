@@ -84,11 +84,17 @@ path = "src/custom_pool.rs"
 name = "plugin_intercept_log"
 path = "src/plugin_intercept_log.rs"
 [[bin]]
+name = "plugin_intercept_log_next"
+path = "src/plugin_intercept_log_next.rs"
+[[bin]]
+name = "plugin_intercept_log_scope"
+path = "src/plugin_intercept_log_scope.rs"
+[[bin]]
 name = "plugin_intercept_returing_id"
 path = "src/plugin_intercept_returing_id.rs"
 [dependencies]
 #test pool custom
-deadpool = "0.11.0"
+deadpool = "0.12.0"
 futures-core = { version = "0.3.19" }
 
 #serde and base types

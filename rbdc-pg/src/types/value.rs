@@ -1,26 +1,26 @@
-use std::str::FromStr;
-
-use rbdc::{
-    date::Date, datetime::DateTime, decimal::Decimal, json::Json,
-    timestamp::Timestamp, types::time::Time, uuid::Uuid, Error,
-};
+use crate::arguments::PgArgumentBuffer;
+use crate::type_info::PgType;
+use crate::type_info::PgTypeInfo;
+use crate::types::byte::Bytea;
+use crate::types::decode::Decode;
+use crate::types::encode::{Encode, IsNull};
+use crate::types::json::{decode_json, encode_json};
+use crate::types::money::Money;
+use crate::types::timestamptz::Timestamptz;
+use crate::types::timetz::Timetz;
+use crate::types::Oid;
+use crate::types::TypeInfo;
+use crate::value::{PgValue, PgValueFormat};
+use rbdc::date::Date;
+use rbdc::datetime::DateTime;
+use rbdc::decimal::Decimal;
+use rbdc::json::Json;
+use rbdc::timestamp::Timestamp;
+use rbdc::types::time::Time;
+use rbdc::uuid::Uuid;
+use rbdc::Error;
 use rbs::Value;
-
-use crate::{
-    arguments::PgArgumentBuffer,
-    type_info::{PgType, PgTypeInfo},
-    types::{
-        byte::Bytea,
-        decode::Decode,
-        encode::{Encode, IsNull},
-        json::{decode_json, encode_json},
-        money::Money,
-        timestamptz::Timestamptz,
-        timetz::Timetz,
-        Oid, TypeInfo,
-    },
-    value::{PgValue, PgValueFormat},
-};
+use std::str::FromStr;
 
 impl TypeInfo for Value {
     fn type_info(&self) -> PgTypeInfo {
@@ -121,9 +121,7 @@ impl Decode for Value {
             }),
             PgType::Int4 => Value::I32(Decode::decode(arg)?),
             PgType::Text => Value::String(Decode::decode(arg)?),
-            PgType::Oid => {
-                Value::Ext("Oid", Box::new(Value::U32(Decode::decode(arg)?)))
-            }
+            PgType::Oid => Value::Ext("Oid", Box::new(Value::U32(Decode::decode(arg)?))),
             PgType::Json => decode_json(arg)?,
             PgType::Point => Value::Ext(
                 "Point",
@@ -468,9 +466,7 @@ impl Encode for Value {
             }
             Value::Ext(type_name, v) => {
                 match type_name {
-                    "Uuid" => {
-                        Uuid(v.into_string().unwrap_or_default()).encode(buf)?
-                    }
+                    "Uuid" => Uuid(v.into_string().unwrap_or_default()).encode(buf)?,
                     //decimal = 12345678
                     "Decimal" => Decimal::from_str(v.as_str().unwrap_or_default())
                         .unwrap_or_default()
@@ -486,27 +482,20 @@ impl Encode for Value {
                     )?)
                     .encode(buf)?,
                     //RFC3339 = "2006-01-02 15:04:05.999999"
-                    "Timestamp" => {
-                        Timestamp(v.as_i64().unwrap_or_default()).encode(buf)?
-                    }
+                    "Timestamp" => Timestamp(v.as_i64().unwrap_or_default()).encode(buf)?,
                     "DateTime" => DateTime(fastdate::DateTime::from_str(
                         &v.into_string().unwrap_or_default(),
                     )?)
                     .encode(buf)?,
-                    "Bytea" => {
-                        Bytea(v.as_u64().unwrap_or_default() as u8).encode(buf)?
-                    }
+                    "Bytea" => Bytea(v.as_u64().unwrap_or_default() as u8).encode(buf)?,
                     "Char" => v.into_string().unwrap_or_default().encode(buf)?,
                     "Name" => v.into_string().unwrap_or_default().encode(buf)?,
                     "Int8" => (v.as_i64().unwrap_or_default() as i32).encode(buf)?,
                     "Int2" => (v.as_i64().unwrap_or_default() as i8).encode(buf)?,
                     "Int4" => (v.as_i64().unwrap_or_default() as i16).encode(buf)?,
                     "Text" => v.into_string().unwrap_or_default().encode(buf)?,
-                    "Oid" => Oid::from(v.as_u64().unwrap_or_default() as u32)
-                        .encode(buf)?,
-                    "Json" => {
-                        Json(v.into_string().unwrap_or_default()).encode(buf)?
-                    }
+                    "Oid" => Oid::from(v.as_u64().unwrap_or_default() as u32).encode(buf)?,
+                    "Json" => Json(v.into_string().unwrap_or_default()).encode(buf)?,
                     "Point" => v.into_bytes().unwrap_or_default().encode(buf)?,
                     "Lseg" => v.into_bytes().unwrap_or_default().encode(buf)?,
                     "Path" => v.into_bytes().unwrap_or_default().encode(buf)?,
@@ -514,9 +503,7 @@ impl Encode for Value {
                     "Polygon" => v.into_bytes().unwrap_or_default().encode(buf)?,
                     "Line" => v.into_bytes().unwrap_or_default().encode(buf)?,
                     "Cidr" => v.into_bytes().unwrap_or_default().encode(buf)?,
-                    "Float4" => {
-                        (v.as_f64().unwrap_or_default() as f32).encode(buf)?
-                    }
+                    "Float4" => (v.as_f64().unwrap_or_default() as f32).encode(buf)?,
                     "Float8" => v.as_f64().unwrap_or_default().encode(buf)?,
                     "Unknown" => v.into_bytes().unwrap_or_default().encode(buf)?,
                     "Circle" => v.into_bytes().unwrap_or_default().encode(buf)?,
@@ -526,25 +513,21 @@ impl Encode for Value {
                     "Bpchar" => v.into_bytes().unwrap_or_default().encode(buf)?,
                     "Varchar" => v.into_bytes().unwrap_or_default().encode(buf)?,
                     "Timestamptz" => {
-                        let tz: Timestamptz =
-                            rbs::from_value(Value::Ext(type_name, v))?;
+                        let tz: Timestamptz = rbs::from_value(Value::Ext(type_name, v))?;
                         tz.encode(buf)?
                     }
                     "Interval" => v.into_bytes().unwrap_or_default().encode(buf)?,
-                    "Timetz" => Timetz(
-                        rbs::from_value(*v)
-                            .map_err(|e| Error::from(e.to_string()))?,
-                    )
-                    .encode(buf)?,
+                    "Timetz" => {
+                        Timetz(rbs::from_value(*v).map_err(|e| Error::from(e.to_string()))?)
+                            .encode(buf)?
+                    }
                     "Bit" => v.into_bytes().unwrap_or_default().encode(buf)?,
                     "Varbit" => v.into_bytes().unwrap_or_default().encode(buf)?,
                     "Numeric" => Decimal::from_str(v.as_str().unwrap_or_default())
                         .unwrap_or_default()
                         .encode(buf)?,
                     "Record" => v.into_bytes().unwrap_or_default().encode(buf)?,
-                    "Jsonb" => {
-                        Json(v.into_string().unwrap_or_default()).encode(buf)?
-                    }
+                    "Jsonb" => Json(v.into_string().unwrap_or_default()).encode(buf)?,
                     "Int4Range" => v.into_bytes().unwrap_or_default().encode(buf)?,
                     "NumRange" => v.into_bytes().unwrap_or_default().encode(buf)?,
                     "TsRange" => v.into_bytes().unwrap_or_default().encode(buf)?,
@@ -555,12 +538,8 @@ impl Encode for Value {
                     "Money" => Money(v.as_i64().unwrap_or_default()).encode(buf)?,
                     "Void" => v.into_bytes().unwrap_or_default().encode(buf)?,
                     "Custom" => v.into_bytes().unwrap_or_default().encode(buf)?,
-                    "DeclareWithName" => {
-                        v.into_bytes().unwrap_or_default().encode(buf)?
-                    }
-                    "DeclareWithOid" => {
-                        v.into_bytes().unwrap_or_default().encode(buf)?
-                    }
+                    "DeclareWithName" => v.into_bytes().unwrap_or_default().encode(buf)?,
+                    "DeclareWithOid" => v.into_bytes().unwrap_or_default().encode(buf)?,
                     _ => IsNull::Yes,
                 }
             }

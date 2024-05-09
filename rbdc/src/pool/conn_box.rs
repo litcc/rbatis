@@ -1,9 +1,7 @@
-use std::{
-    fmt::{Debug, Formatter},
-    ops::{Deref, DerefMut},
-};
-
-use crate::{db::Connection, pool::conn_manager::ConnManager};
+use crate::db::Connection;
+use crate::pool::conn_manager::ConnManager;
+use std::fmt::{Debug, Formatter};
+use std::ops::{Deref, DerefMut};
 
 pub struct ConnectionBox {
     pub conn: Option<Box<dyn Connection>>,

@@ -1,23 +1,16 @@
 #[cfg(test)]
 mod test {
-    use std::sync::{
-        atomic::{AtomicI64, Ordering},
-        Arc,
-    };
-
     use async_trait::async_trait;
     use futures_core::future::BoxFuture;
     use log::{Log, Metadata, Record};
-    use rbatis::{
-        executor::Executor,
-        intercept::{Intercept, ResultType},
-        Error, RBatis,
-    };
-    use rbdc::{
-        db::{ConnectOptions, Connection, Driver, ExecResult, MetaData, Row},
-        rt::block_on,
-    };
+    use rbatis::executor::Executor;
+    use rbatis::intercept::{Intercept, ResultType};
+    use rbatis::{Error, RBatis};
+    use rbdc::db::{ConnectOptions, Connection, Driver, ExecResult, MetaData, Row};
+    use rbdc::rt::block_on;
     use rbs::Value;
+    use std::sync::atomic::{AtomicI64, Ordering};
+    use std::sync::Arc;
 
     pub struct Logger {}
 
@@ -45,22 +38,15 @@ mod test {
             "test"
         }
 
-        fn connect(
-            &self,
-            _url: &str,
-        ) -> BoxFuture<Result<Box<dyn Connection>, Error>> {
-            Box::pin(async {
-                Ok(Box::new(MockConnection {}) as Box<dyn Connection>)
-            })
+        fn connect(&self, _url: &str) -> BoxFuture<Result<Box<dyn Connection>, Error>> {
+            Box::pin(async { Ok(Box::new(MockConnection {}) as Box<dyn Connection>) })
         }
 
         fn connect_opt<'a>(
             &'a self,
             _opt: &'a dyn ConnectOptions,
         ) -> BoxFuture<Result<Box<dyn Connection>, Error>> {
-            Box::pin(async {
-                Ok(Box::new(MockConnection {}) as Box<dyn Connection>)
-            })
+            Box::pin(async { Ok(Box::new(MockConnection {}) as Box<dyn Connection>) })
         }
 
         fn default_option(&self) -> Box<dyn ConnectOptions> {
@@ -168,9 +154,7 @@ mod test {
 
     impl ConnectOptions for MockConnectOptions {
         fn connect(&self) -> BoxFuture<Result<Box<dyn Connection>, Error>> {
-            Box::pin(async {
-                Ok(Box::new(MockConnection {}) as Box<dyn Connection>)
-            })
+            Box::pin(async { Ok(Box::new(MockConnection {}) as Box<dyn Connection>) })
         }
 
         fn set_uri(&mut self, _uri: &str) -> Result<(), Error> {
@@ -189,21 +173,18 @@ mod test {
             _rb: &dyn Executor,
             _sql: &mut String,
             _args: &mut Vec<Value>,
-            result: ResultType<
-                &mut Result<ExecResult, Error>,
-                &mut Result<Vec<Value>, Error>,
-            >,
-        ) -> Result<bool, Error> {
+            result: ResultType<&mut Result<ExecResult, Error>, &mut Result<Vec<Value>, Error>>,
+        ) -> Result<Option<bool>, Error> {
             match result {
                 ResultType::Exec(v) => {
                     *v = Ok(ExecResult {
                         rows_affected: 1,
                         last_insert_id: Value::U64(1),
                     });
+                    Ok(None)
                 }
-                ResultType::Query(_) => {}
+                ResultType::Query(_) => Ok(Some(true)),
             }
-            Ok(false)
         }
     }
 
