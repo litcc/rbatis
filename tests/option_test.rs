@@ -2,6 +2,7 @@
 #[cfg(feature = "option")]
 mod test {
     use std::sync::Arc;
+    use std::time::Duration;
 
     use async_trait::async_trait;
     use dark_std::sync::SyncVec;
@@ -50,6 +51,7 @@ mod test {
             _rb: &dyn Executor,
             _sql: &mut String,
             _args: &mut Vec<Value>,
+            _time: &Duration,
             _result: ResultType<&mut Result<ExecResult, Error>, &mut Result<Vec<Value>, Error>>,
         ) -> Result<Option<bool>, Error> {
             println!("_result:{:?}", _result);
