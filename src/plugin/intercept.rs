@@ -4,6 +4,7 @@ use async_trait::async_trait;
 use rbdc::db::ExecResult;
 use rbs::Value;
 use std::fmt::Debug;
+use std::time::Duration;
 
 #[derive(Debug, Clone)]
 pub enum ResultType<A, B> {
@@ -81,6 +82,7 @@ pub trait Intercept: Send + Sync + Debug {
         _rb: &dyn Executor,
         _sql: &mut String,
         _args: &mut Vec<Value>,
+        _time: &Duration,
         _result: ResultType<&mut Result<ExecResult, Error>, &mut Result<Vec<Value>, Error>>,
     ) -> Result<Option<bool>, Error> {
         Ok(Some(true))

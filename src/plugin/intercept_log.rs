@@ -9,6 +9,7 @@ use rbs::Value;
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::time::Duration;
 
 struct RbsValueDisplay<'a> {
     inner: &'a Vec<Value>,
@@ -130,6 +131,7 @@ impl Intercept for LogInterceptor {
         _rb: &dyn Executor,
         _sql: &mut String,
         _args: &mut Vec<Value>,
+        _time: &Duration,
         result: ResultType<&mut Result<ExecResult, Error>, &mut Result<Vec<Value>, Error>>,
     ) -> Result<Option<bool>, Error> {
         if self.get_level_filter() == LevelFilter::Off {
