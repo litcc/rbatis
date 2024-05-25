@@ -11,6 +11,7 @@ use rbdc::rt::tokio::sync::Mutex;
 use rbs::Value;
 use serde::de::DeserializeOwned;
 use std::fmt::{Debug, Formatter};
+use std::time::Instant;
 
 /// the rbatis's Executor. this trait impl with structs = RBatis,RBatisConnExecutor,RBatisTxExecutor,RBatisTxExecutorGuard
 pub trait Executor: RBatisRef + Send + Sync {
@@ -95,7 +96,9 @@ impl Executor for RBatisConnExecutor {
                 }
             }
             let mut args_after = args.clone();
+            let start = Instant::now();
             let mut result = self.conn.lock().await.exec(&sql, args).await;
+            let time = start.elapsed();
             for item in self.rb_ref().intercepts.iter() {
                 let next = item
                     .after(
@@ -103,6 +106,7 @@ impl Executor for RBatisConnExecutor {
                         self as &dyn Executor,
                         &mut sql,
                         &mut args_after,
+                        &time,
                         ResultType::Exec(&mut result),
                     )
                     .await?;
@@ -143,7 +147,9 @@ impl Executor for RBatisConnExecutor {
             }
             let mut conn = self.conn.lock().await;
             let mut args_after = args.clone();
+            let start = Instant::now();
             let mut result = conn.get_values(&sql, args).await;
+            let time = start.elapsed();
             for item in self.rb_ref().intercepts.iter() {
                 let next = item
                     .after(
@@ -151,6 +157,7 @@ impl Executor for RBatisConnExecutor {
                         self,
                         &mut sql,
                         &mut args_after,
+                        &time,
                         ResultType::Query(&mut result),
                     )
                     .await?;
@@ -287,7 +294,9 @@ impl Executor for RBatisTxExecutor {
                 }
             }
             let mut args_after = args.clone();
+            let start = Instant::now();
             let mut result = self.conn.lock().await.exec(&sql, args).await;
+            let time = start.elapsed();
             for item in self.rb_ref().intercepts.iter() {
                 let next = item
                     .after(
@@ -295,6 +304,7 @@ impl Executor for RBatisTxExecutor {
                         self,
                         &mut sql,
                         &mut args_after,
+                        &time,
                         ResultType::Exec(&mut result),
                     )
                     .await?;
@@ -334,7 +344,9 @@ impl Executor for RBatisTxExecutor {
             }
             let mut conn = self.conn.lock().await;
             let mut args_after = args.clone();
+            let start = Instant::now();
             let conn = conn.get_values(&sql, args);
+            let time = start.elapsed();
             let mut result = conn.await;
             for item in self.rb_ref().intercepts.iter() {
                 let next = item
@@ -343,6 +355,7 @@ impl Executor for RBatisTxExecutor {
                         self,
                         &mut sql,
                         &mut args_after,
+                        &time,
                         ResultType::Query(&mut result),
                     )
                     .await?;

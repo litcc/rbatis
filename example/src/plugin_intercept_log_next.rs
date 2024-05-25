@@ -81,6 +81,7 @@ impl Intercept for DisableLogIntercept {
         _rb: &dyn Executor,
         sql: &mut String,
         _args: &mut Vec<Value>,
+        _time: &Duration,
         _result: ResultType<&mut Result<ExecResult, Error>, &mut Result<Vec<Value>, Error>>,
     ) -> Result<Option<bool>, Error> {
         for x in &self.skip_sql {
