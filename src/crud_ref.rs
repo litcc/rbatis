@@ -42,11 +42,11 @@ macro_rules! impl_insert_ext {
                               `) VALUES `
                             (
                             trim ',':
-                            for k,v in table:
-                              if v.is_null():
-                                ` DEFAULT,`
-                                continue:
-                              #{v},
+                              for k,v in table:
+                                if v.is_null():
+                                  ` DEFAULT,`
+                                  continue:
+                                #{v},
                             ),
                         "
                     )]
