@@ -33,20 +33,21 @@ macro_rules! impl_insert_ext {
                     #[$crate::py_sql(
                         "`insert into ${table_name} `
                         trim ',':
-                         for idx,table in tables:
-                          if idx == 0:
-                             `(`
-                             trim ',':
-                               for k,v in table:
+                          for idx,table in tables:
+                            if idx == 0:
+                              `(`
+                              trim ',':
+                                for k,v in table:
                                   ${k},
-                             `) VALUES ( `
-                          trim ',':
-                           for k,v in table:
-                             if v.is_null():
+                              `) VALUES `
+                            (
+                            trim ',':
+                            for k,v in table:
+                              if v.is_null():
                                 ` DEFAULT,`
                                 continue:
-                             #{v},
-                          `)`
+                              #{v},
+                            ),
                         "
                     )]
                     async fn inner_insert_batch_ref<'__ref>(
