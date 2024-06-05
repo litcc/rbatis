@@ -303,7 +303,7 @@ mod test {
             println!("{:?}", args);
             assert_eq!(
                 sql,
-                "insert into mock_table2 (id,name,pc_link,h5_link,pc_banner_img,h5_banner_img,sort,status,remark,create_time,version,delete_flag,count) VALUES ( ?, DEFAULT, DEFAULT, DEFAULT,?,?, DEFAULT,?, DEFAULT,?,?, DEFAULT,?)?, DEFAULT,?,?,?,?, DEFAULT,?, DEFAULT,?,?, DEFAULT,?)"
+                "insert into mock_table2 (id,name,pc_link,h5_link,pc_banner_img,h5_banner_img,sort,status,remark,create_time,version,delete_flag,count) VALUES (?, DEFAULT, DEFAULT, DEFAULT,?,?, DEFAULT,?, DEFAULT,?,?, DEFAULT,?),(?, DEFAULT,?,?,?,?, DEFAULT,?, DEFAULT,?,?, DEFAULT,?)"
             );
             // let (sql, args) = queue.pop().unwrap();
             // println!("{}", sql);
@@ -355,7 +355,7 @@ mod test {
             println!("{:?}", args);
             assert_eq!(
                 sql,
-                "update mock_table2 set id=?,pc_banner_img=?,h5_banner_img=?,status=?,create_time=?,version=?,count=?  where  id = ? and pc_link = ? and h5_link = ? and pc_banner_img = ? and h5_banner_img = ? and status = ? and create_time = ? and version = ? and count = ? "
+                "update mock_table2 set id=?,pc_banner_img=?,h5_banner_img=?,status=?,create_time=?,version=?,count=?  where  id = ? and pc_link = ? and h5_link is null and pc_banner_img = ? and h5_banner_img = ? and status = ? and create_time = ? and version = ? and count = ? "
             );
 
             let _r = MockTable2::update_by_refs(
@@ -400,7 +400,7 @@ mod test {
             println!("{:?}", args);
             assert_eq!(
                 sql,
-                "update mock_table2 set id=?,pc_banner_img=?,h5_banner_img=?,status=?,create_time=?,version=?,count=?  where  (  id = ? and pc_banner_img = ? and h5_banner_img = ? and status = ? and create_time = ? and version = ? and count = ? ) or (  id = ? and pc_link = ? and h5_link = ? and pc_banner_img = ? and h5_banner_img = ? and status = ? and create_time = ? and version = ? and count = ? ) "
+                "update mock_table2 set id=?,pc_banner_img=?,h5_banner_img=?,status=?,create_time=?,version=?,count=?  where  (  id = ? and pc_banner_img = ? and h5_banner_img = ? and status = ? and create_time = ? and version = ? and count = ? ) or (  id = ? and pc_link = ? and h5_link is null and pc_banner_img = ? and h5_banner_img = ? and status = ? and create_time = ? and version = ? and count = ? ) "
             );
         };
         block_on(f);
@@ -486,7 +486,7 @@ mod test {
             println!("{:?}", args);
             assert_eq!(
                 sql,
-                "delete from mock_table2  where  (  id = ? and pc_banner_img = ? and h5_banner_img = ? and status = ? and create_time = ? and version = ? and count = ? ) or (  id = ? and pc_link = ? and h5_link = ? and pc_banner_img = ? and h5_banner_img = ? and status = ? and create_time = ? and version = ? and count = ? ) or (  id = ? and name = ? and pc_link = ? and h5_link = ? and pc_banner_img = ? and h5_banner_img = ? and sort = ? and status = ? and create_time = ? and version = ? and count = ? ) "
+                "delete from mock_table2  where  (  id = ? and pc_banner_img = ? and h5_banner_img = ? and status = ? and create_time = ? and version = ? and count = ? ) or (  id = ? and pc_link = ? and h5_link is null and pc_banner_img = ? and h5_banner_img = ? and status = ? and create_time = ? and version = ? and count = ? ) or (  id = ? and name = ? and pc_link = ? and h5_link = ? and pc_banner_img = ? and h5_banner_img = ? and sort = ? and status = ? and create_time = ? and version = ? and count = ? ) "
             );
         };
         block_on(f);
@@ -586,7 +586,7 @@ mod test {
             println!("{:?}", args);
             assert_eq!(
                 sql,
-                "select * from mock_table2  where  (  id = ? and pc_banner_img = ? and h5_banner_img = ? and status = ? and create_time = ? and version = ? and count = ? ) or (  id = ? and pc_link = ? and h5_link = ? and pc_banner_img = ? and h5_banner_img = ? and status = ? and create_time = ? and version = ? and count = ? ) or (  id = ? and name = ? and pc_link = ? and h5_link = ? and pc_banner_img = ? and h5_banner_img = ? and sort = ? and status = ? and create_time = ? and version = ? and count = ? ) "
+                "select * from mock_table2  where  (  id = ? and pc_banner_img = ? and h5_banner_img = ? and status = ? and create_time = ? and version = ? and count = ? ) or (  id = ? and pc_link = ? and h5_link is null and pc_banner_img = ? and h5_banner_img = ? and status = ? and create_time = ? and version = ? and count = ? ) or (  id = ? and name = ? and pc_link = ? and h5_link = ? and pc_banner_img = ? and h5_banner_img = ? and sort = ? and status = ? and create_time = ? and version = ? and count = ? ) "
             );
         };
         block_on(f);

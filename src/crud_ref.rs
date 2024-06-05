@@ -104,22 +104,31 @@ macro_rules! impl_select_ext {
               trim 'and': for k,v in where_data:
                 if v.is_null():
                     continue:
+                if v.is_some_null():
+                    `and ${k} is null `
+                    continue:
                 `and ${k} = #{v} `"}$(,$table_name)?);
             $crate::impl_select_ext!($table{select_list_by_refs<'__ref>(where_datas: &[[<$table Ref>]<'__ref>]) -> Vec =>
              "` where `
-               trim 'or': for _,item in where_datas:
-                 `or ( `
-                 trim 'and': for k,v in item:
-                   if v.is_null():
-                     continue:
-                   `and ${k} = #{v} `
-                 `) `"}$(,$table_name)?);
+             trim 'or': for _,item in where_datas:
+                `or ( `
+                trim 'and': for k,v in item:
+                    if v.is_null():
+                        continue:
+                    if v.is_some_null():
+                        `and ${k} is null `
+                        continue:
+                    `and ${k} = #{v} `
+                `) `"}$(,$table_name)?);
             $crate::impl_select_ext!($table{select_opt_by_ref<'__ref>(where_data: &[<$table Ref>]<'__ref>) -> Option =>
              "` where `
-               trim 'and': for k,v in where_data:
-                 if v.is_null():
-                     continue:
-                 `and ${k} = #{v} `"}$(,$table_name)?);
+                trim 'and': for k,v in where_data:
+                    if v.is_null():
+                        continue:
+                    if v.is_some_null():
+                        `and ${k} is null `
+                        continue:
+                    `and ${k} = #{v} `"}$(,$table_name)?);
         }
     };
 
@@ -157,14 +166,20 @@ macro_rules! impl_update_ext {
         $crate::paste::paste!{
             $crate::impl_update_ext!($table{update_by_ref<'__ref>(where_data: &[<$table Ref>]<'__ref>) => "` where `
                 trim 'and': for k,v in where_data:
-                  if v.is_null():
-                    continue:
-                  `and ${k} = #{v} `"}$(,$table_name)?);
+                    if v.is_null():
+                        continue:
+                    if v.is_some_null():
+                        `and ${k} is null `
+                        continue:
+                    `and ${k} = #{v} `"}$(,$table_name)?);
             $crate::impl_update_ext!($table{update_by_refs<'__ref>(where_datas: &[[<$table Ref>]<'__ref>]) => "` where `
                 trim 'or': for _,item in where_datas:
                   `or ( `
                   trim 'and': for k,v in item:
                     if v.is_null():
+                      continue:
+                    if v.is_some_null():
+                      `and ${k} is null `
                       continue:
                     `and ${k} = #{v} `
                   `) `"}$(,$table_name)?);
@@ -186,6 +201,9 @@ macro_rules! impl_update_ext {
                                      trim ',':
                                        for k,v in table:
                                          if v.is_null():
+                                            continue:
+                                         if v.is_some_null():
+                                            `${k} = null, `
                                             continue:
                                          `${k}=#{v},`
                                      ` `",$sql_where)]
@@ -229,6 +247,9 @@ macro_rules! impl_delete_ext {
                     trim 'and': for k,v in where_data:
                         if v.is_null():
                             continue:
+                        if v.is_some_null():
+                            `and ${k} is null `
+                            continue:
                         `and ${k} = #{v} `"}$(,$table_name)?);
             $crate::impl_delete_ext!($table {delete_by_refs<'__ref>(where_datas: &[[<$table Ref>]<'__ref>]) =>
                 "` where `
@@ -236,6 +257,9 @@ macro_rules! impl_delete_ext {
                         `or ( `
                         trim 'and': for k,v in item:
                             if v.is_null():
+                                continue:
+                            if v.is_some_null():
+                                `and ${k} is null `
                                 continue:
                             `and ${k} = #{v} `
                         `) `"}$(,$table_name)?);
