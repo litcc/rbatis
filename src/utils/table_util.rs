@@ -1,18 +1,18 @@
 /// Simplifies table construction by relying on the Default trait
 ///
 /// step1:  impl Default
+/// ```rust
+/// use rbatis::table;
 /// #[derive(Clone, Debug, Default, serde::Serialize, serde::Deserialize)]
-/// MockTable{
+/// pub struct MockTable{
+///    pub id:Option<String>,
+///    pub name:Option<String>,
 /// }
-///
 /// //step2: make struct
-/// let activity = rbatis::make_table!(MockTable{
-///             id : "12312".to_string(),
-///             delete_flag : 1,
-///             name:  None,
-///             });
+/// let activity = table!(MockTable{id : "12312".to_string()});
+/// ```
 #[macro_export]
-macro_rules! make_table {
+macro_rules! table {
         ($t:path{ $($key:ident:$value:expr$(,)?)+ }) => {
            {
             let mut temp_table_data = <$t>::default();
@@ -22,27 +22,83 @@ macro_rules! make_table {
         }
 }
 /// take the target Vec member attribute Vec collection
-/// vec_ref: a reference to vec, field_name: the field name of the structure
-///
-/// need impl Clone or #[derive(Clone, Debug)]
 /// for example:
-///      struct SysUserRole{
-///         pub role_id:String
-///      }
-///      let user_roles: Vec<SysUserRole>;
-///      let role_ids = make_table_field_vec!(&user_roles,role_id); // role_ids: Vec<String>
-///
-///
-///
+///```rust
+///use rbatis::table_field_vec;
+///struct SysUserRole{
+///  pub role_id: Option<String>
+///}
+///let user_roles: Vec<SysUserRole> = vec![];
+///let role_ids_ref: Vec<&String> = table_field_vec!(&user_roles,role_id);
+///let role_ids: Vec<String> = table_field_vec!(user_roles,role_id);
+/// ```
 #[allow(unused_macros)]
 #[macro_export]
-macro_rules! make_table_field_vec {
-    ($vec_ref:expr,$($field_name:ident$(.)?)+) => {{
-        let mut ids = vec![];
-        for item in $vec_ref {
-            match item.$($field_name.)+as_ref() {
+macro_rules! table_field_vec {
+    (&$vec_ref:expr,$($field_name:ident$(.)?)+) => {{
+        let vec = &$vec_ref;
+        let mut ids = std::vec::Vec::with_capacity(vec.len());
+        for item in vec {
+            match &item $(.$field_name)+ {
                 std::option::Option::Some(v) => {
-                    ids.push(v.clone());
+                    ids.push(v);
+                }
+                _ => {}
+            }
+        }
+        ids
+    }};
+    ($vec_ref:expr,$($field_name:ident$(.)?)+) => {{
+        let vec = $vec_ref;
+        let mut ids = std::vec::Vec::with_capacity(vec.len());
+        for item in vec {
+            match item $(.$field_name)+.to_owned() {
+                std::option::Option::Some(v) => {
+                    ids.push(v);
+                }
+                _ => {}
+            }
+        }
+        ids
+    }};
+}
+
+/// take the target Vec member attribute Vec collection
+/// for example:
+/// ```rust
+///use std::collections::HashSet;
+///use rbatis::table_field_set;
+///
+///pub struct SysUserRole{
+///  pub role_id:Option<String>
+///}
+///let user_roles: Vec<SysUserRole> = vec![];
+///let role_ids_ref: HashSet<&String> = table_field_set!(&user_roles,role_id);
+///let role_ids: HashSet<String> = table_field_set!(user_roles,role_id);
+///```
+#[allow(unused_macros)]
+#[macro_export]
+macro_rules! table_field_set {
+    (&$vec_ref:expr,$($field_name:ident$(.)?)+) => {{
+        let vec = &$vec_ref;
+        let mut ids = std::collections::HashSet::with_capacity(vec.len());
+        for item in vec {
+             match &item $(.$field_name)+ {
+                std::option::Option::Some(v) => {
+                    ids.insert(v);
+                }
+                _ => {}
+            }
+        }
+        ids
+    }};
+    ($vec_ref:expr,$($field_name:ident$(.)?)+) => {{
+        let vec = $vec_ref;
+        let mut ids = std::collections::HashSet::with_capacity(vec.len());
+        for item in vec {
+             match item $(.$field_name)+.to_owned() {
+                std::option::Option::Some(v) => {
+                    ids.insert(v);
                 }
                 _ => {}
             }
@@ -52,27 +108,29 @@ macro_rules! make_table_field_vec {
 }
 
 /// Gets the HashMap collection of member attributes of the target Vec
-/// vec_ref: vec reference，field_name: the field name of the structure
-///
-/// need impl Clone or #[derive(Clone, Debug)]
 /// for example:
-///      struct SysUserRole{
-///         pub role_id:String
-///      }
-///      let user_roles: Vec<SysUserRole>;
-///      let role_ids = make_table_field_map!(&user_roles,role_id); // role_ids: HashMap<String,SysUserRole>
+/// ```rust
+///use std::collections::HashMap;
+///use rbatis::table_field_map;
 ///
-///
-///
+///#[derive(Clone)]
+///pub struct SysUserRole{
+///   pub role_id: Option<String>
+///}
+///let user_roles: Vec<SysUserRole> = vec![];
+///let role_ids_ref: HashMap<String,&SysUserRole> = table_field_map!(&user_roles,role_id);
+///let role_ids: HashMap<String,SysUserRole> = table_field_map!(user_roles,role_id);
+///```
 #[allow(unused_macros)]
 #[macro_export]
-macro_rules! make_table_field_map {
+macro_rules! table_field_map {
     ($vec_ref:expr,$($field_name:ident$(.)?)+) => {{
-        let mut ids = std::collections::HashMap::with_capacity($vec_ref.len());
-        for item in $vec_ref {
-            match item.$($field_name.)+as_ref() {
-                std::option::Option::Some(v) => {
-                    ids.insert(v.clone(), item.clone());
+        let vec = $vec_ref;
+        let mut ids = std::collections::HashMap::with_capacity(vec.len());
+        for item in vec {
+              match item $(.$field_name)+ {
+                std::option::Option::Some(ref v) => {
+                    ids.insert(v.clone(), item);
                 }
                 _ => {}
             }
@@ -81,28 +139,30 @@ macro_rules! make_table_field_map {
     }};
 }
 
-/// Gets the HashMap collection of member attributes of the target Vec
-/// vec_ref: vec reference，field_name: the field name of the structure
-///
-/// need impl Clone or #[derive(Clone, Debug)]
+/// Gets the BtreeMap collection of member attributes of the target Vec
 /// for example:
-///      struct SysUserRole{
-///         pub role_id:String
-///      }
-///      let user_roles: Vec<SysUserRole>;
-///      let role_ids = make_table_field_map_btree!(&user_roles,role_id); // role_ids: HashMap<String,SysUserRole>
+/// ```rust
+///use std::collections::BTreeMap;
+/// use rbatis::table_field_btree;
 ///
+///pub struct SysUserRole{
+///   pub role_id: Option<String>
+///}
+///let user_roles: Vec<SysUserRole>=vec![];
+///let role_ids_ref: BTreeMap<String,&SysUserRole> = table_field_btree!(&user_roles,role_id);
+///let role_ids_owner: BTreeMap<String,SysUserRole> = table_field_btree!(user_roles,role_id);
+///```
 ///
 ///
 #[allow(unused_macros)]
 #[macro_export]
-macro_rules! make_table_field_map_btree {
+macro_rules! table_field_btree {
     ($vec_ref:expr,$($field_name:ident$(.)?)+) => {{
         let mut ids = std::collections::BTreeMap::new();
         for item in $vec_ref {
-            match item.$($field_name.)+as_ref() {
-                std::option::Option::Some(v) => {
-                    ids.insert(v.clone(), item.clone());
+             match &item $(.$field_name)+ {
+                std::option::Option::Some(ref v) => {
+                    ids.insert(v.clone(), item);
                 }
                 _ => {}
             }
@@ -114,7 +174,12 @@ macro_rules! make_table_field_map_btree {
 /// Used to simulate enumerations to improve code maintainability.
 /// this is return &str data
 /// for example:
-/// let name=field_name!(MockTable.id);
+///```rust
+///pub struct MockTable{
+///  pub id:String
+///}
+///let name=rbatis::field_name!(MockTable.id);
+/// ```
 ///
 #[allow(unused_macros)]
 #[macro_export]
@@ -142,7 +207,12 @@ macro_rules! field_name {
 /// Used to simulate enumerations to improve code maintainability.
 /// this is return &str data
 /// for example:
-/// let name=field_key!(MockTable::id);
+///```rust
+///pub struct MockTable{
+///  pub id:String
+///}
+///let name = rbatis::field_key!(MockTable::id);
+/// ```
 ///
 #[allow(unused_macros)]
 #[macro_export]
@@ -165,4 +235,70 @@ macro_rules! field_key {
         }
         stringify!($field3).trim_start_matches("r#")
     }};
+}
+
+
+#[deprecated(note = "please use table_field_btree!")]
+#[macro_export]
+macro_rules! make_table_field_map_btree {
+    ($vec_ref:expr,$($field_name:ident$(.)?)+) => {{
+        let mut ids = std::collections::BTreeMap::new();
+        for item in $vec_ref {
+            match item.$($field_name.)+as_ref() {
+                std::option::Option::Some(v) => {
+                    ids.insert(v.clone(), item.clone());
+                }
+                _ => {}
+            }
+        }
+        ids
+    }};
+}
+
+#[deprecated(note = "please use table_field_map!")]
+#[allow(unused_macros)]
+#[macro_export]
+macro_rules! make_table_field_map {
+    ($vec_ref:expr,$($field_name:ident$(.)?)+) => {{
+        let mut ids = std::collections::HashMap::with_capacity($vec_ref.len());
+        for item in $vec_ref {
+            match item.$($field_name.)+as_ref() {
+                std::option::Option::Some(v) => {
+                    ids.insert(v.clone(), item.clone());
+                }
+                _ => {}
+            }
+        }
+        ids
+    }};
+}
+
+#[deprecated(note = "please use table_field_vec!")]
+#[allow(unused_macros)]
+#[macro_export]
+macro_rules! make_table_field_vec {
+    ($vec_ref:expr,$($field_name:ident$(.)?)+) => {{
+        let mut ids = std::vec::Vec::with_capacity($vec_ref.len());
+        for item in $vec_ref {
+            match item.$($field_name.)+as_ref() {
+                std::option::Option::Some(v) => {
+                    ids.push(v.clone());
+                }
+                _ => {}
+            }
+        }
+        ids
+    }};
+}
+
+#[deprecated(note = "please use table!")]
+#[macro_export]
+macro_rules! make_table {
+        ($t:path{ $($key:ident:$value:expr$(,)?)+ }) => {
+           {
+            let mut temp_table_data = <$t>::default();
+            $(temp_table_data.$key = $value.into();)+
+            temp_table_data
+           }
+        }
 }
