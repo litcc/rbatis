@@ -128,7 +128,8 @@ macro_rules! impl_select_ext {
                     if v.is_some_null():
                         `and ${k} is null `
                         continue:
-                    `and ${k} = #{v} `"}$(,$table_name)?);
+                    `and ${k} = #{v} `
+                `limit 1 `"}$(,$table_name)?);
         }
     };
 
