@@ -199,15 +199,15 @@ macro_rules! impl_update_ext {
                         return Err($crate::rbdc::Error::from("sql_where can't be empty!"));
                     }
                     #[$crate::py_sql("`update ${table_name} set `
-                                     trim ',':
-                                       for k,v in table:
-                                         if v.is_null():
-                                            continue:
-                                         if v.is_some_null():
-                                            `${k} = null, `
-                                            continue:
-                                         `${k}=#{v},`
-                                     ` `",$sql_where)]
+                        trim ',':
+                            for k,v in table:
+                                if v.is_null():
+                                    continue:
+                                if v.is_some_null():
+                                    `${k} = null,`
+                                    continue:
+                                `${k}=#{v},`
+                        ` `",$sql_where)]
                       async fn $fn_name $(< $($life_cycle,)* $($gkey:$gtype,)*>)?(
                           executor: &dyn $crate::executor::Executor,
                           table_name: String,
