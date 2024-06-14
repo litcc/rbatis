@@ -46,6 +46,9 @@ macro_rules! impl_insert_ext {
                                 if v.is_null():
                                   ` DEFAULT,`
                                   continue:
+                                if v.is_some_null():
+                                  ` NULL,`
+                                  continue:
                                 #{v},
                             ),
                         "
