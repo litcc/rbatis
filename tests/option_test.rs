@@ -303,7 +303,7 @@ mod test {
             println!("{:?}", args);
             assert_eq!(
                 sql,
-                "insert into mock_table2 (id,name,pc_link,h5_link,pc_banner_img,h5_banner_img,sort,status,remark,create_time,version,delete_flag,count) VALUES (?, DEFAULT, DEFAULT, DEFAULT,?,?, DEFAULT,?, DEFAULT,?,?, DEFAULT,?),(?, DEFAULT,?,?,?,?, DEFAULT,?, DEFAULT,?,?, DEFAULT,?)"
+                "insert into mock_table2 (id,name,pc_link,h5_link,pc_banner_img,h5_banner_img,sort,status,remark,create_time,version,delete_flag,count) VALUES (?, DEFAULT, DEFAULT, DEFAULT,?,?, DEFAULT,?, DEFAULT,?,?, DEFAULT,?),(?, DEFAULT,?, NULL,?,?, DEFAULT,?, DEFAULT,?,?, DEFAULT,?)"
             );
             // let (sql, args) = queue.pop().unwrap();
             // println!("{}", sql);
