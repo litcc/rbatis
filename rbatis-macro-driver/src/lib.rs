@@ -241,7 +241,7 @@ pub fn derive_ref_model(item: TokenStream) -> TokenStream {
                 let change_struct = quote::format_ident!("{}Ref", struct_name);
                 let struct_attrs = &input.attrs;
                 let ref_body = quote::quote! {
-                    #[derive(Debug, Clone, PartialEq , serde::Serialize, serde::Deserialize)]
+                    #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
                     #( #struct_attrs )*
                     pub struct #change_struct<'__ref_struct> {
                         #( #change_fields, )*
