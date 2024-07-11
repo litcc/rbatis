@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use std::time::Duration;
 use log::LevelFilter;
 use serde_json::json;
 use rbatis::{async_trait, crud, Error, RBatis};
@@ -162,7 +163,7 @@ impl Intercept for ReadWriteIntercept {
         }
     }
 
-    async fn after(&self, _task_id: i64, _rb: &dyn Executor, sql: &mut String, args: &mut Vec<Value>, result: ResultType<&mut Result<ExecResult, Error>, &mut Result<Vec<Value>, Error>>) -> Result<Option<bool>, Error> {
+    async fn after(&self, _task_id: i64, _rb: &dyn Executor, sql: &mut String, args: &mut Vec<Value>,_time: &Duration, result: ResultType<&mut Result<ExecResult, Error>, &mut Result<Vec<Value>, Error>>) -> Result<Option<bool>, Error> {
         if sql.trim().starts_with("select") {
             let conn = self.read.acquire().await?;
             let r = conn.query(&sql.clone(), args.clone()).await;

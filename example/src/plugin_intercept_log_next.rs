@@ -6,6 +6,7 @@ use rbatis::rbdc::db::ExecResult;
 use rbatis::{async_trait, crud, Error, RBatis};
 use rbs::Value;
 use std::sync::Arc;
+use std::time::Duration;
 
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct Activity {
