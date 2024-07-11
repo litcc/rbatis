@@ -358,7 +358,7 @@ mod test {
             };
             let r = MockTable::insert(&mut rb, &t).await.unwrap();
             let (sql, args) = queue.pop().unwrap();
-            println!("{}", sql);
+            println!("{} [{}]", sql,Value::from(args.clone()));
             assert_eq!(sql, "insert into mock_table (id,name,pc_link,h5_link,status,remark,create_time,version,delete_flag,count) VALUES (?,?,?,?,?,?,?,?,?,?)");
             assert_eq!(
                 args,
@@ -386,7 +386,7 @@ mod test {
             let queue = Arc::new(SyncVec::new());
             rb.set_intercepts(vec![Arc::new(MockIntercept::new(queue.clone()))]);
             rb.init(MockDriver {}, "test").unwrap();
-            let t = MockTable {
+            let mut t = MockTable {
                 id: Some("2".into()),
                 name: Some("2".into()),
                 pc_link: Some("2".into()),
@@ -395,18 +395,19 @@ mod test {
                 h5_banner_img: None,
                 sort: None,
                 status: Some(2),
-                remark: Some("2".into()),
+                remark: Some("remark".into()),
                 create_time: Some(DateTime::now()),
                 version: Some(1),
                 delete_flag: Some(1),
                 count: 0,
             };
             let mut t2 = t.clone();
+            t.remark = None;
             t2.id = "3".to_string().into();
             let ts = vec![t, t2];
             let r = MockTable::insert_batch(&mut rb, &ts, 10).await.unwrap();
             let (sql, args) = queue.pop().unwrap();
-            println!("{}", sql);
+            println!("{} [{}]", sql,Value::from(args.clone()));
             assert_eq!(sql, "insert into mock_table (id,name,pc_link,h5_link,status,remark,create_time,version,delete_flag,count) VALUES (?,?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?,?)");
             assert_eq!(
                 args,

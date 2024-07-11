@@ -12,7 +12,6 @@ use std::{
 
 use crate::value::map::ValueMap;
 
-pub mod ext;
 pub mod map;
 
 /// Represents any valid MessagePack value.
@@ -45,7 +44,7 @@ pub enum Value {
     Array(Vec<Self>),
     /// Map<Key,Value>.
     Map(ValueMap),
-    /// Extended implements Extension interface
+    /// Ext(Reflection Type Name,Value)
     Ext(&'static str, Box<Self>),
 }
 
@@ -111,6 +110,17 @@ impl Value {
     #[inline]
     pub fn is_i64(&self) -> bool {
         if let Value::I64(_) = *self {
+            true
+        } else {
+            false
+        }
+    }
+
+
+    /// Returns true if the `Value` is convertible to an i32. Returns false otherwise.
+    #[inline]
+    pub fn is_i32(&self) -> bool {
+        if let Value::I32(_) = *self {
             true
         } else {
             false
@@ -626,6 +636,7 @@ impl<'a> From<&'a [u8]> for Value {
         Value::Binary(v.into())
     }
 }
+
 impl From<Vec<Value>> for Value {
     #[inline]
     fn from(v: Vec<Value>) -> Self {
@@ -679,7 +690,7 @@ impl<V> FromIterator<V> for Value
 where
     V: Into<Value>,
 {
-    fn from_iter<I: IntoIterator<Item = V>>(iter: I) -> Self {
+    fn from_iter<I: IntoIterator<Item=V>>(iter: I) -> Self {
         let v: Vec<Value> = iter.into_iter().map(|v| v.into()).collect();
         Value::Array(v)
     }
@@ -792,6 +803,15 @@ impl<'a> IntoIterator for &'a Value {
                 v.into_iter()
             }
         }
+    }
+}
+
+impl<'a, 'b> IntoIterator for &'a &'b Value {
+    type Item = (Value, &'b Value);
+    type IntoIter = std::vec::IntoIter<(Value, &'b Value)>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        (*self).into_iter()
     }
 }
 
@@ -912,9 +932,8 @@ impl Hash for Value {
                     v.hash(state);
                 }
             }
-            Value::Ext(s, v) => {
+            Value::Ext(_, v) => {
                 state.write_u8(12);
-                s.hash(state);
                 v.hash(state);
             }
             #[cfg(feature = "option")]
@@ -938,6 +957,7 @@ mod test {
         println!("{}", v);
         assert_eq!("1", v.to_string());
     }
+
     #[test]
     fn test_iter() {
         let v = Value::Array(vec![Value::I32(1), Value::I32(2), Value::I32(3)]);

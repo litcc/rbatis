@@ -1,15 +1,11 @@
+use crate::value::map::ValueMap;
+use crate::{Error, Value};
+use serde::ser::{
+    self, SerializeMap, SerializeSeq, SerializeStruct, SerializeTuple, SerializeTupleStruct,
+};
+use serde::Serialize;
 use std::fmt::Display;
 
-use serde::{
-    ser::{
-        self, SerializeMap, SerializeSeq, SerializeStruct, SerializeTuple,
-        SerializeTupleStruct,
-    },
-    Serialize,
-};
-
-use super::Error;
-use crate::{value::map::ValueMap, Value};
 
 impl Serialize for Value {
     fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
@@ -181,10 +177,7 @@ impl ser::Serializer for Serializer {
     }
 
     #[inline]
-    fn serialize_unit_struct(
-        self,
-        _name: &'static str,
-    ) -> Result<Self::Ok, Self::Error> {
+    fn serialize_unit_struct(self, _name: &'static str) -> Result<Self::Ok, Self::Error> {
         Ok(Value::Array(Vec::new()))
     }
 
@@ -245,10 +238,7 @@ impl ser::Serializer for Serializer {
         }
     }
 
-    fn serialize_seq(
-        self,
-        len: Option<usize>,
-    ) -> Result<Self::SerializeSeq, Self::Error> {
+    fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
         let se = SerializeVec {
             vec: Vec::with_capacity(len.unwrap_or(0)),
         };
@@ -371,11 +361,6 @@ pub struct DefaultSerializeMap {
     next_key: Option<Value>,
 }
 
-#[doc(hidden)]
-pub struct SerializeStructVariant {
-    idx: u32,
-    vec: Vec<Value>,
-}
 
 impl SerializeSeq for SerializeVec {
     type Ok = Value;
@@ -536,11 +521,7 @@ impl SerializeStruct for SerializeVec {
     type Error = Error;
 
     #[inline]
-    fn serialize_field<T: ?Sized>(
-        &mut self,
-        _key: &'static str,
-        value: &T,
-    ) -> Result<(), Error>
+    fn serialize_field<T: ?Sized>(&mut self, _key: &'static str, value: &T) -> Result<(), Error>
     where
         T: Serialize,
     {
@@ -550,31 +531,5 @@ impl SerializeStruct for SerializeVec {
     #[inline]
     fn end(self) -> Result<Value, Error> {
         ser::SerializeSeq::end(self)
-    }
-}
-
-impl ser::SerializeStructVariant for SerializeStructVariant {
-    type Ok = Value;
-    type Error = Error;
-
-    #[inline]
-    fn serialize_field<T: ?Sized>(
-        &mut self,
-        _key: &'static str,
-        value: &T,
-    ) -> Result<(), Error>
-    where
-        T: Serialize,
-    {
-        self.vec.push(to_value(&value)?);
-        Ok(())
-    }
-
-    #[inline]
-    fn end(self) -> Result<Value, Error> {
-        Ok(Value::Array(vec![
-            Value::from(self.idx),
-            Value::Array(self.vec),
-        ]))
     }
 }

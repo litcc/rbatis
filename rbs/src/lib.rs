@@ -5,12 +5,13 @@ extern crate core;
 pub mod index;
 pub mod value;
 
-pub use value::{
-    ext::{from_value, from_value_ref, to_value, to_value_def},
-    Value,
-};
+mod value_serde;
+mod error;
 
-pub use crate::value::ext::Error;
+pub use crate::error::Error;
+pub use value_serde::{from_value, from_value_ref};
+pub use value_serde::{to_value, to_value_def};
+pub use value::Value;
 
 impl Value {
     pub fn into_ext(self, name: &'static str) -> Self {
