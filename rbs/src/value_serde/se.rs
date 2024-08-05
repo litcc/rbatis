@@ -1,12 +1,11 @@
 use crate::value::map::ValueMap;
-use crate::Value;
+use crate::{Error, Value};
 use serde::ser::{
     self, SerializeMap, SerializeSeq, SerializeStruct, SerializeTuple, SerializeTupleStruct,
 };
 use serde::Serialize;
 use std::fmt::Display;
 
-use super::Error;
 
 impl Serialize for Value {
     fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
@@ -353,11 +352,6 @@ pub struct DefaultSerializeMap {
     next_key: Option<Value>,
 }
 
-#[doc(hidden)]
-pub struct SerializeStructVariant {
-    idx: u32,
-    vec: Vec<Value>,
-}
 
 impl SerializeSeq for SerializeVec {
     type Ok = Value;
@@ -528,27 +522,5 @@ impl SerializeStruct for SerializeVec {
     #[inline]
     fn end(self) -> Result<Value, Error> {
         ser::SerializeSeq::end(self)
-    }
-}
-
-impl ser::SerializeStructVariant for SerializeStructVariant {
-    type Ok = Value;
-    type Error = Error;
-
-    #[inline]
-    fn serialize_field<T: ?Sized>(&mut self, _key: &'static str, value: &T) -> Result<(), Error>
-    where
-        T: Serialize,
-    {
-        self.vec.push(to_value(&value)?);
-        Ok(())
-    }
-
-    #[inline]
-    fn end(self) -> Result<Value, Error> {
-        Ok(Value::Array(vec![
-            Value::from(self.idx),
-            Value::Array(self.vec),
-        ]))
     }
 }

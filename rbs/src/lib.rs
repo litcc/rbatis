@@ -5,9 +5,12 @@ extern crate core;
 pub mod index;
 pub mod value;
 
-pub use crate::value::ext::Error;
-pub use value::ext::{from_value, from_value_ref};
-pub use value::ext::{to_value, to_value_def};
+mod value_serde;
+mod error;
+
+pub use crate::error::Error;
+pub use value_serde::{from_value, from_value_ref};
+pub use value_serde::{to_value, to_value_def};
 pub use value::Value;
 
 impl Value {

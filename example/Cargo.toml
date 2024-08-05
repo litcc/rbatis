@@ -95,6 +95,9 @@ path = "src/plugin_intercept_returing_id.rs"
 [[bin]]
 name = "table_util"
 path = "src/table_util.rs"
+[[bin]]
+name = "plugin_intercept_read_write_separation"
+path = "src/plugin_intercept_read_write_separation.rs"
 [dependencies]
 #test pool custom
 deadpool = "0.12.0"
@@ -105,7 +108,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 #log lib
 log = "0.4"
-fast_log = "1.6"
+fast_log = "1.7"
 #async runtime lib
 tokio = { version = "1", features = ["full"] }
 rbs = { version = "4.5", path = "../rbs" }
