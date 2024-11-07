@@ -46,7 +46,7 @@ macro_rules! impl_insert_ext {
                                 if v.is_null():
                                   ` DEFAULT,`
                                   continue:
-                                if v.is_some_null():
+                                if v.is_set_null():
                                   ` NULL,`
                                   continue:
                                 #{v},
@@ -107,7 +107,7 @@ macro_rules! impl_select_ext {
               trim 'and': for k,v in where_data:
                 if v.is_null():
                     continue:
-                if v.is_some_null():
+                if v.is_set_null():
                     `and ${k} is null `
                     continue:
                 `and ${k} = #{v} `"}$(,$table_name)?);
@@ -118,7 +118,7 @@ macro_rules! impl_select_ext {
                 trim 'and': for k,v in item:
                     if v.is_null():
                         continue:
-                    if v.is_some_null():
+                    if v.is_set_null():
                         `and ${k} is null `
                         continue:
                     `and ${k} = #{v} `
@@ -128,7 +128,7 @@ macro_rules! impl_select_ext {
                 trim 'and': for k,v in where_data:
                     if v.is_null():
                         continue:
-                    if v.is_some_null():
+                    if v.is_set_null():
                         `and ${k} is null `
                         continue:
                     `and ${k} = #{v} `
@@ -172,7 +172,7 @@ macro_rules! impl_update_ext {
                 trim 'and': for k,v in where_data:
                     if v.is_null():
                         continue:
-                    if v.is_some_null():
+                    if v.is_set_null():
                         `and ${k} is null `
                         continue:
                     `and ${k} = #{v} `"}$(,$table_name)?);
@@ -182,7 +182,7 @@ macro_rules! impl_update_ext {
                   trim 'and': for k,v in item:
                     if v.is_null():
                       continue:
-                    if v.is_some_null():
+                    if v.is_set_null():
                       `and ${k} is null `
                       continue:
                     `and ${k} = #{v} `
@@ -206,7 +206,7 @@ macro_rules! impl_update_ext {
                             for k,v in table:
                                 if v.is_null():
                                     continue:
-                                if v.is_some_null():
+                                if v.is_set_null():
                                     `${k} = null,`
                                     continue:
                                 `${k}=#{v},`
@@ -251,7 +251,7 @@ macro_rules! impl_delete_ext {
                     trim 'and': for k,v in where_data:
                         if v.is_null():
                             continue:
-                        if v.is_some_null():
+                        if v.is_set_null():
                             `and ${k} is null `
                             continue:
                         `and ${k} = #{v} `"}$(,$table_name)?);
@@ -262,7 +262,7 @@ macro_rules! impl_delete_ext {
                         trim 'and': for k,v in item:
                             if v.is_null():
                                 continue:
-                            if v.is_some_null():
+                            if v.is_set_null():
                                 `and ${k} is null `
                                 continue:
                             `and ${k} = #{v} `
