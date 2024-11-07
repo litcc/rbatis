@@ -1,0 +1,15 @@
+use crate::codegen::syntax_tree_pysql::Name;
+
+/// the string node
+/// for example1:
+/// "xxxxxxx" or  `xxxxxxx`
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct StringNode {
+    pub value: String,
+}
+
+impl Name for String {
+    fn name() -> &'static str {
+        "string"
+    }
+}

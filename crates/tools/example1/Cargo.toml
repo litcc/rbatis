@@ -1,0 +1,17 @@
+[package]
+name = "example1"
+version = "0.1.0"
+authors = ["zhuxiujia <zhuxiujia@qq.com>"]
+edition = "2021"
+publish = false
+
+
+[[bin]]
+name = "sqlite"
+path = "src/sqlite.rs"
+
+[dependencies]
+rbdc = { workspace = true }
+rbdc-sqlite = { workspace = true }
+rbdc-pool-fast = { workspace = true }
+tokio = { version = "1", features = ["sync", "fs", "net", "rt", "rt-multi-thread", "time", "io-util", "macros"] }

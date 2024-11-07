@@ -1,0 +1,35 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/libs/rbatis",
+    "crates/libs/rbs",
+    "crates/libs/rbatis-codegen",
+    "crates/libs/rbatis-macro-driver",
+    "crates/libs/rbdc",
+    "crates/libs/rbdc-pool-fast",
+    "crates/libs/rbdc-sqlite",
+    "crates/libs/rbdc-mysql",
+    "crates/libs/rbdc-pg",
+    "crates/libs/rbdc-mssql",
+    "crates/tools/example",
+    "crates/tools/example1",
+]
+
+[workspace.dependencies]
+rbatis = { path = "crates/libs/rbatis" }
+rbatis-codegen = { path = "crates/libs/rbatis-codegen", default-features = false }
+rbatis-macro-driver = { path = "crates/libs/rbatis-macro-driver" , default-features = false}
+rbdc = { path = "crates/libs/rbdc", default-features = false }
+rbdc-pool-fast = { path = "crates/libs/rbdc-pool-fast" }
+rbdc-sqlite = { path = "crates/libs/rbdc-sqlite" }
+rbdc-mysql = { path = "crates/libs/rbdc-mysql" }
+rbdc-pg = { path = "crates/libs/rbdc-pg" }
+rbdc-mssql = { path = "crates/libs/rbdc-mssql" }
+rbs = { path = "crates/libs/rbs" }
+
+
+
+[profile.release]
+lto = true
+opt-level = 3
+codegen-units = 1

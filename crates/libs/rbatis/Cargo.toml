@@ -1,0 +1,55 @@
+[package]
+name = "rbatis"
+version = "4.5.34"
+description = "The Rust SQL Toolkit and ORM Library. An async, pure Rust SQL crate featuring compile-time Dynamic SQL"
+readme = "Readme.md"
+authors = ["ce <zhuxiujia@qq.com>"]
+edition = "2021"
+license = "Apache-2.0"
+categories = ["database"]
+keywords = ["database", "orm", "mysql", "postgres", "sqlite"]
+documentation = "https://docs.rs/rbatis/latest"
+repository = "https://github.com/rbatis/rbatis"
+homepage = "https://rbatis.github.io/rbatis.io"
+
+[features]
+default = ["rbatis-macro-driver/default"]
+#debug_mode feature will show decode json data
+debug_mode = ["rbatis-macro-driver/debug_mode", "rbs/debug_mode"]
+#support upper case sql keyword
+upper_case_sql_keyword = []
+
+[dependencies]
+rbatis-codegen = { workspace = true }
+rbatis-macro-driver = { workspace = true, default-features = false, optional = true }
+rbs = { workspace = true }
+rbdc = { workspace = true, default-features = false }
+rbdc-pool-fast = { workspace = true }
+
+serde = "1"
+#log
+log = "0.4"
+futures-core = { version = "0.3" }
+futures = { version = "0.3" }
+#object_id
+hex = "0.4"
+rand = "0.8"
+
+dark-std = "0.2"
+async-trait = "0.1.68"
+
+parking_lot = "0.12.3"
+
+paste = { version = "1" }
+
+[dev-dependencies]
+rbatis = { workspace = true, features = ["debug_mode"] }
+rbdc-mysql = { workspace = true }
+rbdc-pg = { workspace = true }
+rbdc-sqlite = { workspace = true }
+rbdc-mssql = { workspace = true }
+
+serde_json = "1"
+tokio = { version = "1", features = ["sync", "fs", "net", "rt", "rt-multi-thread", "time", "io-util", "macros"] }
+
+
