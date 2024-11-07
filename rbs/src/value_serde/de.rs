@@ -31,7 +31,7 @@ impl<'de> Deserialize<'de> for Value {
     {
         struct ValueVisitor;
 
-        impl<'de> serde::de::Visitor<'de> for ValueVisitor {
+        impl<'de> Visitor<'de> for ValueVisitor {
             type Value = Value;
 
             #[cold]
@@ -44,7 +44,11 @@ impl<'de> Deserialize<'de> for Value {
             where
                 D: serde::de::Deserializer<'de>,
             {
-                Deserialize::deserialize(de)
+                let data = Deserialize::deserialize(de)?;
+                if data == Value::Null {
+                    return Ok(Value::SetNull);
+                }
+                Ok(data)
             }
 
             #[inline]
@@ -184,6 +188,7 @@ impl<'de> Deserializer<'de> for &Value {
     {
         match self {
             Value::Null => visitor.visit_none(),
+            Value::SetNull => visitor.visit_none(),
             Value::Bool(v) => visitor.visit_bool(*v),
             Value::I32(v) => visitor.visit_i32(*v),
             Value::I64(v) => visitor.visit_i64(*v),

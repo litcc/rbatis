@@ -13,6 +13,7 @@ impl Serialize for Value {
     {
         match *self {
             Value::Null => s.serialize_unit(),
+            Value::SetNull => s.serialize_unit(),
             Value::Bool(v) => s.serialize_bool(v),
             Value::I32(v) => s.serialize_i32(v),
             Value::I64(v) => s.serialize_i64(v),

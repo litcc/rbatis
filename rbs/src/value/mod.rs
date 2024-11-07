@@ -16,6 +16,8 @@ pub mod map;
 pub enum Value {
     /// null
     Null,
+    /// set null
+    SetNull,
     /// true or false
     Bool(bool),
     /// Int32
@@ -60,6 +62,26 @@ impl Value {
             false
         }
     }
+
+    /// Returns true if the `Value` is a SetNull. Returns false otherwise.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rbs::Value;
+    ///
+    /// assert!(Value::SetNull.is_set_null());
+    /// ```
+    #[inline]
+    pub fn is_set_null(&self) -> bool {
+        if let Value::SetNull = *self {
+            true
+        } else {
+            false
+        }
+    }
+
+
 
     /// Returns true if the `Value` is a Bool. Returns false otherwise.
     ///
@@ -351,6 +373,7 @@ impl Value {
             Value::Binary(v) => Some(v),
             Value::Ext(_, ext) => ext.into_bytes(),
             Value::Null => Some(vec![]),
+            Value::SetNull => Some(vec![]),
             Value::Bool(v) => Some(v.to_string().into_bytes()),
             Value::I32(v) => Some(v.to_string().into_bytes()),
             Value::I64(v) => Some(v.to_string().into_bytes()),
@@ -632,6 +655,7 @@ impl Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         match self {
             Value::Null => f.write_str("null"),
+            Value::SetNull => f.write_str("null"),
             Value::Bool(val) => Display::fmt(&val, f),
             Value::I32(ref val) => Display::fmt(&val, f),
             Value::I64(ref val) => Display::fmt(&val, f),
@@ -804,6 +828,9 @@ impl Hash for Value {
         match self {
             Value::Null => {
                 state.write_u8(0);
+            }
+            Value::SetNull => {
+                state.write_u8(13);
             }
             Value::Bool(b) => {
                 state.write_u8(1);
