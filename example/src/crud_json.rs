@@ -1,11 +1,9 @@
-#[macro_use]
-extern crate rbatis;
-
 use log::LevelFilter;
 use rbatis::dark_std::defer;
 use rbatis::table_sync::SqliteTableMapper;
 use rbatis::{table_sync, RBatis};
 use rbs::to_value;
+use rbatis::crud;
 
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct Account {
@@ -40,11 +38,7 @@ pub async fn main() {
     // rb.init(rbdc_mysql::driver::MysqlDriver {}, "mysql://root:123456@localhost:3306/test").unwrap();
     // rb.init(rbdc_pg::driver::PgDriver {}, "postgres://postgres:123456@localhost:5432/postgres").unwrap();
     // rb.init(rbdc_mssql::driver::MssqlDriver {}, "mssql://SA:TestPass!123456@localhost:1433/test").unwrap();
-    rb.init(
-        rbdc_sqlite::driver::SqliteDriver {},
-        "sqlite://target/sqlite.db",
-    )
-    .unwrap();
+    rb.init(rbdc_sqlite::driver::SqliteDriver {}, "sqlite://target/sqlite.db").unwrap();
     create_table(&rb).await;
     let user = User {
         id: Some(1),
@@ -66,9 +60,9 @@ pub async fn main() {
 }
 
 async fn create_table(rb: &RBatis) {
-    fast_log::LOGGER.set_level(LevelFilter::Off);
+    fast_log::logger().set_level(LevelFilter::Off);
     defer!(|| {
-        fast_log::LOGGER.set_level(LevelFilter::Info);
+        fast_log::logger().set_level(LevelFilter::Info);
     });
     let table = to_value! {
         "id":"INTEGER PRIMARY KEY AUTOINCREMENT",

@@ -116,12 +116,12 @@ impl Intercept for LogInterceptor {
         //send sql/args
         log!(
             level,
-            "[rbatis] [{}] => `{}` {}",
+            "[rb] [{}] => `{}` {}",
             task_id,
             &sql,
             RbsValueDisplay::new(args)
         );
-        return Ok(Some(true));
+        Ok(Some(true))
     }
 
     async fn after(
@@ -140,10 +140,10 @@ impl Intercept for LogInterceptor {
         match result {
             ResultType::Exec(result) => match result {
                 Ok(result) => {
-                    log!(level, "[rbatis] [{}] <= rows_affected={}", task_id, result);
+                    log!(level, "[rb] [{}] <= rows_affected={}", task_id, result);
                 }
                 Err(e) => {
-                    log!(level, "[rbatis] [{}] <= {}", task_id, e);
+                    log!(level, "[rb] [{}] <= {}", task_id, e);
                 }
             },
             ResultType::Query(result) => match result {
@@ -151,20 +151,20 @@ impl Intercept for LogInterceptor {
                     if is_debug_mode() {
                         log!(
                             level,
-                            "[rbatis] [{}] <= len={},rows={}",
+                            "[rb] [{}] <= len={},rows={}",
                             task_id,
                             result.len(),
                             RbsValueDisplay { inner: result }
                         );
                     } else {
-                        log!(level, "[rbatis] [{}] <= len={}", task_id, result.len());
+                        log!(level, "[rb] [{}] <= len={}", task_id, result.len());
                     }
                 }
                 Err(e) => {
-                    log!(level, "[rbatis] [{}] <= {}", task_id, e);
+                    log!(level, "[rb] [{}] <= {}", task_id, e);
                 }
             },
         }
-        return Ok(Some(true));
+        Ok(Some(true))
     }
 }

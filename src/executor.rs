@@ -37,8 +37,18 @@ impl RBatisRef for RBatis {
 
 pub struct RBatisConnExecutor {
     pub id: i64,
-    pub conn: Mutex<Box<dyn Connection>>,
     pub rb: RBatis,
+    pub conn: Mutex<Box<dyn Connection>>,
+}
+
+impl RBatisConnExecutor {
+    pub fn new(id: i64, conn: Box<dyn Connection>, rb: RBatis) -> Self {
+        Self {
+            id: id,
+            conn: Mutex::new(conn),
+            rb: rb,
+        }
+    }
 }
 
 impl Debug for RBatisConnExecutor {
@@ -178,7 +188,7 @@ impl RBatisConnExecutor {
         Box::pin(async move {
             let mut conn = self.conn.into_inner();
             conn.begin().await?;
-            Ok(RBatisTxExecutor::new(self.rb, conn))
+            Ok(RBatisTxExecutor::new(new_snowflake_id(), self.rb, conn))
         })
     }
 
@@ -211,9 +221,9 @@ impl Debug for RBatisTxExecutor {
 }
 
 impl<'a> RBatisTxExecutor {
-    pub fn new(rb: RBatis, conn: Box<dyn Connection>) -> Self {
+    pub fn new(tx_id: i64, rb: RBatis, conn: Box<dyn Connection>) -> Self {
         RBatisTxExecutor {
-            tx_id: 0,
+            tx_id: tx_id,
             conn: Mutex::new(conn),
             rb: rb,
             done: false,
@@ -389,7 +399,7 @@ impl RBatisTxExecutorGuard {
         let v = self
             .tx
             .take()
-            .ok_or_else(|| Error::from("[rbatis] tx is committed"))?
+            .ok_or_else(|| Error::from("[rb] tx is committed"))?
             .begin()
             .await?;
         self.tx = Some(v);
@@ -400,7 +410,7 @@ impl RBatisTxExecutorGuard {
         let tx = self
             .tx
             .as_mut()
-            .ok_or_else(|| Error::from("[rbatis] tx is committed"))?;
+            .ok_or_else(|| Error::from("[rb] tx is committed"))?;
         tx.commit().await?;
         return Ok(());
     }
@@ -409,7 +419,7 @@ impl RBatisTxExecutorGuard {
         let tx = self
             .tx
             .as_mut()
-            .ok_or_else(|| Error::from("[rbatis] tx is committed"))?;
+            .ok_or_else(|| Error::from("[rb] tx is committed"))?;
         tx.rollback().await?;
         return Ok(());
     }
@@ -428,7 +438,7 @@ impl RBatisTxExecutorGuard {
         let tx = self
             .tx
             .as_mut()
-            .ok_or_else(|| Error::from("[rbatis] tx is committed"))?;
+            .ok_or_else(|| Error::from("[rb] tx is committed"))?;
         tx.query_decode(sql, args).await
     }
 }
@@ -436,21 +446,26 @@ impl RBatisTxExecutorGuard {
 impl RBatisTxExecutor {
     /// defer and use future method
     /// for example:
-    ///         tx.defer_async(|mut tx| async {
+    /// ```rust
+    ///  use rbatis::executor::RBatisTxExecutor;
+    ///  use rbatis::{Error, RBatis};
+    ///
+    ///  async fn test_tx(tx:RBatisTxExecutor) -> Result<(),Error>{
+    ///         tx.defer_async(|mut tx| async move {
     ///             tx.rollback().await;
     ///         });
-    ///
+    ///     Ok(())
+    /// }
+    /// ```
     pub fn defer_async<F>(self, callback: fn(s: RBatisTxExecutor) -> F) -> RBatisTxExecutorGuard
     where
-        F: Future<Output = ()> + Send + 'static,
+        F: Future<Output=()> + Send + 'static,
     {
         RBatisTxExecutorGuard {
             tx: Some(self),
             callback: Box::new(move |arg| {
                 let future = callback(arg);
-                rbdc::rt::spawn(async move {
-                    future.await;
-                });
+                rbdc::rt::spawn(future);
             }),
         }
     }

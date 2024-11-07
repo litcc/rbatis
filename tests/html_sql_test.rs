@@ -66,7 +66,7 @@ mod test {
 
         fn connect_opt<'a>(
             &'a self,
-            _opt: &'a dyn ConnectOptions,
+            _option: &'a dyn ConnectOptions,
         ) -> BoxFuture<Result<Box<dyn Connection>, Error>> {
             Box::pin(async { Ok(Box::new(MockConnection {}) as Box<dyn Connection>) })
         }
@@ -546,6 +546,27 @@ mod test {
             let (sql, args) = queue.pop().unwrap();
             println!("sql={},args={}", sql, Value::Array(args.clone()));
             assert_eq!(sql, "(1,1),(2,2)");
+            assert_eq!(args, vec![]);
+        };
+        block_on(f);
+    }
+
+    #[test]
+    fn test_for_item() {
+        let f = async move {
+            let mut rb = RBatis::new();
+            rb.init(MockDriver {}, "test").unwrap();
+            let queue = Arc::new(SyncVec::new());
+            rb.set_intercepts(vec![Arc::new(MockIntercept::new(queue.clone()))]);
+            let v = to_value!{
+                "a":"a",
+                "b":"b"
+            };
+            htmlsql!(test_for_item(rb: &RBatis,ids:Vec<Value>)  -> Result<Value, Error> => "tests/test.html");
+            let r = test_for_item(&rb, vec![v]).await.unwrap();
+            let (sql, args) = queue.pop().unwrap();
+            println!("sql={},args={}", sql, Value::Array(args.clone()));
+            assert_eq!(sql, "(a,b)");
             assert_eq!(args, vec![]);
         };
         block_on(f);

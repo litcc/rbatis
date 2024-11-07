@@ -76,7 +76,7 @@ const PRIMARY_KEY: &'static str = " PRIMARY KEY ";
 /// ```
 pub fn sync<'a>(
     executor: &'a dyn Executor,
-    mapper: &'a dyn ColumMapper,
+    mapper: &'a dyn ColumnMapper,
     table: Value,
     table_name: &str,
 ) -> BoxFuture<'a, Result<(), Error>> {
@@ -84,15 +84,19 @@ pub fn sync<'a>(
     Box::pin(async move {
         match table {
             Value::Map(m) => {
+                let db_driver_type = executor.driver_type()?;
+                if db_driver_type != mapper.driver_type() {
+                    return Err(Error::from(format!("table sync mapper driver='{}',db driver='{}'", mapper.driver_type(), db_driver_type)));
+                }
                 let mut sql_create = format!("CREATE TABLE {} ", name);
                 let mut sql_column = format!("");
                 for (k, v) in &m {
                     let k = k.as_str().unwrap_or_default();
-                    let column_type = mapper.get_column(k, &v);
+                    let column_type_value = mapper.get_column_type(k, &v);
                     sql_column.push_str(k);
                     sql_column.push_str(" ");
-                    sql_column.push_str(column_type.as_str());
-                    if column_type.is_empty() && k.eq("id")
+                    sql_column.push_str(column_type_value.as_str());
+                    if column_type_value.is_empty() && k.eq("id")
                         || v.as_str().unwrap_or_default() == "id"
                     {
                         sql_column.push_str(&PRIMARY_KEY);
@@ -115,13 +119,14 @@ pub fn sync<'a>(
                                 if k.eq("id") || v.as_str().unwrap_or_default() == "id" {
                                     id_key = &PRIMARY_KEY;
                                 }
+                                let column_type = mapper.get_column_type(k, &v);
                                 match executor
                                     .exec(
                                         &format!(
                                             "alter table {} add {} {} {};",
                                             name,
                                             k,
-                                            mapper.get_column(k, &v),
+                                            column_type,
                                             id_key
                                         ),
                                         vec![],
@@ -147,6 +152,10 @@ pub fn sync<'a>(
     })
 }
 
-pub trait ColumMapper: Sync + Send {
-    fn get_column(&self, column: &str, v: &Value) -> String;
+/// Mapper Column and ColumnType
+pub trait ColumnMapper: Sync + Send {
+    fn driver_type(&self) -> String;
+
+    /// for example input `"id":i32` -> id:INT
+    fn get_column_type(&self, field: &str, v: &Value) -> String;
 }

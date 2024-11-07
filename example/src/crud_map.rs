@@ -1,12 +1,9 @@
-#[macro_use]
-extern crate rbatis;
-
 use log::LevelFilter;
 use rbatis::dark_std::defer;
 use rbatis::rbatis_codegen::IntoSql;
 use rbatis::rbdc::datetime::DateTime;
 use rbatis::table_sync::SqliteTableMapper;
-use rbatis::RBatis;
+use rbatis::{impl_select, RBatis};
 use rbs::value::map::ValueMap;
 use rbs::Value;
 use serde_json::json;
@@ -46,11 +43,7 @@ pub async fn main() {
     // rb.init(rbdc_mysql::driver::MysqlDriver {}, "mysql://root:123456@localhost:3306/test").unwrap();
     // rb.init(rbdc_pg::driver::PgDriver {}, "postgres://postgres:123456@localhost:5432/postgres").unwrap();
     // rb.init(rbdc_mssql::driver::MssqlDriver {}, "mssql://SA:TestPass!123456@localhost:1433/test").unwrap();
-    rb.init(
-        rbdc_sqlite::driver::SqliteDriver {},
-        "sqlite://target/sqlite.db",
-    )
-    .unwrap();
+    rb.init(rbdc_sqlite::driver::SqliteDriver {}, "sqlite://target/sqlite.db").unwrap();
     // table sync done
     sync_table(&rb).await;
 
@@ -62,7 +55,7 @@ pub async fn main() {
 }
 
 async fn sync_table(rb: &RBatis) {
-    fast_log::LOGGER.set_level(LevelFilter::Off);
+    fast_log::logger().set_level(LevelFilter::Off);
     _ = RBatis::sync(
         &rb.acquire().await.unwrap(),
         &SqliteTableMapper {},
@@ -82,6 +75,6 @@ async fn sync_table(rb: &RBatis) {
         },
         "activity",
     )
-    .await;
-    fast_log::LOGGER.set_level(LevelFilter::Debug);
+        .await;
+    fast_log::logger().set_level(LevelFilter::Debug);
 }

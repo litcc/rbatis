@@ -1,8 +1,10 @@
+use std::env::current_dir;
 use proc_macro2::{Ident, Span};
 use quote::quote;
 use quote::ToTokens;
 use std::fs::File;
 use std::io::Read;
+use std::path::PathBuf;
 use syn::{FnArg, ItemFn};
 
 use crate::macros::py_sql_impl;
@@ -35,7 +37,7 @@ pub(crate) fn impl_macro_html_sql(target_fn: &ItemFn, args: &ParseArgs) -> Token
     let mut sql_ident = quote!();
     if args.sqls.len() >= 1 {
         if rbatis_name.is_empty() {
-            panic!("[rbatis] you should add rbatis ref param  rb:&RBatis  or rb: &mut Executor  on '{}()'!", target_fn.sig.ident);
+            panic!("[rb] you should add rbatis ref param   `rb:&dyn Executor`  on '{}()'!", target_fn.sig.ident);
         }
         let mut s = "".to_string();
         for v in &args.sqls {
@@ -43,7 +45,7 @@ pub(crate) fn impl_macro_html_sql(target_fn: &ItemFn, args: &ParseArgs) -> Token
         }
         sql_ident = quote!(#s);
     } else {
-        panic!("[rbatis] Incorrect macro parameter length!");
+        panic!("[rb] Incorrect macro parameter length!");
     }
     // sql_ident is html or file?
     let mut file_name = sql_ident.to_string().trim().to_string();
@@ -54,6 +56,13 @@ pub(crate) fn impl_macro_html_sql(target_fn: &ItemFn, args: &ParseArgs) -> Token
             .to_string();
     }
     if file_name.ends_with(".html") {
+        //relative path append realpath
+        let file_path = PathBuf::from(file_name.clone());
+        if file_path.is_relative() {
+            let mut current = current_dir().unwrap_or_default();
+            current.push(file_name.clone());
+            file_name = current.to_str().unwrap_or_default().to_string();
+        }
         let mut html_data = String::new();
         let mut f = File::open(file_name.as_str())
             .expect(&format!("File Name = '{}' does not exist", file_name));
@@ -79,7 +88,7 @@ pub(crate) fn impl_macro_html_sql(target_fn: &ItemFn, args: &ParseArgs) -> Token
             &rbatis_ident.to_string().trim_start_matches("mut "),
             Span::call_site(),
         )
-        .to_token_stream();
+            .to_token_stream();
     }
 
     //append all args
@@ -147,5 +156,5 @@ pub(crate) fn impl_macro_html_sql(target_fn: &ItemFn, args: &ParseArgs) -> Token
          #call_method
        }
     }
-    .into();
+        .into();
 }

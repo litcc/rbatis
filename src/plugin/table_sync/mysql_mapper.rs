@@ -1,4 +1,4 @@
-use crate::table_sync::ColumMapper;
+use crate::table_sync::ColumnMapper;
 use rbs::Value;
 
 pub struct MysqlTableMapper {}
@@ -9,8 +9,11 @@ impl Default for MysqlTableMapper {
     }
 }
 
-impl ColumMapper for MysqlTableMapper {
-    fn get_column(&self, column: &str, v: &Value) -> String {
+impl ColumnMapper for MysqlTableMapper {
+    fn driver_type(&self) -> String {
+        "mysql".to_string()
+    }
+    fn get_column_type(&self, _column: &str, v: &Value) -> String {
         match v {
             Value::Null => "NULL".to_string(),
             Value::Bool(_) => "TINYINT".to_string(),
@@ -22,14 +25,12 @@ impl ColumMapper for MysqlTableMapper {
             Value::F64(_) => "DOUBLE".to_string(),
             Value::String(v) => {
                 if v != "" {
+                    if v.eq("id") {
+                        return "TEXT".to_string();
+                    }
                     v.to_string()
                 } else {
-                    let column = column.to_lowercase();
-                    if column.starts_with("id") || column.ends_with("id") {
-                        "VARCHAR(50)".to_string()
-                    } else {
-                        "TEXT".to_string()
-                    }
+                    "TEXT".to_string()
                 }
             }
             Value::Binary(_) => "BLOB".to_string(),

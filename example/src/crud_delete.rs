@@ -1,12 +1,10 @@
-#[macro_use]
-extern crate rbatis;
-
 use log::LevelFilter;
 use rbatis::dark_std::defer;
 use rbatis::rbdc::datetime::DateTime;
 use rbatis::table_sync::SqliteTableMapper;
 use rbatis::RBatis;
 use serde_json::json;
+use rbatis::impl_delete;
 
 /// table
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -24,8 +22,8 @@ pub struct Activity {
     pub version: Option<i64>,
     pub delete_flag: Option<i32>,
 }
-crud!(Activity {});
-impl_delete!(Activity {delete_by_name(name:&str) => "`where name= '2'`"});
+
+impl_delete!(Activity {delete_by_name(name:&str) => "`where name= #{name}`"});
 
 #[tokio::main]
 pub async fn main() {
@@ -43,23 +41,16 @@ pub async fn main() {
     // rb.init(rbdc_mysql::driver::MysqlDriver {}, "mysql://root:123456@localhost:3306/test").unwrap();
     // rb.init(rbdc_pg::driver::PgDriver {}, "postgres://postgres:123456@localhost:5432/postgres").unwrap();
     // rb.init(rbdc_mssql::driver::MssqlDriver {}, "mssql://SA:TestPass!123456@localhost:1433/test").unwrap();
-    rb.init(
-        rbdc_sqlite::driver::SqliteDriver {},
-        "sqlite://target/sqlite.db",
-    )
-    .unwrap();
+    rb.init(rbdc_sqlite::driver::SqliteDriver {}, "sqlite://target/sqlite.db").unwrap();
     // table sync done
     sync_table(&rb).await;
-
-    let data = Activity::delete_by_column(&rb, "id", "2").await;
-    println!("delete_by_column = {}", json!(data));
 
     let data = Activity::delete_by_name(&rb, "2").await;
     println!("delete_by_column = {}", json!(data));
 }
 
 async fn sync_table(rb: &RBatis) {
-    fast_log::LOGGER.set_level(LevelFilter::Off);
+    fast_log::logger().set_level(LevelFilter::Off);
     _ = RBatis::sync(
         &rb.acquire().await.unwrap(),
         &SqliteTableMapper {},
@@ -79,6 +70,6 @@ async fn sync_table(rb: &RBatis) {
         },
         "activity",
     )
-    .await;
-    fast_log::LOGGER.set_level(LevelFilter::Debug);
+        .await;
+    fast_log::logger().set_level(LevelFilter::Debug);
 }

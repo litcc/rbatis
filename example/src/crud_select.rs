@@ -1,12 +1,10 @@
-#[macro_use]
-extern crate rbatis;
-
 use log::LevelFilter;
 use rbatis::dark_std::defer;
 use rbatis::rbdc::datetime::DateTime;
 use rbatis::table_sync::SqliteTableMapper;
 use rbatis::RBatis;
 use serde_json::json;
+use rbatis::impl_select;
 
 /// table
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -24,9 +22,8 @@ pub struct Activity {
     pub version: Option<i64>,
     pub delete_flag: Option<i32>,
 }
-crud!(Activity {});
-impl_select!(Activity{select_all_by_id(id:&str,name:&str) => "`where id = #{id} and name = #{name}`"});
-impl_select!(Activity{select_by_id(id:&str) -> Option => "`where id = #{id} limit 1`"});
+
+impl_select!(Activity{select_id_name(id:&str,name:&str) => "`where id = #{id} and name = #{name}`"});
 
 #[tokio::main]
 pub async fn main() {
@@ -44,31 +41,16 @@ pub async fn main() {
     // rb.init(rbdc_mysql::driver::MysqlDriver {}, "mysql://root:123456@localhost:3306/test").unwrap();
     // rb.init(rbdc_pg::driver::PgDriver {}, "postgres://postgres:123456@localhost:5432/postgres").unwrap();
     // rb.init(rbdc_mssql::driver::MssqlDriver {}, "mssql://SA:TestPass!123456@localhost:1433/test").unwrap();
-    rb.init(
-        rbdc_sqlite::driver::SqliteDriver {},
-        "sqlite://target/sqlite.db",
-    )
-        .unwrap();
+    rb.init(rbdc_sqlite::driver::SqliteDriver {}, "sqlite://target/sqlite.db").unwrap();
     // table sync done
     sync_table(&rb).await;
 
-    let data = Activity::select_all_by_id(&rb, "1", "1").await;
-    println!("select_all_by_id = {}", json!(data));
-
-    let data = Activity::select_by_id(&rb, "1").await;
-    println!("select_by_id = {}", json!(data));
-
-    let data = Activity::select_by_column(&rb, "id", "1").await;
-    println!("select_by_id = {}", json!(data));
-    if let Ok(v) = data {
-        //into HashMap
-        let map = table_field_map!(v,id);
-        println!("select_by_id hash_map= {}", json!(map));
-    }
+    let data = Activity::select_id_name(&rb, "1", "1").await;
+    println!("select_id_name = {}", json!(data));
 }
 
 async fn sync_table(rb: &RBatis) {
-    fast_log::LOGGER.set_level(LevelFilter::Off);
+    fast_log::logger().set_level(LevelFilter::Off);
     _ = RBatis::sync(
         &rb.acquire().await.unwrap(),
         &SqliteTableMapper {},
@@ -89,5 +71,5 @@ async fn sync_table(rb: &RBatis) {
         "activity",
     )
         .await;
-    fast_log::LOGGER.set_level(LevelFilter::Debug);
+    fast_log::logger().set_level(LevelFilter::Debug);
 }

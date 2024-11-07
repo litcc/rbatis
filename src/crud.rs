@@ -1,11 +1,12 @@
 ///PySql: gen select*,update*,insert*,delete* ... methods
 ///```rust
-/// use rbatis::{crud, Error, RBatis};
+/// use rbatis::{Error, RBatis};
 ///
 /// #[derive(serde::Serialize, serde::Deserialize)]
-/// pub struct MockTable{ pub id: Option<String> }
-/// //crud!(MockTable{},"mock_table");
-/// crud!(MockTable{});
+/// pub struct MockTable{
+///    pub id: Option<String>
+/// }
+/// rbatis::crud!(MockTable{}); //or crud!(MockTable{},"mock_table");
 ///
 /// //use
 /// async fn test_use(rb:&RBatis) -> Result<(),Error>{
@@ -48,7 +49,9 @@ macro_rules! crud {
 ///```rust
 /// use rbatis::{Error, RBatis};
 /// #[derive(serde::Serialize, serde::Deserialize)]
-/// pub struct MockTable{ pub id: Option<String> }
+/// pub struct MockTable{
+///   pub id: Option<String>
+/// }
 /// rbatis::impl_insert!(MockTable{});
 ///
 /// //use
@@ -72,24 +75,50 @@ macro_rules! impl_insert {
                 tables: &[$table],
                 batch_size: u64,
             ) -> std::result::Result<$crate::rbdc::db::ExecResult, $crate::rbdc::Error> {
+                pub trait ColumnSet{
+                    /// take `vec![Table{"id":1}]` columns
+                    fn column_sets(&self)->rbs::Value;
+                }
+                impl ColumnSet for rbs::Value {
+                    fn column_sets(&self) -> rbs::Value {
+                        let len = self.len();
+                        let mut column_set = std::collections::HashSet::with_capacity(len);
+                        for item in self.as_array().unwrap() {
+                            for (k,v) in &item {
+                                if (*v) != rbs::Value::Null{
+                                    column_set.insert(k);
+                                }
+                            }
+                        }
+                        let mut columns = rbs::Value::Array(vec![]);
+                        if len > 0 {
+                            let table = &self[0];
+                            let mut column_datas = Vec::with_capacity(table.len());
+                            for (column,_) in table {
+                                if column_set.contains(&column){
+                                    column_datas.push(column);
+                                }
+                            }
+                            columns = rbs::Value::from(column_datas);
+                        }
+                        columns
+                    }
+                }
                 #[$crate::py_sql(
                     "`insert into ${table_name} `
                     trim ',':
+                     bind columns = tables.column_sets():
                      for idx,table in tables:
                       if idx == 0:
                          `(`
                          trim ',':
-                           for k,v in table:
-                              if v == null:
-                                 continue:
-                              ${k},
+                           for _,v in columns:
+                              ${v},
                          `) VALUES `
                       (
                       trim ',':
-                       for k,v in tables[0]:
-                         if v == null:
-                            continue:
-                         #{table[k]},
+                       for _,v in columns:
+                         #{table[v]},
                       ),
                     "
                 )]
@@ -116,8 +145,7 @@ macro_rules! impl_insert {
                     rows_affected: 0,
                     last_insert_id: rbs::Value::Null,
                 };
-                let ranges =
-                    $crate::plugin::Page::<()>::make_ranges(tables.len() as u64, batch_size);
+                let ranges = $crate::plugin::Page::<()>::make_ranges(tables.len() as u64, batch_size);
                 for (offset, limit) in ranges {
                     let exec_result = insert_batch(
                         executor,
@@ -147,7 +175,9 @@ macro_rules! impl_insert {
 ///```rust
 /// use rbatis::{Error, RBatis};
 /// #[derive(serde::Serialize, serde::Deserialize)]
-/// pub struct MockTable{ pub id: Option<String> }
+/// pub struct MockTable{
+///   pub id: Option<String>
+/// }
 /// /// default
 ///rbatis::impl_select!(MockTable{});
 ///rbatis::impl_select!(MockTable{select_all_by_id(id:&str,name:&str) => "`where id = #{id} and name = #{name}`"});
@@ -206,7 +236,9 @@ macro_rules! impl_select {
 /// ```rust
 /// use rbatis::{Error, RBatis};
 /// #[derive(serde::Serialize, serde::Deserialize)]
-/// pub struct MockTable{ pub id: Option<String> }
+/// pub struct MockTable{
+///   pub id: Option<String>
+/// }
 /// rbatis::impl_update!(MockTable{});
 /// //use
 /// async fn test_use(rb:&RBatis) -> Result<(),Error>{
@@ -482,7 +514,7 @@ macro_rules! impl_select_page {
                                                       $(&$param_key,)*).await?;
                     total = $crate::decode(total_value).unwrap_or(0);
                 }
-                let mut page = $crate::plugin::Page::<$table>::new_total(page_request.page_no(), page_request.page_size(), total);
+                let mut page = $crate::plugin::Page::<$table>::new(page_request.page_no(), page_request.page_size(), total,vec![]);
                 let records_value = Inner::$fn_name(executor,
                                                     false,
                                                     &table_column,
@@ -554,7 +586,7 @@ macro_rules! htmlsql_select_page {
                let total_value = Inner::$fn_name(executor, true, page_request.offset(), page_request.page_size(), $(&$param_key,)*).await?;
                total = $crate::decode(total_value).unwrap_or(0);
             }
-            let mut page = $crate::plugin::Page::<$table>::new_total(page_request.page_no(), page_request.page_size(), total);
+            let mut page = $crate::plugin::Page::<$table>::new(page_request.page_no(), page_request.page_size(), total,vec![]);
             let records_value = Inner::$fn_name(executor, false, page_request.offset(), page_request.page_size(), $(&$param_key,)*).await?;
             page.records = rbs::from_value(records_value)?;
             Ok(page)
@@ -614,7 +646,7 @@ macro_rules! pysql_select_page {
                let total_value = Inner::$fn_name(executor, true, page_request.offset(), page_request.page_size(), $(&$param_key,)*).await?;
                total = $crate::decode(total_value).unwrap_or(0);
             }
-            let mut page = $crate::plugin::Page::<$table>::new_total(page_request.page_no(), page_request.page_size(), total);
+            let mut page = $crate::plugin::Page::<$table>::new(page_request.page_no(), page_request.page_size(), total,vec![]);
             let records_value = Inner::$fn_name(executor, false, page_request.offset(), page_request.page_size(), $(&$param_key,)*).await?;
             page.records = rbs::from_value(records_value)?;
             Ok(page)

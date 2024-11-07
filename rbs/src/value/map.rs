@@ -115,7 +115,7 @@ impl Index<&str> for ValueMap {
     type Output = Value;
 
     fn index(&self, index: &str) -> &Self::Output {
-        self.0.index(&Value::String(index.to_string()))
+        self.0.get(&Value::String(index.to_string())).unwrap_or_else(||&Value::Null)
     }
 }
 
@@ -123,7 +123,7 @@ impl Index<i64> for ValueMap {
     type Output = Value;
 
     fn index(&self, index: i64) -> &Self::Output {
-        self.0.index(&Value::I64(index))
+        self.0.get(&Value::I64(index)).unwrap_or_else(||&Value::Null)
     }
 }
 

@@ -2,13 +2,12 @@ use crate::executor::{Executor, RBatisConnExecutor, RBatisTxExecutor};
 use crate::intercept_log::LogInterceptor;
 use crate::plugin::intercept::Intercept;
 use crate::snowflake::new_snowflake_id;
-use crate::table_sync::{sync, ColumMapper};
+use crate::table_sync::{sync, ColumnMapper};
 use crate::{DefaultPool, Error};
 use dark_std::sync::SyncVec;
 use log::LevelFilter;
 use rbdc::pool::conn_manager::ConnManager;
 use rbdc::pool::Pool;
-use rbdc::rt::tokio::sync::Mutex;
 use rbs::to_value;
 use serde::Serialize;
 use std::fmt::Debug;
@@ -66,11 +65,11 @@ impl RBatis {
         url: &str,
     ) -> Result<(), Error> {
         if url.is_empty() {
-            return Err(Error::from("[rbatis] link url is empty!"));
+            return Err(Error::from("[rb] link url is empty!"));
         }
         let mut option = driver.default_option();
         option.set_uri(url)?;
-        let pool = DefaultPool::new(ConnManager::new_opt_box(Box::new(driver), option))?;
+        let pool = DefaultPool::new(ConnManager::new_arc(Arc::new(Box::new(driver)), Arc::new(option)))?;
         self.pool
             .set(Box::new(pool))
             .map_err(|_e| Error::from("pool set fail!"))?;
@@ -97,7 +96,7 @@ impl RBatis {
         driver: Driver,
         option: ConnectOptions,
     ) -> Result<(), Error> {
-        let pool = Pool::new(ConnManager::new_opt_box(Box::new(driver), Box::new(option)))?;
+        let pool = Pool::new(ConnManager::new_arc(Arc::new(Box::new(driver)), Arc::new(Box::new(option))))?;
         self.pool
             .set(Box::new(pool))
             .map_err(|_e| Error::from("pool set fail!"))?;
@@ -144,7 +143,7 @@ impl RBatis {
         let p = self
             .pool
             .get()
-            .ok_or_else(|| Error::from("[rbatis] rbatis pool not inited!"))?;
+            .ok_or_else(|| Error::from("[rb] rbatis pool not inited!"))?;
         return Ok(p.deref());
     }
 
@@ -158,11 +157,7 @@ impl RBatis {
     pub async fn acquire(&self) -> Result<RBatisConnExecutor, Error> {
         let pool = self.get_pool()?;
         let conn = pool.get().await?;
-        return Ok(RBatisConnExecutor {
-            id: new_snowflake_id(),
-            conn: Mutex::new(Box::new(conn)),
-            rb: self.clone(),
-        });
+        return Ok(RBatisConnExecutor::new(new_snowflake_id(), conn, self.clone()));
     }
 
     /// try get an DataBase Connection used for the next step
@@ -174,11 +169,7 @@ impl RBatis {
     pub async fn try_acquire_timeout(&self, d: Duration) -> Result<RBatisConnExecutor, Error> {
         let pool = self.get_pool()?;
         let conn = pool.get_timeout(d).await?;
-        return Ok(RBatisConnExecutor {
-            id: new_snowflake_id(),
-            conn: Mutex::new(Box::new(conn)),
-            rb: self.clone(),
-        });
+        return Ok(RBatisConnExecutor::new(new_snowflake_id(), conn, self.clone()));
     }
 
     /// get an DataBase Connection,and call begin method,used for the next step
@@ -318,7 +309,7 @@ impl RBatis {
     /// ```
     pub async fn sync<T: Serialize>(
         executor: &dyn Executor,
-        column_mapper: &dyn ColumMapper,
+        column_mapper: &dyn ColumnMapper,
         table: &T,
         table_name: &str,
     ) -> Result<(), Error> {

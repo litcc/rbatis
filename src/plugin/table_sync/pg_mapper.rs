@@ -1,9 +1,12 @@
-use crate::table_sync::ColumMapper;
+use crate::table_sync::ColumnMapper;
 use rbs::Value;
 
 pub struct PGTableMapper {}
-impl ColumMapper for PGTableMapper {
-    fn get_column(&self, _column: &str, v: &Value) -> String {
+impl ColumnMapper for PGTableMapper {
+    fn driver_type(&self) -> String {
+        "postgres".to_string()
+    }
+    fn get_column_type(&self, _column: &str, v: &Value) -> String {
         match v {
             Value::Null => "NULL".to_string(),
             Value::Bool(_) => "BOOLEAN".to_string(),
@@ -15,6 +18,9 @@ impl ColumMapper for PGTableMapper {
             Value::F64(_) => "DOUBLE PRECISION".to_string(),
             Value::String(v) => {
                 if v != "" {
+                    if v.eq("id") {
+                        return "TEXT".to_string();
+                    }
                     v.to_string()
                 } else {
                     "TEXT".to_string()
@@ -25,7 +31,7 @@ impl ColumMapper for PGTableMapper {
             Value::Map(_) => "JSON".to_string(),
             Value::Ext(t, _v) => match *t {
                 "Date" => "DATE".to_string(),
-                "DateTime" => "TIMESTAMP".to_string(),
+                "DateTime" => "TIMESTAMPTZ".to_string(),
                 "Time" => "TIME".to_string(),
                 "Timestamp" => "TIMESTAMP".to_string(),
                 "Decimal" => "NUMERIC".to_string(),

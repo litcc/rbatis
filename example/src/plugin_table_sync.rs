@@ -2,8 +2,6 @@ use rbatis::dark_std::defer;
 use rbatis::rbatis::RBatis;
 use rbatis::rbdc::datetime::DateTime;
 use rbatis::table_sync;
-use rbatis::table_sync::ColumMapper;
-
 use rbdc_sqlite::driver::SqliteDriver;
 use rbs::to_value;
 
@@ -32,16 +30,24 @@ pub async fn main() {
     //rb.init(rbdc_mysql::driver::MysqlDriver {}, "mysql://root:123456@localhost:3306/test").unwrap();
     //rb.init(rbdc_pg::driver::PgDriver {}, "postgres://postgres:123456@localhost:5432/postgres").unwrap();
     //rb.init(rbdc_mssql::driver::MssqlDriver {}, "mssql://SA:TestPass!123456@localhost:1433/test").unwrap();
-    rb.init(SqliteDriver {}, &"sqlite://target/sqlite.db".to_string())
-        .unwrap();
-    // ------------choose column mapper------------
-    let mapper = &table_sync::SqliteTableMapper {} as &dyn ColumMapper;
-    //let mapper = &table_sync::PGTableMapper{} as &dyn ColumMapper;
-    //let mapper = &table_sync::MysqlTableMapper{} as &dyn ColumMapper;
-    //let mapper = &table_sync::MssqlTableMapper{} as &dyn ColumMapper;
+    rb.init(SqliteDriver {}, &"sqlite://target/sqlite.db".to_string()).unwrap();
 
-    // sync table to_value
-    RBatis::sync(&rb.acquire().await.unwrap(), mapper, &to_value! {"id": "INTEGER","name": "TEXT","remark": "TEXT","create_time": "TEXT","version": "TEXT","delete_flag": "INT8"}, "rb_user").await.unwrap();
+    // ------------choose column mapper------------
+    let mapper = &table_sync::SqliteTableMapper {};
+    //let mapper = &table_sync::PGTableMapper{} ;
+    //let mapper = &table_sync::MysqlTableMapper{} ;
+    //let mapper = &table_sync::MssqlTableMapper{} ;
+
+    // let table = RBUser{};
+    let table = to_value! {
+        "id": "INTEGER",
+        "name": "TEXT",
+        "remark": "TEXT",
+        "create_time": "TEXT",
+        "version": "TEXT",
+        "delete_flag": "INT8"
+    };
+    RBatis::sync(&rb.acquire().await.unwrap(), mapper, &table, "rb_user").await.unwrap();
 
     //sync table struct
     RBatis::sync(
@@ -59,6 +65,6 @@ pub async fn main() {
         },
         "rb_user",
     )
-    .await
-    .unwrap();
+        .await
+        .unwrap();
 }

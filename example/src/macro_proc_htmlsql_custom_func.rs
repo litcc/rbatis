@@ -1,6 +1,3 @@
-#[macro_use]
-extern crate rbatis;
-
 use log::LevelFilter;
 use rbatis::dark_std::defer;
 use serde_json::json;
@@ -8,7 +5,7 @@ use serde_json::json;
 use rbatis::executor::Executor;
 use rbatis::rbdc::datetime::DateTime;
 use rbatis::table_sync::SqliteTableMapper;
-use rbatis::RBatis;
+use rbatis::{html_sql, RBatis};
 use rbs::Value;
 
 /// table
@@ -48,7 +45,7 @@ impl IsTest for rbs::Value {
 ///  </if>
 /// ```
 #[html_sql(
-    r#"
+r#"
     <select id="custom_func">
         `select * from activity`
         <where>
@@ -79,13 +76,9 @@ pub async fn main() {
     // rb.init(rbdc_mysql::driver::MysqlDriver {}, "mysql://root:123456@localhost:3306/test").unwrap();
     // rb.init(rbdc_pg::driver::PgDriver {}, "postgres://postgres:123456@localhost:5432/postgres").unwrap();
     // rb.init(rbdc_mssql::driver::MssqlDriver {}, "mssql://SA:TestPass!123456@localhost:1433/test").unwrap();
-    rb.init(
-        rbdc_sqlite::driver::SqliteDriver {},
-        "sqlite://target/sqlite.db",
-    )
-    .unwrap();
+    rb.init(rbdc_sqlite::driver::SqliteDriver {}, "sqlite://target/sqlite.db").unwrap();
     // table sync done
-    fast_log::LOGGER.set_level(LevelFilter::Off);
+    fast_log::logger().set_level(LevelFilter::Off);
     _ = RBatis::sync(
         &rb.acquire().await.unwrap(),
         &SqliteTableMapper {},
@@ -105,8 +98,8 @@ pub async fn main() {
         },
         "activity",
     )
-    .await;
-    fast_log::LOGGER.set_level(LevelFilter::Debug);
+        .await;
+    fast_log::logger().set_level(LevelFilter::Debug);
 
     let a = custom_func(&rb, "test").await.unwrap();
     println!("{}", json!(a));

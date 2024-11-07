@@ -37,6 +37,14 @@ impl Sub<&&Value> for Value {
     }
 }
 
+
+impl Sub<Value> for &Value {
+    type Output = Value;
+    fn op_sub(self, rhs: Value) -> Self::Output {
+        op_sub_value(self.to_owned(), rhs)
+    }
+}
+
 impl Sub<&Value> for &Value {
     type Output = Value;
     fn op_sub(self, rhs: &Value) -> Self::Output {
@@ -48,13 +56,6 @@ impl Sub<&&Value> for &Value {
     type Output = Value;
     fn op_sub(self, rhs: &&Value) -> Self::Output {
         op_sub_value(self.to_owned(), (*rhs).to_owned())
-    }
-}
-
-impl Sub<Value> for &Value {
-    type Output = Value;
-    fn op_sub(self, rhs: Value) -> Self::Output {
-        op_sub_value(self.to_owned(), rhs)
     }
 }
 
@@ -161,29 +162,29 @@ macro_rules! self_sub {
     ([$($ty:ty)*]) => {
         $(
 impl Sub<$ty> for $ty{
-         type Output = $ty;
+      type Output = $ty;
       fn op_sub(self, rhs: $ty) -> Self::Output {
         self-rhs
       }
-    }
+}
 impl Sub<&$ty> for $ty{
-         type Output = $ty;
+      type Output = $ty;
       fn op_sub(self, rhs: &$ty) -> Self::Output {
         self-*rhs
       }
-    }
+}
 impl Sub<$ty> for &$ty{
-         type Output = $ty;
+      type Output = $ty;
       fn op_sub(self, rhs: $ty) -> Self::Output {
         *self-rhs
       }
-    }
+}
 impl Sub<&$ty> for &$ty{
-         type Output = $ty;
+      type Output = $ty;
       fn op_sub(self, rhs: &$ty) -> Self::Output {
         *self-*rhs
       }
-    }
+}
         )*
     };
 }

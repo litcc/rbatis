@@ -1,10 +1,12 @@
 use log::LevelFilter;
 use rbatis::dark_std::defer;
+use serde_json::json;
+
+use rbatis::executor::Executor;
 use rbatis::rbdc::datetime::DateTime;
 use rbatis::table_sync::SqliteTableMapper;
-use rbatis::RBatis;
-use rbs::to_value;
-use serde_json::json;
+use rbatis::{html_sql, RBatis};
+use rbatis::rbdc::db::ExecResult;
 
 /// table
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -23,6 +25,15 @@ pub struct Activity {
     pub delete_flag: Option<i32>,
 }
 
+use rbatis::rbatis_codegen::IntoSql;
+#[html_sql("example/example.html")]
+pub async fn insert(
+    rb: &dyn Executor,
+    arg: &Activity,
+) -> rbatis::Result<ExecResult> {
+    impled!()
+}
+
 #[tokio::main]
 pub async fn main() {
     _ = fast_log::init(
@@ -30,7 +41,10 @@ pub async fn main() {
             .console()
             .level(log::LevelFilter::Debug),
     );
-    defer!(|| log::logger().flush());
+    defer!(|| {
+        log::logger().flush();
+    });
+
     let rb = RBatis::new();
     // ------------choose database driver------------
     // rb.init(rbdc_mysql::driver::MysqlDriver {}, "mysql://root:123456@localhost:3306/test").unwrap();
@@ -60,16 +74,22 @@ pub async fn main() {
     )
         .await;
     fast_log::logger().set_level(LevelFilter::Debug);
-    //query
-    let table: Option<Activity> = rb
-        .query_decode("select * from activity limit ?", vec![to_value!(1)])
+
+    let a = insert(&rb, &Activity{
+        id: Some("1".into()),
+        name: Some("1".into()),
+        pc_link: Some("1".into()),
+        h5_link: Some("1".into()),
+        pc_banner_img: None,
+        h5_banner_img: None,
+        sort: Some("1".to_string()),
+        status: Some(1),
+        remark: Some("1".into()),
+        create_time: Some(DateTime::now()),
+        version: Some(1),
+        delete_flag: Some(1),
+    })
         .await
         .unwrap();
-    println!(">>>>> table={}", json!(table));
-    //exec
-    let result = rb
-        .exec("update activity set status = 0 where id > 0", vec![])
-        .await
-        .unwrap();
-    println!(">>>>> exec={}", result);
+    println!("{}", json!(a));
 }

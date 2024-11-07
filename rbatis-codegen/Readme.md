@@ -55,8 +55,8 @@ async fn select_by_condition(rb: &dyn Executor, page_req: &PageRequest, name: &s
 ```
 
 ```log
-2022-08-17 17:16:23.624803 INFO rbatis::plugin::log - [rbatis] [402390551883812864] query  ==> select * from biz_activity where name like ? and create_time < ? and id != '-1' and  name != ''
-                                                      [rbatis]                      Args   ==> ["test",DateTime("2022-08-17 17:16:23")]
+2022-08-17 17:16:23.624803 INFO rbatis::plugin::log - [rb] [402390551883812864] query  ==> select * from biz_activity where name like ? and create_time < ? and id != '-1' and  name != ''
+                                                      [rb]                      Args   ==> ["test",DateTime("2022-08-17 17:16:23")]
 ```
 
 
@@ -106,7 +106,7 @@ pub async fn select_by_condition(
     );
     rb_arg_map.insert("a".to_string().into(), rbs::to_value(a).unwrap_or_default());
     use rbatis::executor::RBatisRef;
-    let driver_type = rb.rb_ref().driver_type()?;
+    let driver_type = rb.driver_type()?;
     use rbatis::rbatis_codegen;
     pub fn impl_html_sql(arg: &rbs::Value, _tag: char) -> (String, Vec<rbs::Value>) {
         use rbatis_codegen::ops::*;

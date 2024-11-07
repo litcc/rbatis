@@ -6,6 +6,7 @@ mod test {
     use rbs::{to_value, Value};
     use serde::{Deserialize, Serialize};
     use std::cmp::Ordering;
+    use rbs::value::map::ValueMap;
 
     #[test]
     fn test_set() {
@@ -276,6 +277,16 @@ mod test {
             "2":"2",
         };
         assert_eq!(v.to_string(), "{\"1\":\"1\",\"2\":\"2\"}");
+    }
+
+    //get null test
+    #[test]
+    fn test_map_get_null() {
+        let mut m = ValueMap::new();
+        m.insert("1".into(), 1.into());
+        m.insert("2".into(), 2.into());
+        let n = &m["3"];
+        assert_eq!(n, &Value::Null);
     }
 
     #[test]

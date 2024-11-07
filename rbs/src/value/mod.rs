@@ -9,7 +9,6 @@ use std::fmt::{self, Debug, Display};
 use std::hash::{Hash, Hasher};
 use std::ops::Deref;
 
-pub mod ext;
 pub mod map;
 
 /// Represents any valid MessagePack value.
@@ -39,7 +38,7 @@ pub enum Value {
     Array(Vec<Self>),
     /// Map<Key,Value>.
     Map(ValueMap),
-    /// Extended implements Extension interface
+    /// Ext(Reflection Type Name,Value)
     Ext(&'static str, Box<Self>),
 }
 
@@ -92,6 +91,17 @@ impl Value {
     #[inline]
     pub fn is_i64(&self) -> bool {
         if let Value::I64(_) = *self {
+            true
+        } else {
+            false
+        }
+    }
+
+
+    /// Returns true if the `Value` is convertible to an i32. Returns false otherwise.
+    #[inline]
+    pub fn is_i32(&self) -> bool {
+        if let Value::I32(_) = *self {
             true
         } else {
             false
@@ -844,9 +854,8 @@ impl Hash for Value {
                     v.hash(state);
                 }
             }
-            Value::Ext(s, v) => {
+            Value::Ext(_, v) => {
                 state.write_u8(12);
-                s.hash(state);
                 v.hash(state);
             }
         }

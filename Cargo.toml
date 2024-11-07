@@ -1,20 +1,14 @@
 [workspace]
 members = [
     "rbs",
-    "rbdc",
     "rbatis-codegen",
-    "rbdc-mysql",
-    "rbdc-pg",
-    "rbdc-sqlite",
-    "rbdc-mssql",
     "rbatis-macro-driver",
-    "rbdc-pool-fast",
     "example"
 ]
 
 [package]
 name = "rbatis"
-version = "4.5.26"
+version = "4.5.34"
 description = "The Rust SQL Toolkit and ORM Library. An async, pure Rust SQL crate featuring compile-time Dynamic SQL"
 readme = "Readme.md"
 authors = ["ce <zhuxiujia@qq.com>"]
@@ -44,21 +38,22 @@ futures = { version = "0.3" }
 #object_id
 hex = "0.4"
 rand = "0.8"
-rbs = { version = "4.5", path = "rbs" }
-rbdc = { version = "4.5", path = "rbdc", default-features = false }
+rbs = { version = "4.5"}
+rbdc = { version = "4.5", default-features = false }
 dark-std = "0.2"
 async-trait = "0.1.68"
 
-rbdc-pool-fast = { version = "4.5", path = "rbdc-pool-fast" }
+rbdc-pool-fast = { version = "4.5" }
+parking_lot = "0.12.3"
 
 [dev-dependencies]
 rbatis = { version = "4.5", path = ".", features = ["debug_mode"] }
 serde_json = "1"
 tokio = { version = "1", features = ["sync", "fs", "net", "rt", "rt-multi-thread", "time", "io-util", "macros"] }
-rbdc-mysql = { path = "rbdc-mysql" }
-rbdc-pg = { path = "rbdc-pg" }
-rbdc-sqlite = { path = "rbdc-sqlite" }
-rbdc-mssql = { path = "rbdc-mssql" }
+rbdc-mysql = { version = "4.5" }
+rbdc-pg = { version = "4.5" }
+rbdc-sqlite = { version = "4.5" }
+rbdc-mssql = { version = "4.5" }
 [profile.release]
 lto = true
 opt-level = 3
