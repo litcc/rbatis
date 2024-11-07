@@ -27,4 +27,5 @@ pub use decode::*;
 pub use error::*;
 pub use plugin::*;
 pub use rbatis::*;
+pub use rbatis_macro_driver::RefModel;
 pub use rbdc_pool_fast::FastPool as DefaultPool;
