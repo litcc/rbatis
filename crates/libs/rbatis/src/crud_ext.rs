@@ -23,11 +23,11 @@ macro_rules! impl_insert_ext {
         );
     };
     ($table:ty{},$table_name:expr) => {
-        $crate::paste::paste!{
+
             impl $table {
-                pub async fn insert_batch_ref<'__ref>(
+                pub async fn insert_batch_ref<T: serde::Serialize>(
                     executor: &dyn $crate::executor::Executor,
-                    tables: &[[<$table Ref>]<'__ref>],
+                    tables: &[T],
                     batch_size: u64,
                 ) -> std::result::Result<$crate::rbdc::db::ExecResult, $crate::rbdc::Error> {
                     #[$crate::py_sql(
@@ -53,9 +53,9 @@ macro_rules! impl_insert_ext {
                             ),
                         "
                     )]
-                    async fn inner_insert_batch_ref<'__ref>(
+                    async fn inner_insert_batch_ref<T: serde::Serialize>(
                         executor: &dyn $crate::executor::Executor,
-                        tables: &[[<$table Ref>]<'__ref>],
+                        tables: &[T],
                         table_name: &str,
                     ) -> std::result::Result<$crate::rbdc::db::ExecResult, $crate::rbdc::Error>
                     {
@@ -85,14 +85,14 @@ macro_rules! impl_insert_ext {
                     Ok(result)
                 }
 
-                pub async fn insert_ref<'__ref>(
+                pub async fn insert_ref<T: serde::Serialize>(
                     executor: &dyn $crate::executor::Executor,
-                    table: &[<$table Ref>]<'__ref>,
+                    table: &T,
                 ) -> std::result::Result<$crate::rbdc::db::ExecResult, $crate::rbdc::Error> {
                     <$table>::insert_batch_ref(executor, &[table.clone()], 1).await
                 }
             }
-        }
+
     };
 }
 
@@ -102,38 +102,38 @@ macro_rules! impl_select_ext {
         $crate::impl_select_ext!($table{},"");
     };
     ($table:ty{} $(,$table_name:expr)?) => {
-        $crate::paste::paste!{
-            $crate::impl_select_ext!($table{select_list_by_ref<'__ref>(where_data: &[<$table Ref>]<'__ref>) -> Vec => "` where `
-              trim 'and': for k,v in where_data:
-                if v.is_null():
-                    continue:
-                if v.is_set_null():
-                    `and ${k} is null `
-                    continue:
-                `and ${k} = #{v} `"}$(,$table_name)?);
-            $crate::impl_select_ext!($table{select_list_by_refs<'__ref>(where_datas: &[[<$table Ref>]<'__ref>]) -> Vec =>
-             "` where `
-             trim 'or': for _,item in where_datas:
-                `or ( `
-                trim 'and': for k,v in item:
-                    if v.is_null():
-                        continue:
-                    if v.is_set_null():
-                        `and ${k} is null `
-                        continue:
-                    `and ${k} = #{v} `
-                `) `"}$(,$table_name)?);
-            $crate::impl_select_ext!($table{select_opt_by_ref<'__ref>(where_data: &[<$table Ref>]<'__ref>) -> Option =>
-             "` where `
-                trim 'and': for k,v in where_data:
-                    if v.is_null():
-                        continue:
-                    if v.is_set_null():
-                        `and ${k} is null `
-                        continue:
-                    `and ${k} = #{v} `
-                `limit 1 `"}$(,$table_name)?);
-        }
+
+        $crate::impl_select_ext!($table{select_list_by_ref<T: serde::Serialize>(where_data: &T) -> Vec =>
+            "` where `
+             trim 'and': for k,v in where_data:
+               if v.is_null():
+                   continue:
+               if v.is_set_null():
+                   `and ${k} is null `
+                   continue:
+               `and ${k} = #{v} `"}$(,$table_name)?);
+        $crate::impl_select_ext!($table{select_list_by_refs<T: serde::Serialize>(where_datas: &[T]) -> Vec =>
+            "` where `
+            trim 'or': for _,item in where_datas:
+               `or ( `
+               trim 'and': for k,v in item:
+                   if v.is_null():
+                       continue:
+                   if v.is_set_null():
+                       `and ${k} is null `
+                       continue:
+                   `and ${k} = #{v} `
+               `) `"}$(,$table_name)?);
+        $crate::impl_select_ext!($table{select_opt_by_ref<T: serde::Serialize>(where_data: &T) -> Option =>
+            "` where `
+               trim 'and': for k,v in where_data:
+                   if v.is_null():
+                       continue:
+                   if v.is_set_null():
+                       `and ${k} is null `
+                       continue:
+                   `and ${k} = #{v} `
+               `limit 1 `"}$(,$table_name)?);
     };
 
     ($table:ty{$fn_name:ident $(<$($life_cycle:lifetime $(,)?)*$($gkey:ident:$gtype:path $(,)?)* >)? ($($param_key:ident:$param_type:ty $(,)?)*) -> $container:tt => $sql:expr}$(,$table_name:expr)?) => {
@@ -167,70 +167,70 @@ macro_rules! impl_update_ext {
     };
 
     ($table:ty{}$(,$table_name:expr)?) => {
-        $crate::paste::paste!{
-            $crate::impl_update_ext!($table{update_by_ref<'__ref>(where_data: &[<$table Ref>]<'__ref>) => "` where `
-                trim 'and': for k,v in where_data:
-                    if v.is_null():
-                        continue:
-                    if v.is_set_null():
-                        `and ${k} is null `
-                        continue:
-                    `and ${k} = #{v} `"}$(,$table_name)?);
-            $crate::impl_update_ext!($table{update_by_refs<'__ref>(where_datas: &[[<$table Ref>]<'__ref>]) => "` where `
-                trim 'or': for _,item in where_datas:
-                  `or ( `
-                  trim 'and': for k,v in item:
-                    if v.is_null():
-                      continue:
-                    if v.is_set_null():
-                      `and ${k} is null `
-                      continue:
-                    `and ${k} = #{v} `
-                  `) `"}$(,$table_name)?);
-        }
+
+        $crate::impl_update_ext!($table{update_by_ref<T: serde::Serialize>(where_data: &T) => "` where `
+               trim 'and': for k,v in where_data:
+                   if v.is_null():
+                       continue:
+                   if v.is_set_null():
+                       `and ${k} is null `
+                       continue:
+                   `and ${k} = #{v} `"}$(,$table_name)?);
+        $crate::impl_update_ext!($table{update_by_refs<T: serde::Serialize>(where_datas: &[T]) => "` where `
+               trim 'or': for _,item in where_datas:
+                 `or ( `
+                 trim 'and': for k,v in item:
+                   if v.is_null():
+                     continue:
+                   if v.is_set_null():
+                     `and ${k} is null `
+                     continue:
+                   `and ${k} = #{v} `
+                 `) `"}$(,$table_name)?);
+
     };
 
-    ($table:ty{$fn_name:ident $(< $($life_cycle:lifetime $(,)?)* $($gkey:ident:$gtype:path $(,)?)* >)? ($($param_key:ident:$param_type:ty$(,)?)*) => $sql_where:expr}$(,$table_name:expr)?) => {
-        $crate::paste::paste!{
-            impl $table {
-                pub async fn $fn_name $(<'__ref1, $($life_cycle,)* $($gkey:$gtype,)*>)? (
+    ($table:ty{$fn_name:ident $(< $($life_cycle:lifetime $(,)?)* $($gkey:ident:$gtype:path $(,)?)* >)? ( $($param_key:ident:$param_type:ty$(,)?)* ) => $sql_where:expr}$(,$table_name:expr)?) => {
+
+        impl $table {
+            pub async fn $fn_name $(<$($life_cycle,)* $($gkey:$gtype,)* >)? (
+                executor: &dyn $crate::executor::Executor,
+                update_data: &impl serde::Serialize,
+                $($param_key:$param_type,)*
+            ) -> std::result::Result<$crate::rbdc::db::ExecResult, $crate::rbdc::Error> {
+                if $sql_where.is_empty(){
+                    return Err($crate::rbdc::Error::from("sql_where can't be empty!"));
+                }
+                #[$crate::py_sql("`update ${table_name} set `
+                       trim ',':
+                           for k,v in table:
+                               if v.is_null():
+                                   continue:
+                               if v.is_set_null():
+                                   `${k} = null,`
+                                   continue:
+                               `${k}=#{v},`
+                       ` `",$sql_where)]
+                async fn $fn_name $(< $($life_cycle,)* $($gkey:$gtype,)*>)? (
                     executor: &dyn $crate::executor::Executor,
-                    update_data: &[<$table Ref>]<'__ref1>,
+                    table_name: String,
+                    table: &rbs::Value,
                     $($param_key:$param_type,)*
                 ) -> std::result::Result<$crate::rbdc::db::ExecResult, $crate::rbdc::Error> {
-                    if $sql_where.is_empty(){
-                        return Err($crate::rbdc::Error::from("sql_where can't be empty!"));
-                    }
-                    #[$crate::py_sql("`update ${table_name} set `
-                        trim ',':
-                            for k,v in table:
-                                if v.is_null():
-                                    continue:
-                                if v.is_set_null():
-                                    `${k} = null,`
-                                    continue:
-                                `${k}=#{v},`
-                        ` `",$sql_where)]
-                      async fn $fn_name $(< $($life_cycle,)* $($gkey:$gtype,)*>)?(
-                          executor: &dyn $crate::executor::Executor,
-                          table_name: String,
-                          table: &rbs::Value,
-                          $($param_key:$param_type,)*
-                      ) -> std::result::Result<$crate::rbdc::db::ExecResult, $crate::rbdc::Error> {
-                          impled!()
-                      }
-                     let mut table_name = String::new();
-                     $(table_name = $table_name.to_string();)?
-                     #[$crate::snake_name($table)]
-                     fn snake_name(){}
-                     if table_name.is_empty(){
-                         table_name = snake_name();
-                     }
-                      let table = rbs::to_value!(update_data);
-                      $fn_name(executor, table_name, &table, $($param_key,)*).await
+                    impled!()
                 }
+                let mut table_name = String::new();
+                $(table_name = $table_name.to_string();)?
+                #[$crate::snake_name($table)]
+                fn snake_name(){}
+                if table_name.is_empty(){
+                    table_name = snake_name();
+                }
+                let table = rbs::to_value!(update_data);
+                $fn_name(executor, table_name, &table, $($param_key,)*).await
             }
         }
+
     };
 
 }
@@ -245,8 +245,8 @@ macro_rules! impl_delete_ext {
     };
 
     ($table:ty{}$(,$table_name:expr)?) => {
-        $crate::paste::paste!{
-            $crate::impl_delete_ext!($table {delete_by_ref<'__ref>(where_data: &[<$table Ref>]<'__ref>) =>
+
+            $crate::impl_delete_ext!($table {delete_by_ref <T: serde::Serialize> (where_data: &T) =>
                 "` where `
                     trim 'and': for k,v in where_data:
                         if v.is_null():
@@ -255,9 +255,9 @@ macro_rules! impl_delete_ext {
                             `and ${k} is null `
                             continue:
                         `and ${k} = #{v} `"}$(,$table_name)?);
-            $crate::impl_delete_ext!($table {delete_by_refs<'__ref>(where_datas: &[[<$table Ref>]<'__ref>]) =>
+            $crate::impl_delete_ext!($table {delete_by_refs <T: serde::Serialize> (where_data: &[T]) =>
                 "` where `
-                    trim 'or': for _,item in where_datas:
+                    trim 'or': for _,item in where_data:
                         `or ( `
                         trim 'and': for k,v in item:
                             if v.is_null():
@@ -267,13 +267,11 @@ macro_rules! impl_delete_ext {
                                 continue:
                             `and ${k} = #{v} `
                         `) `"}$(,$table_name)?);
-        }
     };
 
-
-    ($table:ty{$fn_name:ident $(< $($life_cycle:lifetime $(,)?)* $($gkey:ident:$gtype:path $(,)?)* >)? ($($param_key:ident:$param_type:ty$(,)?)*) => $sql_where:expr}$(,$table_name:expr)?) => {
+    ($table:ty{$fn_name:ident $(< $($life_cycle:lifetime $(,)?)* $($gkey:ident:$gtype:path $(,)?)* >)? ( $($param_key:ident : $param_type:ty $(,)? )* ) => $sql_where:expr}$(,$table_name:expr)?) => {
         impl $table {
-            pub async fn $fn_name $(< $($life_cycle,)* $($gkey:$gtype,)*>)?(
+            pub async fn $fn_name $(< $($life_cycle,)* $($gkey:$gtype,)* >)? (
                 executor: &dyn $crate::executor::Executor,
                 $($param_key:$param_type,)*
             ) -> std::result::Result<$crate::rbdc::db::ExecResult, $crate::rbdc::Error> {
@@ -305,7 +303,7 @@ macro_rules! impl_delete_ext {
 #[macro_export]
 macro_rules! impl_select_page_ext {
     ($table:ty{$fn_name:ident($($param_key:ident:$param_type:ty$(,)?)*) => $where_sql:expr}) => {
-        $crate::impl_select_page_ext!(
+        $crate::impl_select_page_ext2!(
             $table{$fn_name($($param_key:$param_type,)*)=> $where_sql},
             ""
         );
