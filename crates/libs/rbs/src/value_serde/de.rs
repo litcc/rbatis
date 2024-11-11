@@ -269,18 +269,18 @@ impl<'de> Deserializer<'de> for &Value {
                 value: Some(Value::String(v.clone())),
             }),
             Value::Map(m) => {
-                if m.is_empty() || m.len() != 1 {
+                if let Some((v, _)) = m.0.iter().next() {
+                    let variant = v.as_str().unwrap_or_default();
+                    visitor.visit_enum(EnumDeserializer {
+                        variant,
+                        value: Some(Value::Map(m.clone())),
+                    })
+                } else {
                     return Err(serde::de::Error::invalid_type(
                         Unexpected::Other(&format!("{:?}", m)),
                         &"must be object map {\"Key\":\"Value\"}",
                     ));
                 }
-                let variant =
-                    m.0.iter().next().unwrap().0.as_str().unwrap_or_default();
-                visitor.visit_enum(EnumDeserializer {
-                    variant,
-                    value: Some(Value::Map(m.clone())),
-                })
             }
             _ => {
                 return Err(serde::de::Error::invalid_type(
