@@ -4,7 +4,7 @@ use syn::parse_macro_input;
 pub(crate) fn derive_ref_model(p0: TokenStream) -> TokenStream {
     use quote::ToTokens;
     let input = parse_macro_input!(p0 as syn::DeriveInput);
-    eprintln!("input: {:#?}", input);
+    // eprintln!("input: {:#?}", input);
     let struct_name = &input.ident;
     let token = match input.data {
         syn::Data::Struct(syn::DataStruct { ref fields, .. }) => {
@@ -29,7 +29,7 @@ pub(crate) fn derive_ref_model(p0: TokenStream) -> TokenStream {
                         let change_type = quote::quote! {
                             Option<std::borrow::Cow<'__ref_struct, #field_type>>
                         };
-                        // deserialize_with_ref()
+
                         if !&field.attrs.is_empty() {
                             let attrs = &field.attrs;
                             quote::quote! {
@@ -116,7 +116,10 @@ pub(crate) fn derive_ref_model(p0: TokenStream) -> TokenStream {
         )]),
     };
 
-    token.expect("Invalid Rust code provided").to_token_stream().into()
+    token
+        .expect("Invalid Rust code provided")
+        .to_token_stream()
+        .into()
 }
 
 
