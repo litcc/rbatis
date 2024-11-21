@@ -6,9 +6,7 @@ use rbdc::Error;
 /// connections.
 ///
 /// It is used by the [`ssl_mode`](super::PgConnectOptions::ssl_mode) method.
-#[derive(
-    Debug, Clone, Copy, Eq, PartialEq, serde::Serialize, serde::Deserialize,
-)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
 pub enum PgSslMode {
     /// Only try a non-SSL connection.
     Disable,

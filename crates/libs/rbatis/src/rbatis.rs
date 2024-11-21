@@ -215,21 +215,20 @@ impl RBatis {
     ///
     /// ```rust
     /// use std::sync::Arc;
+    ///
     /// use async_trait::async_trait;
+    /// use rbatis::intercept::Intercept;
     /// use rbatis::RBatis;
-    /// use rbatis::intercept::{Intercept};
     ///
     /// #[derive(Debug)]
-    /// pub struct MockIntercept {
-    /// }
+    /// pub struct MockIntercept {}
     /// #[async_trait]
-    /// impl Intercept for MockIntercept {
-    /// }
-    ///  //use get_intercept_type
-    ///  let mut rb = RBatis::new();
-    ///  rb.set_intercepts(vec![Arc::new(MockIntercept{})]);
-    ///  let name = std::any::type_name::<MockIntercept>();
-    ///  let intercept = rb.get_intercept_dyn(name);
+    /// impl Intercept for MockIntercept {}
+    /// //use get_intercept_type
+    /// let mut rb = RBatis::new();
+    /// rb.set_intercepts(vec![Arc::new(MockIntercept {})]);
+    /// let name = std::any::type_name::<MockIntercept>();
+    /// let intercept = rb.get_intercept_dyn(name);
     /// ```
     pub fn get_intercept_dyn(&self, name: &str) -> Option<&dyn Intercept> {
         for x in self.intercepts.iter() {
@@ -244,20 +243,19 @@ impl RBatis {
     ///
     /// ```rust
     /// use std::sync::Arc;
+    ///
     /// use async_trait::async_trait;
+    /// use rbatis::intercept::Intercept;
     /// use rbatis::RBatis;
-    /// use rbatis::intercept::{Intercept};
     ///
     /// #[derive(Debug)]
-    /// pub struct MockIntercept {
-    /// }
+    /// pub struct MockIntercept {}
     /// #[async_trait]
-    /// impl Intercept for MockIntercept {
-    /// }
-    ///  //use get_intercept_type
-    ///  let mut rb = RBatis::new();
-    ///  rb.set_intercepts(vec![Arc::new(MockIntercept{})]);
-    ///  let intercept = rb.get_intercept::<MockIntercept>();
+    /// impl Intercept for MockIntercept {}
+    /// //use get_intercept_type
+    /// let mut rb = RBatis::new();
+    /// rb.set_intercepts(vec![Arc::new(MockIntercept {})]);
+    /// let intercept = rb.get_intercept::<MockIntercept>();
     /// ```
     pub fn get_intercept<T: Intercept>(&self) -> Option<&T> {
         let name = std::any::type_name::<T>();

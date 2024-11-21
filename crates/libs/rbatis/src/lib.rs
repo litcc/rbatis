@@ -20,13 +20,10 @@ pub mod crud;
 pub mod error;
 pub mod decode;
 
-pub mod crud_ext;
-
 pub use async_trait::async_trait;
 pub use decode::*;
 pub use error::*;
 pub use paste;
 pub use plugin::*;
 pub use rbatis::*;
-pub use rbatis_macro_driver::RefModel;
 pub use rbdc_pool_fast::FastPool as DefaultPool;

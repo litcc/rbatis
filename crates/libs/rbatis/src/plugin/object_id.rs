@@ -64,7 +64,14 @@ impl error::Error for Error {
 
 /// A wrapper around raw 12-byte ObjectId representations.
 #[derive(
-    Clone, PartialEq, PartialOrd, Eq, Ord, Hash, serde::Serialize, serde::Deserialize,
+    Clone,
+    PartialEq,
+    PartialOrd,
+    Eq,
+    Ord,
+    Hash,
+    serde::Serialize,
+    serde::Deserialize
 )]
 pub struct ObjectId {
     pub id: [u8; 12],

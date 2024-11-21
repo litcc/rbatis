@@ -9,7 +9,9 @@ newline_style="Unix"
 reorder_modules=true
 # 自动排序use
 reorder_imports=true
-# 自动优化导入 (未稳定)
+
+# 不自动合并宏
+merge_derives = false
 
 # 自动优化导入 (未稳定)
 # Crate:

@@ -210,8 +210,3 @@ pub fn rb_html(args: TokenStream, func: TokenStream) -> TokenStream {
 pub fn snake_name(args: TokenStream, func: TokenStream) -> TokenStream {
     macros::snake_name::snake_name(args, func)
 }
-
-#[proc_macro_derive(RefModel)]
-pub fn derive_ref_model(item: TokenStream) -> TokenStream {
-    macros::ref_gen::derive_ref_model(item)
-}

@@ -90,14 +90,15 @@ pub(crate) fn impl_macro_sql(target_fn: &ItemFn, args: &ParseArgs) -> TokenStrea
     let generic = target_fn.sig.generics.clone();
     //gen rust code templete
     let gen_token_temple = quote! {
-       pub async fn #func_name_ident #generic(#func_args_stream) -> #return_ty{
-           let mut rb_args =vec![];
-           #sql_args_gen
-           #fn_body
-           use rbatis::executor::{Executor};
-           let r= #rbatis_ident.#call_method(&#sql_ident,rb_args #page_req).await?;
-           #decode
-       }
+        #[automatically_derived]
+        pub async fn #func_name_ident #generic(#func_args_stream) -> #return_ty{
+            let mut rb_args =vec![];
+            #sql_args_gen
+            #fn_body
+            use rbatis::executor::{Executor};
+            let r= #rbatis_ident.#call_method(&#sql_ident,rb_args #page_req).await?;
+            #decode
+        }
     };
     return gen_token_temple.into();
 }

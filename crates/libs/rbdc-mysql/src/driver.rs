@@ -67,7 +67,7 @@ mod test {
 //         let task = async move {
 //             let pool =
 //                 Pool::new_url(MysqlDriver {},
-// "mysql://root:123456@localhost:3306/test").unwrap();             
+// "mysql://root:123456@localhost:3306/test").unwrap();
 // std::thread::sleep(std::time::Duration::from_secs(2));             let mut conn =
 // pool.get().await.unwrap();             let data = conn
 //                 .get_values("select * from sys_dict where code = ?",

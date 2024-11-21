@@ -164,7 +164,6 @@ macro_rules! table_field_map {
 /// let role_ids_owner: BTreeMap<String, SysUserRole> =
 ///     table_field_btree!(user_roles, role_id);
 /// ```
-///
 #[allow(unused_macros)]
 #[macro_export]
 macro_rules! table_field_btree {

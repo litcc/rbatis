@@ -23,7 +23,7 @@ impl ConnectOptions for MySqlConnectOptions {
             // means that "A" || "B" can be used in place of CONCAT("A", "B").
 
             // NO_ENGINE_SUBSTITUTION - If not set, if the available storage engine
-            // specified by a CREATE TABLE is                          
+            // specified by a CREATE TABLE is
             // not available, a warning is given and the default storage
             //                          engine is used instead.
 

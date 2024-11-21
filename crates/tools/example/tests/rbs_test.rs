@@ -252,9 +252,7 @@ mod test {
 
     #[test]
     fn test_ser_newtype_struct_timestamp_tz() {
-        #[derive(
-            serde::Serialize, serde::Deserialize, Debug, Clone, Eq, PartialEq,
-        )]
+        #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Eq, PartialEq)]
         #[serde(rename = "Timestamptz")]
         pub struct Timestamptz(pub i64, pub i32);
 

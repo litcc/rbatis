@@ -30,10 +30,10 @@ impl ColumnMapper for MssqlTableMapper {
                 }
             }
             Value::Binary(_) => "VARBINARY(MAX)".to_string(),
-            Value::Array(_) => "NVARCHAR(MAX)".to_string(), /* or appropriate
-                                                              * JSON type */
-            Value::Map(_) => "NVARCHAR(MAX)".to_string(), /* or appropriate JSON
-                                                            * type */
+            Value::Array(_) => "NVARCHAR(MAX)".to_string(), /* or appropriate */
+            // JSON type
+            Value::Map(_) => "NVARCHAR(MAX)".to_string(), /* or appropriate JSON */
+            // type
             Value::Ext(t, _v) => match *t {
                 "Date" => "DATE".to_string(),
                 "DateTime" => "DATETIME2".to_string(),

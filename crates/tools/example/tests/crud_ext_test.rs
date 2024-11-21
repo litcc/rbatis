@@ -1,8 +1,12 @@
-
 #[cfg(test)]
-mod test{
+mod test {
     use std::path::Path;
-    use rbatis::{crud_ext, impl_delete_ext, impl_insert_ext, impl_select_ext, impl_update_ext};
+
+    use rbatis::crud_ext;
+    use rbatis::impl_delete_ext;
+    use rbatis::impl_insert_ext;
+    use rbatis::impl_select_ext;
+    use rbatis::impl_update_ext;
     use rbdc::DateTime;
 
     /// table
@@ -22,19 +26,11 @@ mod test{
         pub delete_flag: Option<i32>,
     }
 
-
     // impl_insert_ext2!(Activity{},"a");
     // impl_select_ext2!(Activity{},"a");
     // impl_update_ext2!(Activity{},"a");
-    impl_delete_ext!(Activity{},"a");
+    impl_delete_ext!(Activity {}, "a");
 
     #[tokio::test]
-    pub async fn test1(){
-
-
-
-    }
-
-
-
+    pub async fn test1() {}
 }

@@ -29,6 +29,7 @@ pub fn snake_name(args: TokenStream, func: TokenStream) -> TokenStream {
     let target_fn: ItemFn = syn::parse(func).unwrap();
     let func_name_ident = target_fn.sig.ident.to_token_stream();
     let stream = quote!(
+        #[automatically_derived]
         pub fn #func_name_ident() -> String {
              #struct_name.to_string()
         }
