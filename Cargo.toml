@@ -12,7 +12,7 @@ members = [
     "crates/libs/rbdc-pg",
     "crates/libs/rbdc-mssql",
     "crates/tools/example",
-    "crates/tools/example1",
+    "crates/tools/rdbc-example",
 ]
 
 [workspace.dependencies]

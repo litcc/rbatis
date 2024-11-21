@@ -12,7 +12,7 @@ async fn main() -> Result<(), Error> {
         "sqlite://target/test.db",
     )?)?;
     let mut conn = pool.get().await?;
-    let v = conn.get_values("select * from version", vec![]).await?;
-    println!("{:?}", v);
+    let v = conn.get_values("select * from sqlite_master", vec![]).await?;
+    println!("{}", rbs::Value::Array(v));
     Ok(())
 }

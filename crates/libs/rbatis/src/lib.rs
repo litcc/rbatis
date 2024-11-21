@@ -23,7 +23,6 @@ pub mod decode;
 pub use async_trait::async_trait;
 pub use decode::*;
 pub use error::*;
-pub use paste;
 pub use plugin::*;
 pub use rbatis::*;
 pub use rbdc_pool_fast::FastPool as DefaultPool;

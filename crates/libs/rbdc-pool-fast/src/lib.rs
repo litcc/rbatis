@@ -122,7 +122,10 @@ impl fast_pool::Manager for ConnManagerProxy {
         let r = self.inner.check(conn).await;
         match r {
             Ok(_) => Ok(()),
-            Err(e) => Err(e),
+            Err(e) => {
+                _ = conn.close().await;
+                Err(e)
+            }
         }
     }
 }

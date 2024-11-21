@@ -13,7 +13,6 @@ use serde::de::DeserializeOwned;
 use crate::decode::decode;
 use crate::intercept::ResultType;
 use crate::rbatis::RBatis;
-use crate::snowflake::new_snowflake_id;
 use crate::Error;
 
 /// the rbatis's Executor. this trait impl with structs =
@@ -105,7 +104,7 @@ impl Executor for RBatisConnExecutor {
     ) -> BoxFuture<'_, Result<ExecResult, Error>> {
         let mut sql = sql.to_string();
         Box::pin(async move {
-            let rb_task_id = new_snowflake_id();
+            let rb_task_id = self.rb.task_id_generator.generate();
             let mut before_result = Err(Error::from(""));
             for item in self.rb_ref().intercepts.iter() {
                 let next = item
@@ -156,7 +155,7 @@ impl Executor for RBatisConnExecutor {
     ) -> BoxFuture<'_, Result<Value, Error>> {
         let mut sql = sql.to_string();
         Box::pin(async move {
-            let rb_task_id = new_snowflake_id();
+            let rb_task_id = self.rb.task_id_generator.generate();
             let mut before_result = Err(Error::from(""));
             for item in self.rb_ref().intercepts.iter() {
                 let next = item
@@ -213,7 +212,11 @@ impl RBatisConnExecutor {
         Box::pin(async move {
             let mut conn = self.conn.into_inner();
             conn.begin().await?;
-            Ok(RBatisTxExecutor::new(new_snowflake_id(), self.rb, conn))
+            Ok(RBatisTxExecutor::new(
+                self.rb.task_id_generator.generate(),
+                self.rb,
+                conn,
+            ))
         })
     }
 

@@ -16,7 +16,7 @@ use crate::executor::RBatisConnExecutor;
 use crate::executor::RBatisTxExecutor;
 use crate::intercept_log::LogInterceptor;
 use crate::plugin::intercept::Intercept;
-use crate::snowflake::new_snowflake_id;
+use crate::snowflake::Snowflake;
 use crate::table_sync::sync;
 use crate::table_sync::ColumnMapper;
 use crate::DefaultPool;
@@ -29,6 +29,8 @@ pub struct RBatis {
     pub pool: Arc<OnceLock<Box<dyn Pool>>>,
     // intercept vec(default the intercepts[0] is a log interceptor)
     pub intercepts: Arc<SyncVec<Arc<dyn Intercept>>>,
+    //rb task id gen
+    pub task_id_generator: Arc<Snowflake>,
 }
 
 impl Default for RBatis {
@@ -36,6 +38,7 @@ impl Default for RBatis {
         RBatis {
             pool: Arc::new(Default::default()),
             intercepts: Arc::new(SyncVec::new()),
+            task_id_generator: Arc::new(Snowflake::default()),
         }
     }
 }
@@ -47,7 +50,7 @@ impl RBatis {
         let rb = RBatis::default();
         //default use LogInterceptor
         rb.intercepts.push(Arc::new(LogInterceptor::new(LevelFilter::Info)));
-        return rb;
+        rb
     }
 
     /// self.init(driver, url)? and self.try_acquire().await? a connection.
@@ -81,7 +84,7 @@ impl RBatis {
             Arc::new(option),
         ))?;
         self.pool.set(Box::new(pool)).map_err(|_e| Error::from("pool set fail!"))?;
-        return Ok(());
+        Ok(())
     }
 
     /// init pool by DBPoolOptions and Pool
@@ -113,7 +116,7 @@ impl RBatis {
             Arc::new(Box::new(option)),
         ))?;
         self.pool.set(Box::new(pool)).map_err(|_e| Error::from("pool set fail!"))?;
-        return Ok(());
+        Ok(())
     }
 
     pub fn init_pool<Pool: rbdc::pool::Pool + 'static>(
@@ -121,7 +124,7 @@ impl RBatis {
         pool: Pool,
     ) -> Result<(), Error> {
         self.pool.set(Box::new(pool)).map_err(|_e| Error::from("pool set fail!"))?;
-        return Ok(());
+        Ok(())
     }
 
     #[deprecated(note = "please use init_option()")]
@@ -160,7 +163,7 @@ impl RBatis {
             .pool
             .get()
             .ok_or_else(|| Error::from("[rb] rbatis pool not inited!"))?;
-        return Ok(p.deref());
+        Ok(p.deref())
     }
 
     /// get driver type
@@ -173,7 +176,11 @@ impl RBatis {
     pub async fn acquire(&self) -> Result<RBatisConnExecutor, Error> {
         let pool = self.get_pool()?;
         let conn = pool.get().await?;
-        return Ok(RBatisConnExecutor::new(new_snowflake_id(), conn, self.clone()));
+        Ok(RBatisConnExecutor::new(
+            self.task_id_generator.generate(),
+            conn,
+            self.clone(),
+        ))
     }
 
     /// try get an DataBase Connection used for the next step
@@ -188,20 +195,24 @@ impl RBatis {
     ) -> Result<RBatisConnExecutor, Error> {
         let pool = self.get_pool()?;
         let conn = pool.get_timeout(d).await?;
-        return Ok(RBatisConnExecutor::new(new_snowflake_id(), conn, self.clone()));
+        Ok(RBatisConnExecutor::new(
+            self.task_id_generator.generate(),
+            conn,
+            self.clone(),
+        ))
     }
 
     /// get an DataBase Connection,and call begin method,used for the next step
     pub async fn acquire_begin(&self) -> Result<RBatisTxExecutor, Error> {
         let conn = self.acquire().await?;
-        return Ok(conn.begin().await?);
+        Ok(conn.begin().await?)
     }
 
     /// try get an DataBase Connection,and call begin method,used for the next step
     pub async fn try_acquire_begin(&self) -> Result<RBatisTxExecutor, Error> {
         let conn = self.try_acquire().await?;
         let executor = conn.begin().await?;
-        return Ok(executor);
+        Ok(executor)
     }
 
     /// is debug mode
@@ -236,7 +247,7 @@ impl RBatis {
                 return Some(x.as_ref());
             }
         }
-        return None;
+        None
     }
 
     /// get intercept from name
@@ -266,7 +277,7 @@ impl RBatis {
                 return Some(call);
             }
         }
-        return None;
+        None
     }
 
     /// create table if not exists, add column if not exists
