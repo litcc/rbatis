@@ -161,7 +161,7 @@ pub(crate) fn impl_macro_html_sql(
         !x.path().is_ident("html_sql")
     }).collect::<Vec<_>>();
     return quote! {
-        #attrs
+        #(#attrs)*
         #vis async fn #func_name_ident #generic(#func_args_stream) -> #return_ty {
           #include_data
           let mut rb_arg_map = rbs::value::map::ValueMap::with_capacity(#push_count);

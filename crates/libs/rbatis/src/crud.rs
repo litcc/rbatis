@@ -419,7 +419,7 @@ macro_rules! impl_delete {
                     return Err($crate::rbdc::Error::from("sql_where can't be empty!"));
                 }
                 #[$crate::py_sql("`delete from ${table_name} `",$sql_where)]
-                async fn $fn_name$(<$($gkey: $gtype,)*>)?(
+                pub async fn $fn_name$(<$($gkey: $gtype,)*>)?(
                     executor: &dyn $crate::executor::Executor,
                     table_name: String,
                     $($param_key:$param_type,)*

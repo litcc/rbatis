@@ -135,9 +135,16 @@ pub(crate) fn impl_macro_py_sql(target_fn: &ItemFn, args: ParseArgs) -> TokenStr
     let generic = target_fn.sig.generics.clone();
 
     let push_count = sql_args_gen.to_string().matches("rb_arg_map.insert").count();
+
+    let vis = &target_fn.vis;
+    let attrs = target_fn.attrs.iter().filter(|x| {
+        !x.path().is_ident("py_sql")
+    }).collect::<Vec<_>>();
+
     //gen rust code templete
     return quote! {
-        pub async fn #func_name_ident #generic(#func_args_stream) -> #return_ty {
+        #(#attrs)*
+        #vis async fn #func_name_ident #generic(#func_args_stream) -> #return_ty {
           let mut rb_arg_map = rbs::value::map::ValueMap::with_capacity(#push_count);
           #sql_args_gen
           #fn_body
