@@ -157,9 +157,11 @@ pub(crate) fn impl_macro_html_sql(
     let push_count = sql_args_gen.to_string().matches("rb_arg_map.insert").count();
 
     let vis = &target_fn.vis;
-    let attrs = target_fn.attrs.iter().filter(|x| {
-        !x.path().is_ident("html_sql")
-    }).collect::<Vec<_>>();
+    let attrs = target_fn
+        .attrs
+        .iter()
+        .filter(|x| !x.path().is_ident("html_sql"))
+        .collect::<Vec<_>>();
     return quote! {
         #(#attrs)*
         #vis async fn #func_name_ident #generic(#func_args_stream) -> #return_ty {

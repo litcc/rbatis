@@ -9,7 +9,6 @@ use std::pin::Pin;
 use std::task::Context;
 use std::task::Poll;
 
-
 use rbs::err_protocol;
 
 use crate::rt::AsyncRead;
@@ -119,7 +118,12 @@ where
             tokio_rustls::rustls::pki_types::ServerName::try_from(host.to_string())
                 .map_err(|err| Error::from(err.to_string()))?;
 
-        *self = MaybeTlsStream::Tls(connector.connect(host, stream).await.map_err(|err| err_protocol!("{}", err))?);
+        *self = MaybeTlsStream::Tls(
+            connector
+                .connect(host, stream)
+                .await
+                .map_err(|err| err_protocol!("{}", err))?,
+        );
 
         Ok(())
     }
@@ -142,7 +146,8 @@ async fn configure_tls_connector(
     if !accept_invalid_certs {
         if let Some(ca) = root_cert_path {
             let data = ca.data().await.map_err(|err| err_protocol!("{}", err))?;
-            let cert = Certificate::from_pem(&data).map_err(|err| err_protocol!("{}", err))?;
+            let cert = Certificate::from_pem(&data)
+                .map_err(|err| err_protocol!("{}", err))?;
 
             builder.add_root_certificate(cert);
         }
