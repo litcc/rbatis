@@ -137,7 +137,6 @@ pub(crate) fn impl_macro_py_sql(target_fn: &ItemFn, args: ParseArgs) -> TokenStr
     let push_count = sql_args_gen.to_string().matches("rb_arg_map.insert").count();
     //gen rust code templete
     return quote! {
-        #[automatically_derived]
         pub async fn #func_name_ident #generic(#func_args_stream) -> #return_ty {
           let mut rb_arg_map = rbs::value::map::ValueMap::with_capacity(#push_count);
           #sql_args_gen

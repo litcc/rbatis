@@ -157,7 +157,6 @@ pub(crate) fn impl_macro_html_sql(
     let push_count = sql_args_gen.to_string().matches("rb_arg_map.insert").count();
 
     return quote! {
-        #[automatically_derived]
         pub async fn #func_name_ident #generic(#func_args_stream) -> #return_ty {
           #include_data
           let mut rb_arg_map = rbs::value::map::ValueMap::with_capacity(#push_count);

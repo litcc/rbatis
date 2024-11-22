@@ -90,7 +90,6 @@ pub(crate) fn impl_macro_sql(target_fn: &ItemFn, args: &ParseArgs) -> TokenStrea
     let generic = target_fn.sig.generics.clone();
     //gen rust code templete
     let gen_token_temple = quote! {
-        #[automatically_derived]
         pub async fn #func_name_ident #generic(#func_args_stream) -> #return_ty{
             let mut rb_args =vec![];
             #sql_args_gen
@@ -100,7 +99,7 @@ pub(crate) fn impl_macro_sql(target_fn: &ItemFn, args: &ParseArgs) -> TokenStrea
             #decode
         }
     };
-    return gen_token_temple.into();
+    gen_token_temple.into()
 }
 
 fn filter_args_context_id(
