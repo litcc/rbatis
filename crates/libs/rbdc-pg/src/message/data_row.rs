@@ -19,8 +19,7 @@ pub struct DataRow {
 impl DataRow {
     #[inline]
     pub(crate) fn get(&self, index: usize) -> Option<&'_ [u8]> {
-        let mut idx = 0;
-        for x in &self.values {
+        for (idx, x) in self.values.iter().enumerate() {
             if index == idx {
                 match x {
                     None => return None,
@@ -34,27 +33,19 @@ impl DataRow {
                     },
                 }
             }
-            idx += 1;
         }
         None
     }
 
     #[inline]
     pub(crate) fn take(&mut self, index: usize) -> Option<Vec<u8>> {
-        let mut idx = 0;
-        for x in &self.values {
+        for (idx, x) in self.values.iter().enumerate() {
             if index == idx {
-                match x {
-                    None => return None,
-                    Some(_) => {
-                        return match self.storage[idx].take() {
-                            None => None,
-                            Some(v) => Some(v),
-                        }
-                    }
+                return match x {
+                    None => None,
+                    Some(_) => self.storage[idx].take(),
                 }
             }
-            idx += 1;
         }
         None
     }

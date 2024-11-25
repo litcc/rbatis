@@ -31,7 +31,7 @@ pub async fn main() {
     // "postgres://postgres:123456@localhost:5432/postgres").unwrap();
     // rb.init(rbdc_mssql::driver::MssqlDriver {},
     // "mssql://SA:TestPass!123456@localhost:1433/test").unwrap();
-    rb.init(SqliteDriver {}, &"sqlite://target/sqlite.db".to_string()).unwrap();
+    rb.init(SqliteDriver {}, "sqlite://target/sqlite.db").unwrap();
 
     // ------------choose column mapper------------
     let mapper = &table_sync::SqliteTableMapper {};

@@ -152,7 +152,7 @@ pub static SNOWFLAKE: LazyLock<Snowflake> =
 
 ///gen new snowflake_id
 pub fn new_snowflake_id() -> i64 {
-    SNOWFLAKE.generate() as i64
+    SNOWFLAKE.generate()
 }
 
 #[cfg(test)]
@@ -243,7 +243,7 @@ mod test {
             id_map.entry(id).and_modify(|count| *count += 1).or_insert(1);
         }
         for (_, v) in id_map {
-            assert_eq!(v <= 1, true);
+            assert!(v <= 1);
         }
     }
 

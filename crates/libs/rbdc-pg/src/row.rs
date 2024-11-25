@@ -58,7 +58,7 @@ impl PgRow {
             .column_names
             .get(idx)
             .ok_or_else(|| Error::from("ColumnNotFound=".to_string() + idx))
-            .map(|v| *v)
+            .copied()
     }
 }
 

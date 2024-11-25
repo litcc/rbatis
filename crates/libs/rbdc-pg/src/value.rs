@@ -122,10 +122,7 @@ impl PgValue {
 
 impl<'r> PgValueRef<'r> {
     pub fn to_owned(&self) -> PgValue {
-        let value = match self.value {
-            Some(value) => Some(value.to_vec()),
-            _ => None,
-        };
+        let value = self.value.map(|value| value.to_vec());
         PgValue { value, format: self.format, type_info: self.type_info.clone() }
     }
 

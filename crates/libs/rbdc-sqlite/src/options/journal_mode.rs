@@ -6,11 +6,13 @@ use rbdc::error::Error;
 ///
 /// [SQLite documentation]: https://www.sqlite.org/pragma.html#pragma_journal_mode
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Default)]
 pub enum SqliteJournalMode {
     Delete,
     Truncate,
     Persist,
     Memory,
+    #[default]
     Wal,
     Off,
 }
@@ -25,12 +27,6 @@ impl SqliteJournalMode {
             SqliteJournalMode::Wal => "WAL",
             SqliteJournalMode::Off => "OFF",
         }
-    }
-}
-
-impl Default for SqliteJournalMode {
-    fn default() -> Self {
-        SqliteJournalMode::Wal
     }
 }
 

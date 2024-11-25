@@ -90,7 +90,7 @@ fn is_null(value: Option<&[u8]>, ty: &MySqlTypeInfo) -> bool {
         if matches!(
             ty.r#type,
             ColumnType::Date | ColumnType::Timestamp | ColumnType::Datetime
-        ) && value.get(0) == Some(&0)
+        ) && value.first() == Some(&0)
         {
             return true;
         }

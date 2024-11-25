@@ -125,12 +125,10 @@ mod test {
         fn column_name(&self, i: usize) -> String {
             if self.sql.contains("select count") {
                 "count".to_string()
+            } else if i == 0 {
+                "sql".to_string()
             } else {
-                if i == 0 {
-                    "sql".to_string()
-                } else {
-                    "count".to_string()
-                }
+                "count".to_string()
             }
         }
 
@@ -153,12 +151,10 @@ mod test {
         fn get(&mut self, i: usize) -> Result<Value, Error> {
             if self.sql.contains("select count") {
                 Ok(Value::U64(self.count))
+            } else if i == 0 {
+                Ok(Value::String(self.sql.clone()))
             } else {
-                if i == 0 {
-                    Ok(Value::String(self.sql.clone()))
-                } else {
-                    Ok(Value::U64(self.count.clone()))
-                }
+                Ok(Value::U64(self.count))
             }
         }
     }
@@ -265,9 +261,9 @@ mod test {
             let mut tx = rb.acquire_begin().await.unwrap();
             let r: Vec<MockTable> =
                 tx.query_decode("select * from mock_table", vec![]).await.unwrap();
-            assert_eq!(tx.done, false);
+            assert!(!tx.done);
             tx.commit().await;
-            assert_eq!(tx.done, true);
+            assert!(tx.done);
         };
         block_on(f);
     }
@@ -280,9 +276,9 @@ mod test {
             let mut tx = rb.acquire_begin().await.unwrap();
             let r: Vec<MockTable> =
                 tx.query_decode("select * from mock_table", vec![]).await.unwrap();
-            assert_eq!(tx.done, false);
+            assert!(!tx.done);
             tx.rollback().await;
-            assert_eq!(tx.done, true);
+            assert!(tx.done);
         };
         block_on(f);
     }

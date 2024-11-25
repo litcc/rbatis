@@ -19,7 +19,7 @@ impl rbdc::db::MetaData for PgMetaData {
                 return s.to_string();
             }
         }
-        return String::new();
+        String::new()
     }
 
     fn column_type(&self, i: usize) -> String {

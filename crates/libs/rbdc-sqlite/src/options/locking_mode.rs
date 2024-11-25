@@ -6,7 +6,9 @@ use rbdc::error::Error;
 ///
 /// [SQLite documentation]: https://www.sqlite.org/pragma.html#pragma_locking_mode
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Default)]
 pub enum SqliteLockingMode {
+    #[default]
     Normal,
     Exclusive,
 }
@@ -17,12 +19,6 @@ impl SqliteLockingMode {
             SqliteLockingMode::Normal => "NORMAL",
             SqliteLockingMode::Exclusive => "EXCLUSIVE",
         }
-    }
-}
-
-impl Default for SqliteLockingMode {
-    fn default() -> Self {
-        SqliteLockingMode::Normal
     }
 }
 

@@ -17,31 +17,31 @@ impl Decode for Value {
         Ok(match row {
             ColumnData::U8(v) => match v {
                 None => Value::Null,
-                Some(v) => Value::U32(v.clone() as u32),
+                Some(v) => Value::U32(*v as u32),
             },
             ColumnData::I16(v) => match v {
                 None => Value::Null,
-                Some(v) => Value::I32(v.clone() as i32),
+                Some(v) => Value::I32(*v as i32),
             },
             ColumnData::I32(v) => match v {
                 None => Value::Null,
-                Some(v) => Value::I32(v.clone()),
+                Some(v) => Value::I32(*v),
             },
             ColumnData::I64(v) => match v {
                 None => Value::Null,
-                Some(v) => Value::I64(v.clone()),
+                Some(v) => Value::I64(*v),
             },
             ColumnData::F32(v) => match v {
                 None => Value::Null,
-                Some(v) => Value::F32(v.clone()),
+                Some(v) => Value::F32(*v),
             },
             ColumnData::F64(v) => match v {
                 None => Value::Null,
-                Some(v) => Value::F64(v.clone()),
+                Some(v) => Value::F64(*v),
             },
             ColumnData::Bit(v) => match v {
                 None => Value::Null,
-                Some(v) => Value::Bool(v.clone()),
+                Some(v) => Value::Bool(*v),
             },
             ColumnData::String(v) => match v {
                 None => Value::Null,
@@ -235,9 +235,9 @@ mod test {
                 chrono::DateTime::from_timestamp(1697801035, 0).unwrap().naive_utc(),
                 offset,
             );
-        println!("{}", dt.to_string());
+        println!("{}", dt);
         let de = <DateTime as DateTimeFromDateTimeFixedOffset>::from(dt);
-        println!("{}", de.to_string());
+        println!("{}", de);
         assert_eq!(
             dt.to_string().replacen(" ", "T", 1).replace(" ", ""),
             de.display(true)
@@ -248,9 +248,9 @@ mod test {
     fn test_decode_zone_native() {
         let dt =
             chrono::DateTime::from_timestamp(1698039464, 0).unwrap().naive_utc();
-        println!("{}", dt.to_string());
+        println!("{}", dt);
         let de = <DateTime as DateTimeFromNativeDatetime>::from(dt);
-        println!("{}", de.to_string());
+        println!("{}", de);
         assert_eq!(dt.to_string(), de.display_stand());
     }
 }

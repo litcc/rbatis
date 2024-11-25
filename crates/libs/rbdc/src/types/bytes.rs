@@ -18,6 +18,7 @@ use serde::Serializer;
 
 /// rbatis bytes use serde_bytes
 #[derive(Clone, Eq)]
+#[derive(Default)]
 pub struct Bytes(pub Vec<u8>);
 
 impl Bytes {
@@ -104,19 +105,13 @@ impl DerefMut for Bytes {
     }
 }
 
-impl Default for Bytes {
-    fn default() -> Self {
-        Self(Vec::default())
-    }
-}
-
 impl Hash for Bytes {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.0.hash(state)
     }
 }
 
-impl<'a> IntoIterator for Bytes {
+impl IntoIterator for Bytes {
     type Item = u8;
     type IntoIter = IntoIter<u8>;
 
@@ -164,6 +159,7 @@ impl<'de> Deserialize<'de> for Bytes {
 }
 
 #[derive(Debug, Eq, Clone, Copy, PartialEq, PartialOrd)]
+#[derive(Default)]
 pub struct BytesSize(pub i64);
 
 pub const EB: BytesSize = BytesSize(1024 * 1024 * 1024 * 1024 * 1024);
@@ -219,12 +215,6 @@ impl DerefMut for BytesSize {
 impl From<i64> for BytesSize {
     fn from(value: i64) -> Self {
         Self(value)
-    }
-}
-
-impl Default for BytesSize {
-    fn default() -> Self {
-        BytesSize(0)
     }
 }
 

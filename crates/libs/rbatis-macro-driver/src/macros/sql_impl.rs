@@ -39,13 +39,13 @@ pub(crate) fn impl_macro_sql(target_fn: &ItemFn, args: &ParseArgs) -> TokenStrea
     }
 
     let mut sql_ident = quote!();
-    if args.sqls.len() >= 1 {
+    if !args.sqls.is_empty() {
         if rbatis_name.is_empty() {
             panic!("[rb] you should add rbatis ref param  `rb:&dyn Executor`  on '{}()'!", target_fn.sig.ident);
         }
         let mut s = "".to_string();
         for v in &args.sqls {
-            s = s + v.value().as_str();
+            s += v.value().as_str();
         }
         sql_ident = quote!(#s);
     } else {
@@ -63,7 +63,7 @@ pub(crate) fn impl_macro_sql(target_fn: &ItemFn, args: &ParseArgs) -> TokenStrea
     }
     if rbatis_ident.to_string().starts_with("mut ") {
         rbatis_ident = Ident::new(
-            &rbatis_ident.to_string().trim_start_matches("mut "),
+            rbatis_ident.to_string().trim_start_matches("mut "),
             Span::call_site(),
         )
         .to_token_stream();

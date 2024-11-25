@@ -21,7 +21,7 @@ impl MysqlQuery {
 
     pub fn statement(&self) -> Option<&MySqlStatement> {
         match self.statement {
-            Either::Right(ref statement) => Some(&statement),
+            Either::Right(ref statement) => Some(statement),
             Either::Left(_) => None,
         }
     }
@@ -32,7 +32,7 @@ impl MysqlQuery {
             return Ok(None);
         }
         //Value to MysqlArguments
-        return Ok(Some(MySqlArguments::from_args(self.arguments)?));
+        Ok(Some(MySqlArguments::from_args(self.arguments)?))
     }
 
     #[inline]

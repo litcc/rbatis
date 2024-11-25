@@ -35,7 +35,7 @@ mod test {
     fn test_ext() {
         #[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
         struct ExtStruct(String);
-        let arg = ExtStruct { 0: "saasdfas".to_string() };
+        let arg = ExtStruct("saasdfas".to_string());
         let v = rbs::to_value(&arg).unwrap();
         println!("{:?}", v);
 

@@ -1,6 +1,6 @@
 /// impl exchange
 pub fn impl_exchange(start_str: &str, start_num: usize, sql: &str) -> String {
-    let mut last = ' ' as u8;
+    let mut last = b' ';
     let mut sql = sql.to_string();
     let mut sql_bytes = sql.as_bytes();
     let mut placeholder_idx = start_num;
@@ -10,12 +10,10 @@ pub fn impl_exchange(start_str: &str, start_num: usize, sql: &str) -> String {
             break;
         }
         let x = sql_bytes[index];
-        if x == '?' as u8 && last != '\\' as u8 {
+        if x == b'?' && last != b'\\' {
             sql.remove(index);
-            let mut i = 0;
-            for x in start_str.chars() {
+            for (i, x) in start_str.chars().enumerate() {
                 sql.insert(index + i, x);
-                i += 1;
             }
             sql.insert_str(
                 index + start_str.len(),

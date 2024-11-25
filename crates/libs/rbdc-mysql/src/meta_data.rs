@@ -29,15 +29,15 @@ impl MetaData for MysqlMetaData {
                 return s.to_string();
             }
         }
-        return String::new();
+        String::new()
     }
 
     fn column_type(&self, i: usize) -> String {
-        for (_, (idx, type_info)) in self.inner.deref() {
+        for (idx, type_info) in self.inner.deref().values() {
             if idx.eq(&i) {
                 return format!("{:?}", type_info.r#type);
             }
         }
-        return String::new();
+        String::new()
     }
 }

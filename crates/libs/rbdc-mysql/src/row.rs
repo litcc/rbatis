@@ -34,7 +34,7 @@ impl MySqlRow {
 
     pub fn try_get(&self, index: usize) -> Result<MySqlValueRef<'_>, Error> {
         let column: &MySqlColumn = &self.columns[index];
-        let value = self.row.get(index as usize);
+        let value = self.row.get(index);
         Ok(MySqlValueRef {
             format: self.format,
             type_info: column.type_info.clone(),

@@ -46,42 +46,39 @@ where
     }
     //single try decode
     if datas.is_empty() {
-        return Ok(rbs::from_value::<T>(Value::Null)?);
+        return rbs::from_value::<T>(Value::Null);
     }
-    let m = datas.get(0).unwrap_or(&Value::Null);
-    match &m {
-        Value::Map(map) => {
-            if map.len() == 1 {
-                //try one
-                let type_name = std::any::type_name::<T>();
-                if type_name == std::any::type_name::<i32>() ||
-                    type_name == std::any::type_name::<i64>() ||
-                    type_name == std::any::type_name::<f32>() ||
-                    type_name == std::any::type_name::<f64>() ||
-                    type_name == std::any::type_name::<u32>() ||
-                    type_name == std::any::type_name::<u64>() ||
-                    type_name == std::any::type_name::<String>() ||
-                    type_name == std::any::type_name::<bool>() ||
-                    type_name == std::any::type_name::<Option<i32>>() ||
-                    type_name == std::any::type_name::<Option<i64>>() ||
-                    type_name == std::any::type_name::<Option<f32>>() ||
-                    type_name == std::any::type_name::<Option<f64>>() ||
-                    type_name == std::any::type_name::<Option<u32>>() ||
-                    type_name == std::any::type_name::<Option<u64>>() ||
-                    type_name == std::any::type_name::<Option<String>>() ||
-                    type_name == std::any::type_name::<Option<bool>>() ||
-                    type_name.starts_with("rbdc::types::") ||
-                    type_name.starts_with("core::option::Option<rbdc::types::")
-                {
-                    if let Some((_, value)) = map.into_iter().next() {
-                        return Ok(rbs::from_value_ref::<T>(value)?);
-                    }
+    let m = datas.first().unwrap_or(&Value::Null);
+    if let Value::Map(map) = &m {
+        if map.len() == 1 {
+            //try one
+            let type_name = std::any::type_name::<T>();
+            if type_name == std::any::type_name::<i32>() ||
+                type_name == std::any::type_name::<i64>() ||
+                type_name == std::any::type_name::<f32>() ||
+                type_name == std::any::type_name::<f64>() ||
+                type_name == std::any::type_name::<u32>() ||
+                type_name == std::any::type_name::<u64>() ||
+                type_name == std::any::type_name::<String>() ||
+                type_name == std::any::type_name::<bool>() ||
+                type_name == std::any::type_name::<Option<i32>>() ||
+                type_name == std::any::type_name::<Option<i64>>() ||
+                type_name == std::any::type_name::<Option<f32>>() ||
+                type_name == std::any::type_name::<Option<f64>>() ||
+                type_name == std::any::type_name::<Option<u32>>() ||
+                type_name == std::any::type_name::<Option<u64>>() ||
+                type_name == std::any::type_name::<Option<String>>() ||
+                type_name == std::any::type_name::<Option<bool>>() ||
+                type_name.starts_with("rbdc::types::") ||
+                type_name.starts_with("core::option::Option<rbdc::types::")
+            {
+                if let Some((_, value)) = map.into_iter().next() {
+                    return rbs::from_value_ref::<T>(value);
                 }
             }
         }
-        _ => {}
     }
-    Ok(rbs::from_value_ref::<T>(m)?)
+    rbs::from_value_ref::<T>(m)
 }
 
 pub fn is_debug_mode() -> bool {

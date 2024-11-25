@@ -24,7 +24,7 @@ pub trait IPageRequest: Send + Sync {
         }
         let mut pages = self.total() / self.page_size();
         if self.total() % self.page_size() != 0 {
-            pages = pages + 1;
+            pages += 1;
         }
         pages
     }

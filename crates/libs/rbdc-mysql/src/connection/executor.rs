@@ -350,7 +350,7 @@ fn recv_next_result_column(
         (name, _) => UStr::new(name),
     };
 
-    let type_info = MySqlTypeInfo::from_column(&def);
+    let type_info = MySqlTypeInfo::from_column(def);
 
     Ok(MySqlColumn {
         name,

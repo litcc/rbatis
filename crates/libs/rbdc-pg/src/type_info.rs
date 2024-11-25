@@ -542,7 +542,7 @@ impl PgType {
             PgType::Money => "MONEY",
             PgType::MoneyArray => "MONEY[]",
             PgType::Void => "VOID",
-            PgType::Custom(ty) => &*ty.name,
+            PgType::Custom(ty) => &ty.name,
             PgType::DeclareWithOid(_) => "?",
             PgType::DeclareWithName(name) => name,
         }
@@ -642,7 +642,7 @@ impl PgType {
             PgType::Money => "money",
             PgType::MoneyArray => "_money",
             PgType::Void => "void",
-            PgType::Custom(ty) => &*ty.name,
+            PgType::Custom(ty) => &ty.name,
             PgType::DeclareWithOid(_) => "?",
             PgType::DeclareWithName(name) => name,
         }

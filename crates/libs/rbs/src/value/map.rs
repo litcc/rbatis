@@ -17,6 +17,12 @@ use crate::Value;
 #[derive(PartialEq)]
 pub struct ValueMap(pub IndexMap<Value, Value>);
 
+impl Default for ValueMap {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl serde::Serialize for ValueMap {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -77,15 +83,13 @@ impl Debug for ValueMap {
 impl Display for ValueMap {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.write_str("{")?;
-        let mut idx = 0;
-        for (k, v) in &self.0 {
+        for (idx, (k, v)) in self.0.iter().enumerate() {
             Display::fmt(k, f)?;
             f.write_str(":")?;
             Display::fmt(v, f)?;
             if idx + 1 != self.len() {
                 Display::fmt(",", f)?;
             }
-            idx += 1;
         }
         f.write_str("}")
     }
@@ -160,7 +164,7 @@ impl<'a> IntoIterator for &'a mut ValueMap {
     type IntoIter = indexmap::map::IterMut<'a, Value, Value>;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.0.iter_mut().into_iter()
+        self.0.iter_mut()
     }
 }
 

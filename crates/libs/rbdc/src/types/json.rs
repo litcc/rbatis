@@ -76,7 +76,7 @@ impl<'de> serde::Deserialize<'de> for Json {
 
 impl Default for Json {
     fn default() -> Self {
-        Self { 0: "null".to_string() }
+        Self("null".to_string())
     }
 }
 
@@ -258,7 +258,7 @@ mod test {
         let mut m = ValueMap::new();
         m.insert("a".into(), "1".into());
         let m = rbs::Value::Map(m);
-        println!("{}", m.to_string());
+        println!("{}", m);
         assert_eq!(r#"{"a":"1"}"#, Json::from(m).0);
     }
 
@@ -267,14 +267,14 @@ mod test {
         let mut m = ValueMap::new();
         m.insert("a".into(), 1.into());
         let m = rbs::Value::Map(m);
-        println!("{}", m.to_string());
+        println!("{}", m);
         assert_eq!(r#"{"a":1}"#, Json::from(m).0);
     }
 
     #[test]
     fn test_decode_js_int_arr() {
         let arr = rbs::Value::Array(vec![rbs::Value::I64(1), rbs::Value::I64(2)]);
-        println!("{}", arr.to_string());
+        println!("{}", arr);
         assert_eq!(r#"[1,2]"#, Json::from(arr).0);
     }
 
@@ -284,7 +284,7 @@ mod test {
             rbs::Value::String(1.to_string()),
             rbs::Value::String(2.to_string()),
         ]);
-        println!("{}", arr.to_string());
+        println!("{}", arr);
         assert_eq!(r#"["1","2"]"#, Json::from(arr).0);
     }
 
@@ -298,7 +298,7 @@ mod test {
     fn test_encode_jsonv() {
         let source: JsonV<String> = JsonV(1.to_string());
         let v = rbs::to_value!(source);
-        let data = *v.as_ext().unwrap().1.clone();
+        let data = v.as_ext().unwrap().1.clone();
         assert_eq!(data.into_string().unwrap_or_default(), "\"1\"");
     }
 }

@@ -138,18 +138,16 @@ impl ServerCertVerifier for NoHostnameTlsVerifier {
             _now,
         ) {
             Ok(res) => Ok(res),
-            Err(e) => {
-                return match e {
-                    rustls::Error::InvalidCertificate(reason) => {
-                        if reason == CertificateError::NotValidForName {
-                            Ok(rustls::client::danger::ServerCertVerified::assertion())
-                        } else {
-                            Err(rustls::Error::InvalidCertificate(reason))
-                        }
+            Err(e) => match e {
+                rustls::Error::InvalidCertificate(reason) => {
+                    if reason == CertificateError::NotValidForName {
+                        Ok(rustls::client::danger::ServerCertVerified::assertion())
+                    } else {
+                        Err(rustls::Error::InvalidCertificate(reason))
                     }
-                    _ => Err(e),
                 }
-            }
+                _ => Err(e),
+            },
         }
     }
 

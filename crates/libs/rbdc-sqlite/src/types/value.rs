@@ -23,7 +23,7 @@ impl Decode for Value {
             DataType::Text => {
                 let s = value.text()?;
                 if is_json_string(s) {
-                    if let Ok(v) = serde_json::from_str::<Value>(&s) {
+                    if let Ok(v) = serde_json::from_str::<Value>(s) {
                         Ok(v)
                     } else {
                         Ok(Value::String(s.to_string()))
@@ -140,12 +140,7 @@ impl Encode for Value {
 
 //if is json null/map/array
 pub fn is_json_string(js: &str) -> bool {
-    if js == "null" ||
+    js == "null" ||
         js.starts_with("{") && js.ends_with("}") ||
         js.starts_with("[") && js.ends_with("]")
-    {
-        true
-    } else {
-        false
-    }
 }

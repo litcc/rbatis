@@ -89,7 +89,8 @@ macro_rules! to_value {
 
 /// is debug mode
 pub fn is_debug_mode() -> bool {
-    if cfg!(debug_assertions) {
+    #[cfg(debug_assertions)]
+    {
         #[cfg(feature = "debug_mode")]
         {
             true
@@ -98,7 +99,15 @@ pub fn is_debug_mode() -> bool {
         {
             false
         }
-    } else {
+    }
+    #[cfg(not(debug_assertions))]
+    {
         false
     }
+
+    // if cfg!(debug_assertions) {
+    //
+    // } else {
+    //     false
+    // }
 }

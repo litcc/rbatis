@@ -20,7 +20,7 @@ mod test {
         );
         let code = token.to_string();
         println!("{}", token);
-        assert_eq!(!code.contains(r#"`"#), true);
+        assert!(!code.contains(r#"`"#));
     }
 
     #[test]
@@ -40,7 +40,7 @@ mod test {
         );
         let code = token.to_string();
         println!("{}", token);
-        assert_eq!(!code.contains(r#"`"#), true);
+        assert!(!code.contains(r#"`"#));
     }
 
     #[test]
@@ -62,7 +62,7 @@ mod test {
         );
         let code = token.to_string();
         println!("{}", token);
-        assert_eq!(!code.contains(r#"`"#), true);
+        assert!(!code.contains(r#"`"#));
     }
 
     #[test]

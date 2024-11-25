@@ -9,9 +9,11 @@ use rbdc::Error;
 /// url example1:   ?ssl-mode=disabled   or  ?ssl-mode=preferred   or
 /// ?ssl-mode=required
 #[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
+#[derive(Default)]
 pub enum MySqlSslMode {
     /// Establish an unencrypted connection.
     /// This is the default if `ssl-mode` is not specified.
+    #[default]
     Disabled,
 
     /// Establish an encrypted connection if the server supports encrypted
@@ -33,12 +35,6 @@ pub enum MySqlSslMode {
     /// checking the host name the client uses for connecting to the server against
     /// the identity in the certificate that the server sends to the client.
     VerifyIdentity,
-}
-
-impl Default for MySqlSslMode {
-    fn default() -> Self {
-        MySqlSslMode::Disabled
-    }
 }
 
 impl FromStr for MySqlSslMode {

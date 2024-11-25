@@ -207,7 +207,7 @@ impl Connection for PgConnection {
         let sql = PgDriver {}.exchange(sql);
         Box::pin(async move {
             let many = {
-                if params.len() == 0 {
+                if params.is_empty() {
                     self.fetch_many(PgQuery {
                         statement: Either::Left(sql),
                         arguments: params,
@@ -252,7 +252,7 @@ impl Connection for PgConnection {
         let sql = PgDriver {}.exchange(sql);
         Box::pin(async move {
             let many = {
-                if params.len() == 0 {
+                if params.is_empty() {
                     self.fetch_many(PgQuery {
                         statement: Either::Left(sql),
                         arguments: params,
@@ -280,10 +280,10 @@ impl Connection for PgConnection {
                 })
                 .boxed();
             let v: PgQueryResult = v.try_collect().boxed().await?;
-            return Ok(ExecResult {
+            Ok(ExecResult {
                 rows_affected: v.rows_affected,
                 last_insert_id: Value::Null,
-            });
+            })
         })
     }
 }

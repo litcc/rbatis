@@ -15,7 +15,7 @@ impl PartialEq<Value> for &Value {
 
 impl PartialEq<&Value> for &Value {
     fn op_eq(&self, other: &&Value) -> bool {
-        self.eq(&*other)
+        self.eq(other)
     }
 }
 
@@ -83,7 +83,7 @@ impl PartialEq<str> for Value {
 
 impl<'a> PartialEq<&'a str> for Value {
     fn op_eq(&self, other: &&str) -> bool {
-        eq_str(self, *other)
+        eq_str(self, other)
     }
 }
 
@@ -95,7 +95,7 @@ impl PartialEq<Value> for str {
 
 impl<'a> PartialEq<Value> for &'a str {
     fn op_eq(&self, other: &Value) -> bool {
-        eq_str(other, *self)
+        eq_str(other, self)
     }
 }
 
@@ -119,7 +119,7 @@ impl PartialEq<String> for &Value {
 
 impl PartialEq<&str> for &Value {
     fn op_eq(&self, other: &&str) -> bool {
-        eq_str(self, *other)
+        eq_str(self, other)
     }
 }
 
@@ -280,20 +280,8 @@ fn eq_str_f64(value: &str, other: f64) -> bool {
 
 fn eq_str_bool(value: &str, other: bool) -> bool {
     match value {
-        "true" => {
-            if other {
-                true
-            } else {
-                false
-            }
-        }
-        "false" => {
-            if !other {
-                true
-            } else {
-                false
-            }
-        }
+        "true" => other,
+        "false" => !other,
         _ => false,
     }
 }
@@ -317,17 +305,13 @@ mod test {
         let i: i64 = 1;
         let v = to_value!(1);
         let r = Value::from(v.op_add(&i));
-        if r == Value::from(2) {
-            assert!(true);
-        } else {
-            assert!(false);
-        }
+        assert_eq!(Value::from(2), r);
     }
 
     #[test]
     fn test_eq_str() {
         let v = to_value!(1);
         let r = v.op_ne("");
-        assert_eq!(r, true);
+        assert!(r);
     }
 }

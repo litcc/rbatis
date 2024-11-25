@@ -42,7 +42,7 @@ impl SqliteConnectOptions {
                 write!(init, "PRAGMA {} = {}; ", key, value).ok();
             }
 
-            conn.exec(&*init, vec![]).await?;
+            conn.exec(&init, vec![]).await?;
 
             if !self.collations.is_empty() {
                 let mut locked = conn.lock_handle().await?;
@@ -66,7 +66,7 @@ impl Connection for SqliteConnection {
         let sql = sql.to_owned();
         Box::pin(async move {
             let many = {
-                if params.len() == 0 {
+                if params.is_empty() {
                     self.fetch_many(SqliteQuery {
                         statement: Either::Left(sql),
                         arguments: params,
@@ -108,7 +108,7 @@ impl Connection for SqliteConnection {
         let sql = sql.to_owned();
         Box::pin(async move {
             let many = {
-                if params.len() == 0 {
+                if params.is_empty() {
                     self.fetch_many(SqliteQuery {
                         statement: Either::Left(sql),
                         arguments: params,
@@ -136,10 +136,10 @@ impl Connection for SqliteConnection {
                 })
                 .boxed();
             let v: SqliteQueryResult = v.try_collect().boxed().await?;
-            return Ok(ExecResult {
+            Ok(ExecResult {
                 rows_affected: v.rows_affected(),
                 last_insert_id: Value::U64(v.last_insert_rowid as u64),
-            });
+            })
         })
     }
 

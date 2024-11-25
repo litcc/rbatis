@@ -42,7 +42,7 @@ pub(crate) fn impl_macro_py_sql(target_fn: &ItemFn, args: ParseArgs) -> TokenStr
 
     let mut include_data = quote::quote! {};
     let mut sql_ident = quote!();
-    if args.sqls.len() >= 1 {
+    if !args.sqls.is_empty() {
         if rbatis_name.is_empty() {
             panic!("[rb] you should add rbatis ref param  `rb:&dyn Executor`  on '{}()'!", target_fn.sig.ident);
         }
@@ -56,7 +56,7 @@ pub(crate) fn impl_macro_py_sql(target_fn: &ItemFn, args: ParseArgs) -> TokenStr
                         .trim_end_matches(r#"")"#)
                         .to_string();
                     let mut f = File::open(&file_name)
-                        .expect(&format!("can't find file={}", file_name));
+                        .unwrap_or_else(|_| panic!("can't find file={}", file_name));
                     let mut data = String::new();
                     _ = f.read_to_string(&mut data);
                     data = data.replace("\r\n", "\n");
@@ -80,7 +80,7 @@ pub(crate) fn impl_macro_py_sql(target_fn: &ItemFn, args: ParseArgs) -> TokenStr
                     continue;
                 }
             }
-            s = s + v.value().as_str();
+            s += v.value().as_str();
         }
         sql_ident = quote!(#s);
     } else {
@@ -100,7 +100,7 @@ pub(crate) fn impl_macro_py_sql(target_fn: &ItemFn, args: ParseArgs) -> TokenStr
     }
     if rbatis_ident.to_string().starts_with("mut ") {
         rbatis_ident = Ident::new(
-            &rbatis_ident.to_string().trim_start_matches("mut "),
+            rbatis_ident.to_string().trim_start_matches("mut "),
             Span::call_site(),
         )
         .to_token_stream();
@@ -144,7 +144,7 @@ pub(crate) fn impl_macro_py_sql(target_fn: &ItemFn, args: ParseArgs) -> TokenStr
         .collect::<Vec<_>>();
 
     //gen rust code templete
-    return quote! {
+    let gen_token_temple = quote! {
         #(#attrs)*
         #vis async fn #func_name_ident #generic(#func_args_stream) -> #return_ty {
           let mut rb_arg_map = rbs::value::map::ValueMap::with_capacity(#push_count);
@@ -158,8 +158,8 @@ pub(crate) fn impl_macro_py_sql(target_fn: &ItemFn, args: ParseArgs) -> TokenStr
           let (mut sql,rb_args) = do_py_sql(rbs::Value::Map(rb_arg_map), '?');
           #call_method
         }
-    }
-    .into();
+    };
+    gen_token_temple.into()
 }
 
 pub(crate) fn filter_args_context_id(

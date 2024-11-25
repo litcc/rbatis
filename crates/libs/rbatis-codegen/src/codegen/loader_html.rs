@@ -41,7 +41,7 @@ impl Display for Element {
                 f.write_str(">")?;
             }
         }
-        return Ok(());
+        Ok(())
     }
 }
 
@@ -100,7 +100,7 @@ pub fn load_html(html: &str) -> Result<Vec<Element>> {
         .replace("</break>", "</bk>");
     let dom = Dom::parse(&html)?;
     let els = as_element(&dom.children);
-    return Ok(els);
+    Ok(els)
 }
 
 impl Element {

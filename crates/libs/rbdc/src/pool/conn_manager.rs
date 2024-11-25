@@ -65,9 +65,9 @@ impl ConnManager {
     }
 
     pub async fn check(&self, conn: &mut ConnectionBox) -> Result<(), Error> {
-        return match conn.ping().await {
+        match conn.ping().await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
-        };
+        }
     }
 }

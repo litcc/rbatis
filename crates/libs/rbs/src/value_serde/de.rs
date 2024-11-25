@@ -211,7 +211,7 @@ impl<'de> Deserializer<'de> for &Value {
             Value::Binary(v) => visitor.visit_bytes(v),
             Value::Array(v) => {
                 let len = v.len();
-                let mut de = SeqDeserializer::new(v.into_iter());
+                let mut de = SeqDeserializer::new(v.iter());
                 let seq = visitor.visit_seq(&mut de)?;
                 if de.iter.len() == 0 {
                     Ok(seq)
@@ -236,7 +236,7 @@ impl<'de> Deserializer<'de> for &Value {
                 }
             }
             Value::Ext(_tag, data) => {
-                Deserializer::deserialize_any(&*data.as_ref(), visitor)
+                Deserializer::deserialize_any(data.as_ref(), visitor)
             }
         }
     }
@@ -493,7 +493,7 @@ impl<'de> serde::de::VariantAccess<'de> for VariantDeserializer {
         match self.value {
             Some(_v) => Ok(()),
             None => Err(serde::de::Error::invalid_value(
-                Unexpected::Other(&format!("none")),
+                Unexpected::Other("none"),
                 &"not support",
             )),
         }
@@ -538,9 +538,9 @@ impl<'de> serde::de::VariantAccess<'de> for VariantDeserializer {
         V: Visitor<'de>,
     {
         //todo impl tuple_variant
-        return Err(crate::Error::E(
+        Err(crate::Error::E(
             "rbs Deserialize unimplemented tuple_variant".to_string(),
-        ));
+        ))
     }
 
     fn struct_variant<V>(
@@ -552,8 +552,8 @@ impl<'de> serde::de::VariantAccess<'de> for VariantDeserializer {
         V: Visitor<'de>,
     {
         //todo impl struct_variant
-        return Err(crate::Error::E(
+        Err(crate::Error::E(
             "rbs Deserialize unimplemented struct_variant".to_string(),
-        ));
+        ))
     }
 }

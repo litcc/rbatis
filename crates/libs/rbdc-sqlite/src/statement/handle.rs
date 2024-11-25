@@ -428,7 +428,7 @@ impl Notify {
     }
 
     fn wait(&self) {
-        let _lock = self.condvar.wait_while(&mut self.mutex.lock(), |fired| !*fired);
+        self.condvar.wait_while(&mut self.mutex.lock(), |fired| !*fired);
     }
 
     fn fire(&self) {

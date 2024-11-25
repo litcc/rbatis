@@ -7,8 +7,10 @@ use rbdc::Error;
 ///
 /// It is used by the [`ssl_mode`](super::PgConnectOptions::ssl_mode) method.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(Default)]
 pub enum PgSslMode {
     /// Only try a non-SSL connection.
+    #[default]
     Disable,
 
     /// First try a non-SSL connection; if that fails, try an SSL connection.
@@ -29,12 +31,6 @@ pub enum PgSslMode {
     /// a trusted CA and that the requested server host name matches that in the
     /// certificate.
     VerifyFull,
-}
-
-impl Default for PgSslMode {
-    fn default() -> Self {
-        PgSslMode::Disable
-    }
 }
 
 impl FromStr for PgSslMode {

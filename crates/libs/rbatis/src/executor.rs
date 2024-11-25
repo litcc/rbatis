@@ -92,7 +92,7 @@ impl RBatisConnExecutor {
         T: DeserializeOwned,
     {
         let v = Executor::query(self, sql, args).await?;
-        Ok(decode(v)?)
+        decode(v)
     }
 }
 
@@ -172,7 +172,7 @@ impl Executor for RBatisConnExecutor {
                         break;
                     }
                 } else {
-                    return before_result.map(|v| Value::from(v));
+                    return before_result.map(Value::from);
                 }
             }
             let mut conn = self.conn.lock().await;
@@ -193,7 +193,7 @@ impl Executor for RBatisConnExecutor {
                         break;
                     }
                 } else {
-                    return result.map(|v| Value::from(v));
+                    return result.map(Value::from);
                 }
             }
             Ok(Value::Array(result?))
@@ -221,11 +221,11 @@ impl RBatisConnExecutor {
     }
 
     pub fn rollback(&mut self) -> BoxFuture<'_, Result<(), Error>> {
-        Box::pin(async { Ok(self.conn.lock().await.rollback().await?) })
+        Box::pin(async { self.conn.lock().await.rollback().await })
     }
 
     pub fn commit(&mut self) -> BoxFuture<'_, Result<(), Error>> {
-        Box::pin(async { Ok(self.conn.lock().await.commit().await?) })
+        Box::pin(async { self.conn.lock().await.commit().await })
     }
 }
 
@@ -277,7 +277,7 @@ impl<'a> RBatisTxExecutor {
         T: DeserializeOwned,
     {
         let v = Executor::query(self, sql, args).await?;
-        Ok(decode(v)?)
+        decode(v)
     }
 
     pub fn begin(self) -> BoxFuture<'static, Result<Self, Error>> {
@@ -289,17 +289,17 @@ impl<'a> RBatisTxExecutor {
 
     pub fn rollback(&mut self) -> BoxFuture<'_, Result<(), Error>> {
         Box::pin(async {
-            let r = self.conn.lock().await.rollback().await?;
+            self.conn.lock().await.rollback().await?;
             self.done = true;
-            Ok(r)
+            Ok(())
         })
     }
 
     pub fn commit(&mut self) -> BoxFuture<'_, Result<(), Error>> {
         Box::pin(async {
-            let r = self.conn.lock().await.commit().await?;
+            self.conn.lock().await.commit().await?;
             self.done = true;
-            Ok(r)
+            Ok(())
         })
     }
 }
@@ -378,7 +378,7 @@ impl Executor for RBatisTxExecutor {
                         break;
                     }
                 } else {
-                    return before_result.map(|v| Value::from(v));
+                    return before_result.map(Value::from);
                 }
             }
             let mut conn = self.conn.lock().await;
@@ -400,7 +400,7 @@ impl Executor for RBatisTxExecutor {
                         break;
                     }
                 } else {
-                    return result.map(|v| Value::from(v));
+                    return result.map(Value::from);
                 }
             }
             Ok(Value::Array(result?))
@@ -416,7 +416,7 @@ impl RBatisRef for RBatisTxExecutor {
 
 impl RBatisTxExecutor {
     pub fn take_conn(self) -> Option<Box<dyn Connection>> {
-        return Some(self.conn.into_inner());
+        Some(self.conn.into_inner())
     }
 }
 
@@ -440,21 +440,21 @@ impl RBatisTxExecutorGuard {
             .begin()
             .await?;
         self.tx = Some(v);
-        return Ok(());
+        Ok(())
     }
 
     pub async fn commit(&mut self) -> crate::Result<()> {
         let tx =
             self.tx.as_mut().ok_or_else(|| Error::from("[rb] tx is committed"))?;
         tx.commit().await?;
-        return Ok(());
+        Ok(())
     }
 
     pub async fn rollback(&mut self) -> crate::Result<()> {
         let tx =
             self.tx.as_mut().ok_or_else(|| Error::from("[rb] tx is committed"))?;
         tx.rollback().await?;
-        return Ok(());
+        Ok(())
     }
 
     pub fn take_conn(mut self) -> Option<Box<dyn Connection>> {
@@ -584,7 +584,7 @@ impl RBatis {
     {
         let conn = self.acquire().await?;
         let v = conn.query(sql, args).await?;
-        Ok(decode(v)?)
+        decode(v)
     }
 }
 

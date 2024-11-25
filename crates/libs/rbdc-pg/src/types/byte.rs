@@ -32,7 +32,7 @@ impl Decode for Bytea {
     fn decode(value: PgValue) -> Result<Self, Error> {
         // note: in the TEXT encoding, a value of "0" here is encoded as an empty
         // string
-        Ok(Self(value.as_bytes()?.get(0).copied().unwrap_or_default() as u8))
+        Ok(Self(value.as_bytes()?.first().copied().unwrap_or_default()))
     }
 }
 

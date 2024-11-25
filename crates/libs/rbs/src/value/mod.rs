@@ -17,8 +17,10 @@ pub mod map;
 
 /// Represents any valid MessagePack value.
 #[derive(Clone, Debug, PartialEq)]
+#[derive(Default)]
 pub enum Value {
     /// null
+    #[default]
     Null,
     /// set null
     SetNull,
@@ -60,11 +62,7 @@ impl Value {
     /// ```
     #[inline]
     pub fn is_null(&self) -> bool {
-        if let Value::Null = *self {
-            true
-        } else {
-            false
-        }
+        matches!(*self, Value::Null)
     }
 
     /// Returns true if the `Value` is a SetNull. Returns false otherwise.
@@ -78,11 +76,7 @@ impl Value {
     /// ```
     #[inline]
     pub fn is_set_null(&self) -> bool {
-        if let Value::SetNull = *self {
-            true
-        } else {
-            false
-        }
+        matches!(*self, Value::SetNull)
     }
 
     /// Returns true if the `Value` is a Bool. Returns false otherwise.
@@ -115,33 +109,21 @@ impl Value {
     /// ```
     #[inline]
     pub fn is_i64(&self) -> bool {
-        if let Value::I64(_) = *self {
-            true
-        } else {
-            false
-        }
+        matches!(*self, Value::I64(..))
     }
 
     /// Returns true if the `Value` is convertible to an i32. Returns false
     /// otherwise.
     #[inline]
     pub fn is_i32(&self) -> bool {
-        if let Value::I32(_) = *self {
-            true
-        } else {
-            false
-        }
+        matches!(*self, Value::I32(..))
     }
 
     /// Returns true if the `Value` is convertible to an u64. Returns false
     /// otherwise.
     #[inline]
     pub fn is_u64(&self) -> bool {
-        if let Value::U64(_) = *self {
-            true
-        } else {
-            false
-        }
+        matches!(*self, Value::U64(..))
     }
 
     /// Returns true if (and only if) the `Value` is a f32. Returns false otherwise.
@@ -158,11 +140,7 @@ impl Value {
     /// ```
     #[inline]
     pub fn is_f32(&self) -> bool {
-        if let Value::F32(..) = *self {
-            true
-        } else {
-            false
-        }
+        matches!(*self, Value::F32(..))
     }
 
     /// Returns true if (and only if) the `Value` is a f64. Returns false otherwise.
@@ -179,11 +157,7 @@ impl Value {
     /// ```
     #[inline]
     pub fn is_f64(&self) -> bool {
-        if let Value::F64(..) = *self {
-            true
-        } else {
-            false
-        }
+        matches!(*self, Value::F64(..))
     }
 
     /// Returns true if the `Value` is a Number. Returns false otherwise.
@@ -200,12 +174,10 @@ impl Value {
     /// assert!(!Value::Null.is_number());
     /// ```
     pub fn is_number(&self) -> bool {
-        match *self {
-            Value::I64(..) | Value::U64(..) | Value::F32(..) | Value::F64(..) => {
-                true
-            }
-            _ => false,
-        }
+        matches!(
+            *self,
+            Value::I64(..) | Value::U64(..) | Value::F32(..) | Value::F64(..)
+        )
     }
 
     /// Returns true if the `Value` is a String. Returns false otherwise.
@@ -434,7 +406,7 @@ impl Value {
     #[inline]
     pub fn as_array(&self) -> Option<&Vec<Value>> {
         if let Value::Array(ref array) = *self {
-            Some(&*array)
+            Some(array)
         } else if let Value::Ext(_, ref ext) = *self {
             ext.as_array()
         } else {
@@ -458,8 +430,8 @@ impl Value {
     /// If the `Value` is an Ext, returns the associated tuple with a ty and slice.
     /// Returns None otherwise.
     #[inline]
-    pub fn as_ext(&self) -> Option<(&str, &Box<Value>)> {
-        if let Value::Ext(ref ty, ref buf) = *self {
+    pub fn as_ext(&self) -> Option<(&str, &Value)> {
+        if let Value::Ext(ty, ref buf) = *self {
             Some((ty, buf))
         } else {
             None
@@ -520,14 +492,14 @@ impl From<u32> for Value {
 impl From<u64> for Value {
     #[inline]
     fn from(v: u64) -> Self {
-        Value::U64(From::from(v))
+        Value::U64(v)
     }
 }
 
 impl From<usize> for Value {
     #[inline]
     fn from(v: usize) -> Self {
-        Value::U64(From::from(v as u64))
+        Value::U64(v as u64)
     }
 }
 
@@ -555,14 +527,14 @@ impl From<i32> for Value {
 impl From<i64> for Value {
     #[inline]
     fn from(v: i64) -> Self {
-        Value::I64(From::from(v))
+        Value::I64(v)
     }
 }
 
 impl From<isize> for Value {
     #[inline]
     fn from(v: isize) -> Self {
-        Value::I64(From::from(v as i64))
+        Value::I64(v as i64)
     }
 }
 
@@ -623,18 +595,18 @@ impl From<(&'static str, Value)> for Value {
 }
 
 /// into vec value
-impl Into<Vec<Value>> for Value {
-    fn into(self) -> Vec<Value> {
-        match self {
+impl From<Value> for Vec<Value> {
+    fn from(val: Value) -> Self {
+        match val {
             Value::Array(arr) => arr,
             _ => vec![],
         }
     }
 }
 
-impl Into<ValueMap> for Value {
-    fn into(self) -> ValueMap {
-        match self {
+impl From<Value> for ValueMap {
+    fn from(val: Value) -> Self {
+        match val {
             Value::Map(arr) => arr,
             _ => ValueMap::new(),
         }
@@ -694,12 +666,6 @@ impl Display for Value {
     }
 }
 
-impl Default for Value {
-    fn default() -> Self {
-        Value::Null
-    }
-}
-
 impl IntoIterator for Value {
     type Item = (Value, Value);
     type IntoIter = indexmap::map::IntoIter<Value, Value>;
@@ -709,10 +675,8 @@ impl IntoIterator for Value {
             Value::Map(v) => v.into_iter(),
             Value::Array(arr) => {
                 let mut v = ValueMap::with_capacity(arr.len());
-                let mut idx = 0;
-                for x in arr {
-                    v.insert(Value::U32(idx), x);
-                    idx += 1;
+                for (idx, x) in arr.into_iter().enumerate() {
+                    v.insert(Value::U32(idx as u32), x);
                 }
                 v.into_iter()
             }
@@ -740,10 +704,8 @@ impl<'a> IntoIterator for &'a Value {
             }
             Value::Array(arr) => {
                 let mut v = Vec::with_capacity(arr.len());
-                let mut idx = 0;
-                for x in arr {
-                    v.push((Value::U32(idx), x));
-                    idx += 1;
+                for (idx, x) in arr.iter().enumerate() {
+                    v.push((Value::U32(idx as u32), x));
                 }
                 v.into_iter()
             }

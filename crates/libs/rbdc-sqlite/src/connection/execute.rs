@@ -58,10 +58,10 @@ impl Iterator for ExecuteIter<'_> {
 
     fn next(&mut self) -> Option<Self::Item> {
         let statement = if self.goto_next {
-            let mut statement = match self.statement.prepare_next(self.handle) {
+            let statement = match self.statement.prepare_next(self.handle) {
                 Ok(Some(statement)) => statement,
                 Ok(None) => return None,
-                Err(e) => return Some(Err(e.into())),
+                Err(e) => return Some(Err(e)),
             };
 
             self.goto_next = false;
@@ -73,7 +73,7 @@ impl Iterator for ExecuteIter<'_> {
 
             statement.handle.clear_bindings();
 
-            match bind(&mut statement.handle, &self.args, self.args_used) {
+            match bind(statement.handle, &self.args, self.args_used) {
                 Ok(args_used) => self.args_used += args_used,
                 Err(e) => return Some(Err(e)),
             }
@@ -85,9 +85,9 @@ impl Iterator for ExecuteIter<'_> {
 
         match statement.handle.step() {
             Ok(true) => Some(Ok(Either::Right(SqliteRow::current(
-                &statement.handle,
-                &statement.columns,
-                &statement.column_names,
+                statement.handle,
+                statement.columns,
+                statement.column_names,
             )))),
             Ok(false) => {
                 let last_insert_rowid = self.handle.last_insert_rowid();

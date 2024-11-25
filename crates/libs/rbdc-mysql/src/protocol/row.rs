@@ -53,12 +53,7 @@ impl Row {
             if index == idx {
                 match x {
                     None => return None,
-                    Some(_) => {
-                        return match self.storage[idx].take() {
-                            None => None,
-                            Some(v) => Some(v),
-                        }
-                    }
+                    Some(_) => return self.storage[idx].take(),
                 }
             }
             idx += 1;

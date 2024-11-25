@@ -21,7 +21,7 @@ impl SqliteQuery {
 
     pub fn statement(&self) -> Option<&SqliteStatement> {
         match self.statement {
-            Either::Right(ref statement) => Some(&statement),
+            Either::Right(ref statement) => Some(statement),
             Either::Left(_) => None,
         }
     }
@@ -31,7 +31,7 @@ impl SqliteQuery {
         if self.arguments.is_empty() {
             return Ok(None);
         }
-        return Ok(Some(SqliteArguments::from_args(self.arguments)?));
+        Ok(Some(SqliteArguments::from_args(self.arguments)?))
     }
 
     #[inline]

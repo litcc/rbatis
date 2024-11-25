@@ -128,7 +128,7 @@ impl Connection for MySqlConnection {
         let sql = sql.to_owned();
         Box::pin(async move {
             let many = {
-                if params.len() == 0 {
+                if params.is_empty() {
                     self.fetch_many(MysqlQuery {
                         statement: Either::Left(sql),
                         arguments: params,
@@ -169,7 +169,7 @@ impl Connection for MySqlConnection {
         let sql = sql.to_owned();
         Box::pin(async move {
             let many = {
-                if params.len() == 0 {
+                if params.is_empty() {
                     self.fetch_many(MysqlQuery {
                         statement: Either::Left(sql),
                         arguments: params,
@@ -193,20 +193,20 @@ impl Connection for MySqlConnection {
                 })
                 .boxed();
             let v: MySqlQueryResult = v.try_collect().boxed().await?;
-            return Ok(ExecResult {
+            Ok(ExecResult {
                 rows_affected: v.rows_affected,
                 last_insert_id: v.last_insert_id.into(),
-            });
+            })
         })
     }
 
     fn close(&mut self) -> BoxFuture<Result<(), Error>> {
         let c = self.do_close();
-        Box::pin(async { c.await })
+        Box::pin(c)
     }
 
     fn ping(&mut self) -> BoxFuture<'_, Result<(), Error>> {
         let c = self.do_ping();
-        Box::pin(async move { c.await })
+        Box::pin(c)
     }
 }

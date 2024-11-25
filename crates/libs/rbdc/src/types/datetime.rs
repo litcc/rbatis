@@ -73,10 +73,7 @@ impl<'de> Deserialize<'de> for DateTime {
                 )
             }),
             _ => {
-                return Err(D::Error::custom(&format!(
-                    "unsupported type DateTime({})",
-                    v.0
-                )));
+                Err(D::Error::custom(format!("unsupported type DateTime({})", v.0)))
             }
         }
     }
@@ -113,14 +110,6 @@ impl DateTime {
     /// ```
     pub fn set_offset(self, offset_sec: i32) -> DateTime {
         Self(self.0.set_offset(offset_sec))
-    }
-
-    pub fn add(self, d: Duration) -> Self {
-        Self(self.0.add(d))
-    }
-
-    pub fn sub(self, d: Duration) -> Self {
-        Self(self.0.sub(d))
     }
 
     pub fn add_sub_sec(self, sec: i64) -> Self {
@@ -284,7 +273,7 @@ impl Add<Duration> for DateTime {
     type Output = DateTime;
 
     fn add(self, rhs: Duration) -> Self::Output {
-        DateTime(self.0.add(rhs))
+        Self(self.0.add(rhs))
     }
 }
 
@@ -292,7 +281,7 @@ impl Sub<Duration> for DateTime {
     type Output = DateTime;
 
     fn sub(self, rhs: Duration) -> Self::Output {
-        DateTime(self.0.sub(rhs))
+        Self(self.0.sub(rhs))
     }
 }
 
@@ -300,7 +289,7 @@ impl Add<&Duration> for DateTime {
     type Output = DateTime;
 
     fn add(self, rhs: &Duration) -> Self::Output {
-        Self(self.0.add(rhs.clone()))
+        Self(self.0.add(*rhs))
     }
 }
 
@@ -308,7 +297,7 @@ impl Sub<&Duration> for DateTime {
     type Output = DateTime;
 
     fn sub(self, rhs: &Duration) -> Self::Output {
-        Self(self.0.sub(rhs.clone()))
+        Self(self.0.sub(*rhs))
     }
 }
 
@@ -387,7 +376,7 @@ impl Ord for DateTime {
 
 impl PartialOrd for DateTime {
     fn partial_cmp(&self, other: &DateTime) -> Option<cmp::Ordering> {
-        self.0.partial_cmp(&other.0)
+        Some(self.cmp(other))
     }
 }
 
@@ -457,7 +446,7 @@ mod test {
     #[test]
     fn test_de5() {
         let dt = DateTime::from_str("2023-10-21T00:15:00.9233333+08:00").unwrap();
-        let v = serde_json::to_value(&dt.unix_timestamp_millis()).unwrap();
+        let v = serde_json::to_value(dt.unix_timestamp_millis()).unwrap();
         let new_dt: DateTime = serde_json::from_value(v).unwrap();
         assert_eq!(new_dt, DateTime::from_str("2023-10-20T16:15:00.923Z").unwrap());
     }

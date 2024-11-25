@@ -48,13 +48,13 @@ fn to_snake_name(name: &str) -> String {
             if index != 0 && (index + 1) != len {
                 new_name.push('_');
             }
-            new_name.push(c.to_ascii_lowercase() as char);
+            new_name.push(c.to_ascii_lowercase());
         } else {
             new_name.push(c);
         }
         index += 1;
     }
-    return new_name;
+    new_name
 }
 
 #[cfg(test)]

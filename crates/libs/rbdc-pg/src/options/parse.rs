@@ -36,7 +36,7 @@ impl FromStr for PgConnectOptions {
         let username = url.username();
         if !username.is_empty() {
             options = options.username(
-                &*percent_decode_str(username)
+                &percent_decode_str(username)
                     .decode_utf8()
                     .map_err(|e| Error::from(e.to_string()))?,
             );
@@ -44,7 +44,7 @@ impl FromStr for PgConnectOptions {
 
         if let Some(password) = url.password() {
             options = options.password(
-                &*percent_decode_str(password)
+                &percent_decode_str(password)
                     .decode_utf8()
                     .map_err(|e| Error::from(e.to_string()))?,
             );
@@ -76,7 +76,7 @@ impl FromStr for PgConnectOptions {
                     if value.starts_with("/") {
                         options = options.socket(&*value);
                     } else {
-                        options = options.host(&*value);
+                        options = options.host(&value);
                     }
                 }
 
@@ -84,7 +84,7 @@ impl FromStr for PgConnectOptions {
                     value
                         .parse::<IpAddr>()
                         .map_err(|e| Error::from(e.to_string()))?;
-                    options = options.host(&*value)
+                    options = options.host(&value)
                 }
 
                 "port" => {
@@ -94,18 +94,18 @@ impl FromStr for PgConnectOptions {
                         })?)
                 }
 
-                "dbname" => options = options.database(&*value),
+                "dbname" => options = options.database(&value),
 
-                "user" => options = options.username(&*value),
+                "user" => options = options.username(&value),
 
-                "password" => options = options.password(&*value),
+                "password" => options = options.password(&value),
 
-                "application_name" => options = options.application_name(&*value),
+                "application_name" => options = options.application_name(&value),
 
                 "options" => {
                     if let Some(options) = options.options.as_mut() {
                         options.push(' ');
-                        options.push_str(&*value);
+                        options.push_str(&value);
                     } else {
                         options.options = Some(value.to_string());
                     }

@@ -6,7 +6,7 @@ pub struct ContinueNode {}
 
 impl AsHtml for ContinueNode {
     fn as_html(&self) -> String {
-        format!("<continue />")
+        "<continue />".to_string()
     }
 }
 

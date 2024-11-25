@@ -89,7 +89,7 @@ impl PgArguments {
         }
 
         for (offset, name) in type_holes {
-            let oid = conn.fetch_type_id_by_name(&*name).await?;
+            let oid = conn.fetch_type_id_by_name(name).await?;
             buffer[*offset..(*offset + 4)].copy_from_slice(&oid.0.to_be_bytes());
         }
 
@@ -128,7 +128,7 @@ impl PgArgumentBuffer {
 
         // write the len to the beginning of the value
         self[offset..(offset + 4)].copy_from_slice(&len.to_be_bytes());
-        return Ok(info);
+        Ok(info)
     }
 
     // Adds a callback to be invoked later when we know the parameter type

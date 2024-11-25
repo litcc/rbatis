@@ -62,7 +62,7 @@ impl Decode for u8 {
     fn decode(value: PgValue) -> Result<Self, Error> {
         // note: in the TEXT encoding, a value of "0" here is encoded as an empty
         // string
-        Ok(value.as_bytes()?.get(0).copied().unwrap_or_default() as u8)
+        Ok(value.as_bytes()?.first().copied().unwrap_or_default())
     }
 }
 
@@ -117,7 +117,7 @@ impl Decode for i8 {
     fn decode(value: PgValue) -> Result<Self, Error> {
         // note: in the TEXT encoding, a value of "0" here is encoded as an empty
         // string
-        Ok(value.as_bytes()?.get(0).copied().unwrap_or_default() as i8)
+        Ok(value.as_bytes()?.first().copied().unwrap_or_default() as i8)
     }
 }
 

@@ -59,15 +59,13 @@ pub fn parse_html(
         .trim_start_matches("\"")
         .trim_end_matches("\"")
         .to_string();
-    let datas = load_mapper_map(&html).expect(&format!("laod html={} fail", html));
+    let datas =
+        load_mapper_map(&html).unwrap_or_else(|_| panic!("laod html={} fail", html));
     match datas.into_iter().next() {
         None => {
             panic!("html not find fn:{}", fn_name);
         }
-        Some((_, v)) => {
-            let node = parse_html_node(vec![v], ignore, fn_name);
-            return node;
-        }
+        Some((_, v)) => parse_html_node(vec![v], ignore, fn_name),
     }
 }
 
@@ -95,19 +93,18 @@ fn include_replace(
                         "[rbatis-codegen] <include> element must have attr <include refid=\"\">!",
                     )
                     .clone();
-                let url;
-                if ref_id.contains("://") {
-                    url = Url::parse(&ref_id).expect(&format!(
-                        "[rbatis-codegen] parse <include refid=\"{}\"> fail!",
-                        ref_id
-                    ));
-                } else {
-                    url = Url::parse(&format!("current://current?refid={}", ref_id))
-                        .expect(&format!(
+                let url = if ref_id.contains("://") {
+                    Url::parse(&ref_id).unwrap_or_else(|_| {
+                        panic!(
                             "[rbatis-codegen] parse <include refid=\"{}\"> fail!",
                             ref_id
-                        ));
-                }
+                        )
+                    })
+                } else {
+                    Url::parse(&format!("current://current?refid={}", ref_id))
+                        .unwrap_or_else(|_| panic!("[rbatis-codegen] parse <include refid=\"{}\"> fail!",
+                            ref_id))
+                };
                 let path = url.host_str().unwrap_or_default().to_string() +
                     url.path().trim_end_matches("/").trim_end_matches("\\");
                 match url.scheme() {
@@ -123,10 +120,12 @@ fn include_replace(
                         if !have_ref_id {
                             panic!("not find ref_id on url {}", ref_id);
                         }
-                        let mut f = File::open(&path).expect(&format!(
-                            "[rbatis-codegen] can't find file='{}',url='{}' ",
-                            path, url
-                        ));
+                        let mut f = File::open(&path).unwrap_or_else(|_| {
+                            panic!(
+                                "[rbatis-codegen] can't find file='{}',url='{}' ",
+                                path, url
+                            )
+                        });
                         let mut html = String::new();
                         f.read_to_string(&mut html).expect("read fail");
                         let datas = load_mapper_vec(&html).expect("read fail");
@@ -152,10 +151,8 @@ fn include_replace(
                         }
                         let element = sql_map
                             .get(ref_id_pair.as_str())
-                            .expect(&format!(
-                                "[rbatis-codegen] can not find element <include refid=\"{}\"> !",
-                                ref_id
-                            ))
+                            .unwrap_or_else(|| panic!("[rbatis-codegen] can not find element <include refid=\"{}\"> !",
+                                ref_id))
                             .clone();
                         x = element;
                     }
@@ -173,12 +170,12 @@ fn include_replace(
                 }
             },
         }
-        if x.childs.len() != 0 {
+        if !x.childs.is_empty() {
             x.childs = include_replace(x.childs.clone(), sql_map);
         }
         results.push(x);
     }
-    return results;
+    results
 }
 
 fn parse_html_node(
@@ -239,14 +236,14 @@ fn parse(
                         ignore,
                     );
                     if v.starts_with("#") {
-                        string_data = string_data.replacen(&v, &"?", 1);
+                        string_data = string_data.replacen(&v, "?", 1);
                         body = quote! {
                             #body
                             args.push(rbs::to_value(#method_impl).unwrap_or_default());
                         };
                     } else {
-                        string_data = string_data.replacen(&v, &"{}", 1);
-                        if formats_value.to_string().trim().ends_with(",") == false {
+                        string_data = string_data.replacen(&v, "{}", 1);
+                        if !formats_value.to_string().trim().ends_with(",") {
                             formats_value = quote!(#formats_value,);
                         }
                         formats_value = quote!(
@@ -271,12 +268,11 @@ fn parse(
                 }
             }
             "if" => {
-                let test_value = x
-                    .attrs
-                    .get("test")
-                    .expect(&format!("{} element must be have test field!", x.tag));
+                let test_value = x.attrs.get("test").unwrap_or_else(|| {
+                    panic!("{} element must be have test field!", x.tag)
+                });
                 let mut if_tag_body = quote! {};
-                if x.childs.len() != 0 {
+                if !x.childs.is_empty() {
                     if_tag_body = parse(&x.childs, methods, ignore, fn_name);
                 }
                 impl_if(
@@ -315,7 +311,7 @@ fn parse(
                     &suffix_overrides,
                     x,
                     &mut body,
-                    arg,
+                    arg.as_slice(),
                     methods,
                     ignore,
                     fn_name,
@@ -358,7 +354,7 @@ fn parse(
                     " | and| or",
                     x,
                     &mut body,
-                    arg,
+                    arg.as_slice(),
                     methods,
                     ignore,
                     fn_name,
@@ -377,12 +373,11 @@ fn parse(
                         panic!("choose node's childs must be when node and otherwise node!");
                     }
                     if x.tag.eq("when") {
-                        let test_value = x.attrs.get("test").expect(&format!(
-                            "{} element must be have test field!",
-                            x.tag
-                        ));
+                        let test_value = x.attrs.get("test").unwrap_or_else(|| {
+                            panic!("{} element must be have test field!", x.tag)
+                        });
                         let mut if_tag_body = quote! {};
-                        if x.childs.len() != 0 {
+                        if !x.childs.is_empty() {
                             if_tag_body = parse(&x.childs, methods, ignore, fn_name);
                         }
                         impl_if(
@@ -487,7 +482,15 @@ fn parse(
 
             "set" => {
                 impl_trim(
-                    " set ", " ", " |,", " |,", x, &mut body, arg, methods, ignore,
+                    " set ",
+                    " ",
+                    " |,",
+                    " |,",
+                    x,
+                    &mut body,
+                    arg.as_slice(),
+                    methods,
+                    ignore,
                     fn_name,
                 );
             }
@@ -576,15 +579,14 @@ fn parse(
         }
     }
 
-    return body.into();
+    body
 }
 
 fn remove_extra(txt: &str) -> String {
     let txt = txt.trim().replace("\\r", "");
     let lines: Vec<&str> = txt.split("\n").collect();
     let mut data = String::with_capacity(txt.len());
-    let mut index = 0;
-    for line in &lines {
+    for (index, line) in lines.iter().enumerate() {
         let mut line = line.trim_start().trim_end();
         if line.starts_with("`") {
             line = line.trim_start_matches("`");
@@ -594,9 +596,8 @@ fn remove_extra(txt: &str) -> String {
         }
         data.push_str(line);
         if index + 1 < lines.len() {
-            data.push_str("\n");
+            data.push('\n');
         }
-        index += 1;
     }
     if data.starts_with("`") && data.ends_with("`") {
         data = data.trim_start_matches("`").trim_end_matches("`").to_string();
@@ -670,7 +671,7 @@ fn impl_trim(
     end: &str,
     x: &Element,
     body: &mut proc_macro2::TokenStream,
-    _arg: &Vec<Element>,
+    _arg: &[Element],
     methods: &mut proc_macro2::TokenStream,
     ignore: &mut Vec<String>,
     fn_name: &str,
@@ -678,7 +679,7 @@ fn impl_trim(
     let trim_body = parse(&x.childs, methods, ignore, fn_name);
     let prefixes: Vec<&str> = start.split("|").collect();
     let suffixes: Vec<&str> = end.split("|").collect();
-    let have_trim = prefixes.len() != 0 && suffixes.len() != 0;
+    let have_trim = !prefixes.is_empty() && !suffixes.is_empty();
     let cup = x.child_string_cup();
     let mut trims = quote! {
          let mut sql= String::with_capacity(#cup);
@@ -719,7 +720,7 @@ fn impl_trim(
 
 pub fn impl_fn_html(m: &ItemFn, args: &ParseArgs) -> TokenStream {
     let fn_name = m.sig.ident.to_string();
-    if args.sqls.len() == 0 {
+    if args.sqls.is_empty() {
         panic!(
             "[rbatis-codegen] #[html_sql()] must have html_data, for example1: {}",
             stringify!(#[html_sql(r#"<select id="select_by_condition">`select * from biz_activity</select>"#)])
@@ -727,5 +728,5 @@ pub fn impl_fn_html(m: &ItemFn, args: &ParseArgs) -> TokenStream {
     }
     let html_data = args.sqls[0].to_token_stream().to_string();
     let t = parse_html(&html_data, &fn_name, &mut vec![]);
-    return t.into();
+    t.into()
 }

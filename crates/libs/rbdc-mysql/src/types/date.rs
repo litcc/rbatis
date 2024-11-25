@@ -16,8 +16,8 @@ impl Encode for Date {
         //u16:  MySQL supports years from 1000 - 9999
         let year = &(self.0.year as u16).to_le_bytes();
         buf.extend_from_slice(year);
-        buf.push(self.0.mon as u8);
-        buf.push(self.0.day as u8);
+        buf.push(self.0.mon);
+        buf.push(self.0.day);
         Ok(4)
     }
 }

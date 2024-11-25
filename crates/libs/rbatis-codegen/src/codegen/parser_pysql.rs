@@ -47,13 +47,13 @@ pub fn impl_fn_py(m: &ItemFn, args: &ParseArgs) -> TokenStream {
         data.starts_with("select") || data.starts_with(" select"),
         &fn_name,
     );
-    return parse_html(&htmls, &fn_name, &mut vec![]).into();
+    parse_html(&htmls, &fn_name, &mut vec![]).into()
 }
 
 impl ParsePySql for NodeType {
     //TODO maybe this use Rust parser crates?
     fn parse_pysql(arg: &str) -> Result<Vec<NodeType>, Error> {
-        let line_space_map = Self::create_line_space_map(&arg);
+        let line_space_map = Self::create_line_space_map(arg);
         let mut main_node = vec![];
         let ls = arg.lines();
         let mut space = -1;
@@ -75,12 +75,11 @@ impl ParsePySql for NodeType {
             if do_skip != -1 && do_skip >= skip {
                 skip = do_skip;
             }
-            let parserd;
-            if !child_str.is_empty() {
-                parserd = Self::parse_pysql(child_str.as_str())?;
+            let parserd = if !child_str.is_empty() {
+                Self::parse_pysql(child_str.as_str())?
             } else {
-                parserd = vec![];
-            }
+                vec![]
+            };
             Self::parse_pysql_node(
                 &mut main_node,
                 x,
@@ -90,7 +89,7 @@ impl ParsePySql for NodeType {
                 parserd,
             )?;
         }
-        return Ok(main_node);
+        Ok(main_node)
     }
 }
 
@@ -126,7 +125,7 @@ impl NodeType {
             }
             let node = Self::parse_trim_node(trim_x, x, childs)?;
             main_node.push(node);
-            return Ok(());
+            Ok(())
         } else {
             //string,replace space to only one
             let mut data;
@@ -140,7 +139,7 @@ impl NodeType {
             for x in childs {
                 main_node.push(x);
             }
-            return Ok(());
+            Ok(())
         }
     }
 
@@ -157,7 +156,7 @@ impl NodeType {
                 }
             }
         }
-        return index;
+        index
     }
 
     ///find_child_str
@@ -183,7 +182,7 @@ impl NodeType {
                 }
             }
         }
-        return (result, skip_line);
+        (result, skip_line)
     }
 
     ///Map<line,space>
@@ -197,7 +196,7 @@ impl NodeType {
             //dothing
             m.insert(line, space);
         }
-        return m;
+        m
     }
 
     fn parse_trim_node(
@@ -331,12 +330,11 @@ impl NodeType {
         } else if trim_express.starts_with(BindNode::default_name()) ||
             trim_express.starts_with(BindNode::name())
         {
-            let express;
-            if trim_express.starts_with(BindNode::default_name()) {
-                express = trim_express[BindNode::default_name().len()..].trim();
+            let express = if trim_express.starts_with(BindNode::default_name()) {
+                trim_express[BindNode::default_name().len()..].trim()
             } else {
-                express = trim_express[BindNode::name().len()..].trim();
-            }
+                trim_express[BindNode::name().len()..].trim()
+            };
             let name_value: Vec<&str> = express.split("=").collect();
             if name_value.len() != 2 {
                 return Err(Error::from(

@@ -61,7 +61,7 @@ async fn prepare(
 
     // next we send the PARSE command to the server
     conn.stream.write(Parse {
-        param_types: &*param_types,
+        param_types: &param_types,
         query: sql,
         statement: id,
     });
@@ -250,7 +250,7 @@ impl PgConnection {
                 statement,
                 formats: &[PgValueFormat::Binary],
                 num_params: arguments.types.len() as i16,
-                params: &*arguments.buffer,
+                params: &arguments.buffer,
                 result_formats: &[PgValueFormat::Binary],
             });
 

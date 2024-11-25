@@ -43,8 +43,8 @@ impl Decode for Json {
         let fmt = value.format();
         let type_info = value.type_info;
         let mut buf = value.value.unwrap_or_default();
-        if buf.len() == 0 {
-            return Ok(Json { 0: "null".to_string() });
+        if buf.is_empty() {
+            return Ok(Json("null".to_string()));
         }
         if fmt == PgValueFormat::Binary && type_info == PgTypeInfo::JSONB {
             assert_eq!(
@@ -54,7 +54,7 @@ impl Decode for Json {
             );
             buf.remove(0);
         }
-        Ok(Self { 0: unsafe { String::from_utf8_unchecked(buf) } })
+        Ok(Self(unsafe { String::from_utf8_unchecked(buf) }))
     }
 }
 
@@ -62,7 +62,7 @@ pub fn decode_json(value: PgValue) -> Result<Value, Error> {
     let fmt = value.format();
     let type_info = value.type_info;
     let mut buf = value.value.unwrap_or_default();
-    if buf.len() == 0 {
+    if buf.is_empty() {
         return Ok(Value::Null);
     }
     if fmt == PgValueFormat::Binary && type_info == PgTypeInfo::JSONB {
@@ -73,8 +73,8 @@ pub fn decode_json(value: PgValue) -> Result<Value, Error> {
         );
         buf.remove(0);
     }
-    Ok(serde_json::from_str(&unsafe { String::from_utf8_unchecked(buf) })
-        .map_err(|e| Error::from(e.to_string()))?)
+    serde_json::from_str(&unsafe { String::from_utf8_unchecked(buf) })
+        .map_err(|e| Error::from(e.to_string()))
 }
 
 pub fn encode_json(v: Value, buf: &mut PgArgumentBuffer) -> Result<IsNull, Error> {

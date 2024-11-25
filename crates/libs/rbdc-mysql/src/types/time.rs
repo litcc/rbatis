@@ -32,9 +32,9 @@ impl Encode for fastdate::Time {
         };
         buf.push(size as u8);
 
-        buf.push(self.hour as u8); //1
-        buf.push(self.minute as u8); //1
-        buf.push(self.sec as u8); //1
+        buf.push(self.hour); //1
+        buf.push(self.minute); //1
+        buf.push(self.sec); //1
         if self.nano != 0 {
             buf.extend(self.get_micro().to_le_bytes()); //4
         }

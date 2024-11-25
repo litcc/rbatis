@@ -26,13 +26,11 @@ impl FromStr for MySqlConnectOptions {
 
         let username = url.username();
         if !username.is_empty() {
-            options =
-                options.username(&*percent_decode_str(username).decode_utf8()?);
+            options = options.username(&percent_decode_str(username).decode_utf8()?);
         }
 
         if let Some(password) = url.password() {
-            options =
-                options.password(&*percent_decode_str(password).decode_utf8()?);
+            options = options.password(&percent_decode_str(password).decode_utf8()?);
         }
 
         let path = url.path().trim_start_matches('/');
@@ -51,11 +49,11 @@ impl FromStr for MySqlConnectOptions {
                 }
 
                 "charset" => {
-                    options = options.charset(&*value);
+                    options = options.charset(&value);
                 }
 
                 "collation" => {
-                    options = options.collation(&*value);
+                    options = options.collation(&value);
                 }
 
                 "statement-cache-capacity" => {

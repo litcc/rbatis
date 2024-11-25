@@ -14,6 +14,7 @@ use crate::Error;
 /// Timestamp(timestamp_millis:u64)
 #[derive(serde::Serialize, Clone, Eq, PartialEq, Hash)]
 #[serde(rename = "Timestamp")]
+#[derive(Default)]
 pub struct Timestamp(pub i64);
 
 impl Timestamp {
@@ -68,13 +69,7 @@ impl FromStr for Timestamp {
 
 impl From<Timestamp> for fastdate::DateTime {
     fn from(value: Timestamp) -> Self {
-        fastdate::DateTime::from_timestamp_millis(value.0 as i64)
-    }
-}
-
-impl Default for Timestamp {
-    fn default() -> Self {
-        Timestamp(0)
+        fastdate::DateTime::from_timestamp_millis(value.0)
     }
 }
 
@@ -98,9 +93,9 @@ impl From<DateTime> for Timestamp {
     }
 }
 
-impl Into<DateTime> for Timestamp {
-    fn into(self) -> DateTime {
-        DateTime::from_timestamp_millis(self.0)
+impl From<Timestamp> for DateTime {
+    fn from(val: Timestamp) -> Self {
+        DateTime::from_timestamp_millis(val.0)
     }
 }
 

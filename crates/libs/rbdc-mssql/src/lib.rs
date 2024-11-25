@@ -172,7 +172,7 @@ impl Connection for MssqlConnection {
                 rows_affected: {
                     let mut rows_affected = 0;
                     for x in v.rows_affected() {
-                        rows_affected += x.clone();
+                        rows_affected += *x;
                     }
                     rows_affected
                 },

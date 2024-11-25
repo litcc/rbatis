@@ -23,7 +23,7 @@ impl PgQuery {
 
     pub fn statement(&self) -> Option<&PgStatement> {
         match self.statement {
-            Either::Right(ref statement) => Some(&statement),
+            Either::Right(ref statement) => Some(statement),
             Either::Left(_) => None,
         }
     }
@@ -33,7 +33,7 @@ impl PgQuery {
         if self.arguments.is_empty() {
             return Ok(None);
         }
-        return Ok(Some(PgArguments::from_args(self.arguments)?));
+        Ok(Some(PgArguments::from_args(self.arguments)?))
     }
 
     #[inline]

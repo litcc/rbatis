@@ -45,13 +45,13 @@ pub(crate) fn impl_macro_html_sql(
         }
     }
     let mut sql_ident = quote!();
-    if args.sqls.len() >= 1 {
+    if !args.sqls.is_empty() {
         if rbatis_name.is_empty() {
             panic!("[rb] you should add rbatis ref param   `rb:&dyn Executor`  on '{}()'!", target_fn.sig.ident);
         }
         let mut s = "".to_string();
         for v in &args.sqls {
-            s = s + v.value().as_str();
+            s += v.value().as_str();
         }
         sql_ident = quote!(#s);
     } else {
@@ -72,10 +72,11 @@ pub(crate) fn impl_macro_html_sql(
             file_name = current.to_str().unwrap_or_default().to_string();
         }
         let mut html_data = String::new();
-        let mut f = File::open(file_name.as_str())
-            .expect(&format!("File Name = '{}' does not exist", file_name));
+        let mut f = File::open(file_name.as_str()).unwrap_or_else(|_| {
+            panic!("File Name = '{}' does not exist", file_name)
+        });
         f.read_to_string(&mut html_data)
-            .expect(&format!("{} read_to_string fail", file_name));
+            .unwrap_or_else(|_| panic!("{} read_to_string fail", file_name));
         let mut htmls =
             rbatis_codegen::codegen::parser_html::load_mapper_map(&html_data)
                 .expect("load html content fail");
@@ -94,7 +95,7 @@ pub(crate) fn impl_macro_html_sql(
     }
     if rbatis_ident.to_string().starts_with("mut ") {
         rbatis_ident = Ident::new(
-            &rbatis_ident.to_string().trim_start_matches("mut "),
+            rbatis_ident.to_string().trim_start_matches("mut "),
             Span::call_site(),
         )
         .to_token_stream();
@@ -135,22 +136,20 @@ pub(crate) fn impl_macro_html_sql(
         //no-debug_mode
     };
     #[cfg(feature = "debug_mode")]
-    if cfg!(debug_assertions) {
-        if file_name.ends_with(".html") {
-            use std::env::current_dir;
-            use std::path::PathBuf;
-            let current_dir = current_dir().unwrap();
-            let mut html_file_name = file_name.clone();
-            if !PathBuf::from(&file_name).is_absolute() {
-                html_file_name = format!(
-                    "{}/{}",
-                    current_dir.to_str().unwrap_or_default(),
-                    file_name
-                );
-            }
-            include_data =
-                quote! {#include_data  let _ = include_bytes!(#html_file_name);};
+    if cfg!(debug_assertions) && file_name.ends_with(".html") {
+        use std::env::current_dir;
+        use std::path::PathBuf;
+        let current_dir = current_dir().unwrap();
+        let mut html_file_name = file_name.clone();
+        if !PathBuf::from(&file_name).is_absolute() {
+            html_file_name = format!(
+                "{}/{}",
+                current_dir.to_str().unwrap_or_default(),
+                file_name
+            );
         }
+        include_data =
+            quote! {#include_data  let _ = include_bytes!(#html_file_name);};
     }
     let generic = target_fn.sig.generics.clone();
     //gen rust code
@@ -162,7 +161,7 @@ pub(crate) fn impl_macro_html_sql(
         .iter()
         .filter(|x| !x.path().is_ident("html_sql"))
         .collect::<Vec<_>>();
-    return quote! {
+    let gen_token_temple = quote! {
         #(#attrs)*
         #vis async fn #func_name_ident #generic(#func_args_stream) -> #return_ty {
           #include_data
@@ -176,6 +175,6 @@ pub(crate) fn impl_macro_html_sql(
           let (mut sql,rb_args) = impl_html_sql(rbs::Value::Map(rb_arg_map),'?');
           #call_method
         }
-    }
-    .into();
+    };
+    gen_token_temple.into()
 }

@@ -6,9 +6,11 @@ use rbdc::error::Error;
 ///
 /// [SQLite documentation]: https://www.sqlite.org/pragma.html#pragma_synchronous
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Default)]
 pub enum SqliteSynchronous {
     Off,
     Normal,
+    #[default]
     Full,
     Extra,
 }
@@ -21,12 +23,6 @@ impl SqliteSynchronous {
             SqliteSynchronous::Full => "FULL",
             SqliteSynchronous::Extra => "EXTRA",
         }
-    }
-}
-
-impl Default for SqliteSynchronous {
-    fn default() -> Self {
-        SqliteSynchronous::Full
     }
 }
 

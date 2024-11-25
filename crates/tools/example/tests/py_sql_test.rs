@@ -115,12 +115,10 @@ mod test {
         fn column_name(&self, i: usize) -> String {
             if self.sql.contains("select count") {
                 "count".to_string()
+            } else if i == 0 {
+                "sql".to_string()
             } else {
-                if i == 0 {
-                    "sql".to_string()
-                } else {
-                    "count".to_string()
-                }
+                "count".to_string()
             }
         }
 
@@ -143,12 +141,10 @@ mod test {
         fn get(&mut self, i: usize) -> Result<Value, Error> {
             if self.sql.contains("select count") {
                 Ok(Value::U64(self.count))
+            } else if i == 0 {
+                Ok(Value::String(self.sql.clone()))
             } else {
-                if i == 0 {
-                    Ok(Value::String(self.sql.clone()))
-                } else {
-                    Ok(Value::U64(self.count.clone()))
-                }
+                Ok(Value::U64(self.count))
             }
         }
     }
@@ -274,7 +270,7 @@ mod test {
                 let time = self.elapsed();
                 println!(
                     "QPS: {} QPS/s",
-                    (total as u128 * 1000000000 as u128 / time.as_nanos() as u128)
+                    (total as u128 * 1000000000_u128 / time.as_nanos())
                 );
             }
 
@@ -306,7 +302,7 @@ mod test {
                               ${k},
                          `) VALUES `
                     ");
-            let r = test_bench(&mut rb, &vec![]).await.unwrap();
+            let r = test_bench(&mut rb, &[]).await.unwrap();
 
             let mut t = MockTable {
                 id: Some("2".into()),

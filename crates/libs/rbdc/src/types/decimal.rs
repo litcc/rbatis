@@ -32,17 +32,11 @@ impl Decimal {
     }
 
     pub fn from_f64(arg: f64) -> Option<Decimal> {
-        match BigDecimal::from_f64(arg) {
-            None => None,
-            Some(v) => Some(Decimal::from(v)),
-        }
+        BigDecimal::from_f64(arg).map(Decimal::from)
     }
 
     pub fn from_f32(arg: f32) -> Option<Decimal> {
-        match BigDecimal::from_f32(arg) {
-            None => None,
-            Some(v) => Some(Decimal::from(v)),
-        }
+        BigDecimal::from_f32(arg).map(Decimal::from)
     }
 
     ///Return a new Decimal object equivalent to self,
@@ -135,9 +129,7 @@ impl FromStr for Decimal {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Decimal(
-            BigDecimal::from_str(&s).map_err(|e| Error::from(e.to_string()))?,
-        ))
+        Ok(Decimal(BigDecimal::from_str(s).map_err(|e| Error::from(e.to_string()))?))
     }
 }
 
@@ -300,7 +292,7 @@ mod test {
     fn test_with_scale() {
         let v1 = Decimal::new("1.123456").unwrap();
         let v = v1.with_scale(2);
-        println!("{}", v.to_string());
+        println!("{}", v);
         assert_eq!(v.to_string(), "1.12");
     }
 
@@ -308,7 +300,7 @@ mod test {
     fn test_with_prec() {
         let v1 = Decimal::new("1.123456").unwrap();
         let v = v1.with_prec(2);
-        println!("{}", v.to_string());
+        println!("{}", v);
         assert_eq!(v.to_string(), "1.1");
     }
 
