@@ -1,16 +1,24 @@
+use std::fmt::Debug;
+use std::fmt::Formatter;
+use std::time::Duration;
+
 use async_trait::async_trait;
-use deadpool::managed::{Metrics, Object, RecycleError, RecycleResult, Timeouts};
+use deadpool::managed::Metrics;
+use deadpool::managed::Object;
+use deadpool::managed::RecycleError;
+use deadpool::managed::RecycleResult;
+use deadpool::managed::Timeouts;
 use deadpool::Status;
+use rbdc::db;
 // use futures_core::future::BoxFuture;
 use rbdc::db::{Connection, ExecResult, Row};
 use rbdc::pool::conn_box::ConnectionBox;
 use rbdc::pool::conn_manager::ConnManager;
 use rbdc::pool::Pool;
-use rbdc::{db, Error};
+use rbdc::Error;
+use rbs::to_value;
 use rbs::value::map::ValueMap;
-use rbs::{to_value, Value};
-use std::fmt::{Debug, Formatter};
-use std::time::Duration;
+use rbs::Value;
 
 pub struct DeadPool {
     pub manager: ConnManagerProxy,
@@ -41,10 +49,7 @@ impl Pool for DeadPool {
         Self: Sized,
     {
         Ok(Self {
-            manager: ConnManagerProxy {
-                inner: manager.clone(),
-                conn: None,
-            },
+            manager: ConnManagerProxy { inner: manager.clone(), conn: None },
             inner: deadpool::managed::Pool::builder(ConnManagerProxy {
                 inner: manager,
                 conn: None,
@@ -58,10 +63,8 @@ impl Pool for DeadPool {
 
     async fn get(&self) -> Result<Box<dyn Connection>, Error> {
         let v = self.inner.get().await.map_err(|e| Error::from(e.to_string()))?;
-        let conn = ConnManagerProxy {
-            inner: v.manager_proxy.clone(),
-            conn: Some(v),
-        };
+        let conn =
+            ConnManagerProxy { inner: v.manager_proxy.clone(), conn: Some(v) };
         Ok(Box::new(conn))
     }
 
@@ -69,11 +72,13 @@ impl Pool for DeadPool {
         let mut out = Timeouts::default();
         out.create = Some(d);
         out.wait = Some(d);
-        let v = self.inner.timeout_get(&out).await.map_err(|e| Error::from(e.to_string()))?;
-        let conn = ConnManagerProxy {
-            inner: v.manager_proxy.clone(),
-            conn: Some(v),
-        };
+        let v = self
+            .inner
+            .timeout_get(&out)
+            .await
+            .map_err(|e| Error::from(e.to_string()))?;
+        let conn =
+            ConnManagerProxy { inner: v.manager_proxy.clone(), conn: Some(v) };
         Ok(Box::new(conn))
     }
 
@@ -119,7 +124,11 @@ impl deadpool::managed::Manager for ConnManagerProxy {
         self.inner.connect().await
     }
 
-    async fn recycle(&self, obj: &mut Self::Type, _metrics: &Metrics) -> RecycleResult<Self::Error> {
+    async fn recycle(
+        &self,
+        obj: &mut Self::Type,
+        _metrics: &Metrics,
+    ) -> RecycleResult<Self::Error> {
         if obj.conn.is_none() {
             return Err(RecycleError::Message("none".into()));
         }
@@ -133,14 +142,22 @@ use std::pin::Pin;
 pub type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
 
 impl db::Connection for ConnManagerProxy {
-    fn get_rows(&mut self, sql: &str, params: Vec<Value>) -> BoxFuture<Result<Vec<Box<dyn Row>>, Error>> {
+    fn get_rows(
+        &mut self,
+        sql: &str,
+        params: Vec<Value>,
+    ) -> BoxFuture<Result<Vec<Box<dyn Row>>, Error>> {
         if self.conn.is_none() {
             return Box::pin(async { Err(Error::from("conn is drop")) });
         }
         self.conn.as_mut().unwrap().get_rows(sql, params)
     }
 
-    fn exec(&mut self, sql: &str, params: Vec<Value>) -> BoxFuture<Result<ExecResult, Error>> {
+    fn exec(
+        &mut self,
+        sql: &str,
+        params: Vec<Value>,
+    ) -> BoxFuture<Result<ExecResult, Error>> {
         if self.conn.is_none() {
             return Box::pin(async { Err(Error::from("conn is drop")) });
         }
