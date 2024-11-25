@@ -8,7 +8,8 @@ use deadpool::managed::Object;
 use deadpool::managed::RecycleError;
 use deadpool::managed::RecycleResult;
 use deadpool::managed::Timeouts;
-use deadpool::{Runtime, Status};
+use deadpool::Runtime;
+use deadpool::Status;
 use rbdc::db;
 // use futures_core::future::BoxFuture;
 use rbdc::db::{Connection, ExecResult, Row};
@@ -48,23 +49,34 @@ impl Pool for DeadPool {
     where
         Self: Sized,
     {
-        let mut pool= deadpool::managed::Pool::builder(ConnManagerProxy {
+        let mut pool = deadpool::managed::Pool::builder(ConnManagerProxy {
             inner: manager.clone(),
             conn: None,
         });
 
-        #[cfg(all(feature = "rt_tokio", not(feature = "rt_async_std")))]
-        pool = pool.runtime(Runtime::Tokio1);
+        #[cfg(all(feature = "rt_tokio", feature = "rt_async_std"))]
+        {
+            compile_error!(
+                "rt_tokio and rt_async_std cannot be enabled at the same time"
+            );
+        }
 
-        #[cfg(all(feature = "rt_async_std", not(feature = "rt_tokio")))]
-        pool = pool.runtime(Runtime::Tokio1);
+        #[cfg(feature = "rt_tokio")]
+        {
+            pool = pool.runtime(Runtime::Tokio1);
+        }
+
+        #[cfg(feature = "rt_async_std")]
+        {
+            pool = pool.runtime(Runtime::AsyncStd1);
+        }
 
         Ok(Self {
             manager: ConnManagerProxy { inner: manager, conn: None },
             inner: pool
-            // .create_timeout(Some(Duration::from_secs(30)))
-            .build()
-            .map_err(|e| Error::from(e.to_string()))?,
+                // .create_timeout(Some(Duration::from_secs(30)))
+                .build()
+                .map_err(|e| Error::from(e.to_string()))?,
         })
     }
 
