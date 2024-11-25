@@ -13,6 +13,8 @@ Stand on the shoulders of giants.
 
 - rbatis/rbdc d1fa9a9bb0124aff5ce220d13e9e2fe07a1cbbca
 
+- rbatis/rbdc-pool-deadpool 87e0da57ae313be6d2ef6977aaefc2c66c3c07b4
+
 
 Update upstream patches wherever possible, prioritizing keeping them available
 
