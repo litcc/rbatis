@@ -634,24 +634,16 @@ impl<'a> TempExecutor<'a> {
 
     pub fn clear_sql(&self) -> Vec<String> {
         let mut arr = vec![];
-        loop {
-            if let Some(v) = self.sql.remove(0) {
-                arr.push(v);
-            } else {
-                break;
-            }
+        while let Some(v) = self.sql.remove(0) {
+            arr.push(v);
         }
         arr
     }
 
     pub fn clear_args(&self) -> Vec<Vec<Value>> {
         let mut arr = vec![];
-        loop {
-            if let Some(v) = self.args.remove(0) {
-                arr.push(v);
-            } else {
-                break;
-            }
+        while let Some(v) = self.args.remove(0) {
+            arr.push(v);
         }
         arr
     }

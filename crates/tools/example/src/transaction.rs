@@ -96,7 +96,7 @@ async fn transaction(
     });
     log::info!("transaction [{}] start", tx.tx.as_ref().unwrap().tx_id);
     let _ = Activity::insert(
-        &mut tx,
+        &tx,
         &Activity {
             id: Some("3".into()),
             name: Some("3".into()),

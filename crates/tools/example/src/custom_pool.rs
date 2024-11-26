@@ -108,9 +108,9 @@ mod my_pool {
             &self,
             d: Duration,
         ) -> Result<Box<dyn Connection>, Error> {
-            let mut out = Timeouts::default();
-            out.create = Some(d);
-            out.wait = Some(d);
+            let out =
+                Timeouts { create: Some(d), wait: Some(d), ..Default::default() };
+
             let v = self
                 .inner
                 .timeout_get(&out)

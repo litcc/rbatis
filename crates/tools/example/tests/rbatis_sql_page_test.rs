@@ -10,13 +10,9 @@ mod tests {
     fn test_page_request() {
         let data = make_pages();
         let page_req = PageRequest::default();
-        for i in 0..data.len() {
-            let (page_no, page_size, total, do_count) = (
-                data[i][0] as u64,
-                data[i][1] as u64,
-                data[i][2] as u64,
-                data[i][3] != 0,
-            );
+        for ref i in data {
+            let (page_no, page_size, total, do_count) =
+                (i[0] as u64, i[1] as u64, i[2] as u64, i[3] != 0);
             let mut pr = PageRequest::new_total(page_no, page_size, total);
             pr = pr.set_do_count(do_count);
             assert_eq!(pr.page_size(), page_size);

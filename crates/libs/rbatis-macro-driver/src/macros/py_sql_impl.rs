@@ -106,7 +106,7 @@ pub(crate) fn impl_macro_py_sql(target_fn: &ItemFn, args: ParseArgs) -> TokenStr
         .to_token_stream();
     }
     //append all args
-    let sql_args_gen = filter_args_context_id(&rbatis_name, &get_fn_args(target_fn));
+    let sql_args_gen = filter_args_context_id(&rbatis_name, get_fn_args(target_fn));
     let is_query = is_query(&return_ty.to_string());
     let mut call_method = quote! {};
     if is_query {
@@ -164,7 +164,7 @@ pub(crate) fn impl_macro_py_sql(target_fn: &ItemFn, args: ParseArgs) -> TokenStr
 
 pub(crate) fn filter_args_context_id(
     rbatis_name: &str,
-    fn_arg_name_vec: &Vec<Box<Pat>>,
+    fn_arg_name_vec: Vec<&Pat>,
 ) -> proc_macro2::TokenStream {
     let mut sql_args_gen = quote! {};
     for item in fn_arg_name_vec {

@@ -24,6 +24,7 @@ pub struct Activity {
 }
 
 /// doc you can see https://rbatis.github.io/rbatis.io
+#[allow(clippy::needless_question_mark)]
 #[sql("select * from activity where delete_flag = ?")]
 async fn raw_sql(rb: &RBatis, delete_flag: &i32) -> rbatis::Result<Vec<Activity>> {
     impled!()

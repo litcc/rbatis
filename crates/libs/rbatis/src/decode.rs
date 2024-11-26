@@ -8,7 +8,7 @@ use crate::Error;
 /// support decode types:
 /// Value,BigDecimal, i8..i64,u8..u64,i64,bool,String
 /// or object used rbs::Value macro object
-pub fn decode_ref<T: ?Sized>(values: &Value) -> Result<T, Error>
+pub fn decode_ref<T>(values: &Value) -> Result<T, Error>
 where
     T: DeserializeOwned,
 {
@@ -19,13 +19,13 @@ where
         Ok(rbs::from_value_ref(values)?)
     } else {
         match values {
-            Value::Array(datas) => Ok(try_decode_map(datas)?),
+            Value::Array(datas) => Ok(try_decode_map(datas.as_slice())?),
             _ => Err(Error::from("decode an not array value")),
         }
     }
 }
 
-pub fn decode<T: ?Sized>(bs: Value) -> Result<T, Error>
+pub fn decode<T>(bs: Value) -> Result<T, Error>
 where
     T: DeserializeOwned,
 {
@@ -33,7 +33,7 @@ where
 }
 
 //decode doc or one type
-pub fn try_decode_map<T>(datas: &Vec<Value>) -> Result<T, Error>
+pub fn try_decode_map<T>(datas: &[Value]) -> Result<T, Error>
 where
     T: DeserializeOwned,
 {
@@ -82,7 +82,8 @@ where
 }
 
 pub fn is_debug_mode() -> bool {
-    if cfg!(debug_assertions) {
+    #[cfg(debug_assertions)]
+    {
         #[cfg(feature = "debug_mode")]
         {
             true
@@ -91,7 +92,9 @@ pub fn is_debug_mode() -> bool {
         {
             false
         }
-    } else {
+    }
+    #[cfg(not(debug_assertions))]
+    {
         false
     }
 }

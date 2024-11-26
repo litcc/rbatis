@@ -2,7 +2,6 @@
 
 use std::cmp;
 use std::collections::HashMap;
-use std::i32;
 use std::os::raw::c_char;
 use std::ptr::null;
 use std::ptr::null_mut;
@@ -65,7 +64,7 @@ impl VirtualStatement {
     pub(crate) fn new(mut query: &str, persistent: bool) -> Result<Self, Error> {
         query = query.trim();
 
-        if query.len() > i32::max_value() as usize {
+        if query.len() > i32::MAX as usize {
             return Err(err_protocol!(
                 "query string must be smaller than {} bytes",
                 i32::MAX

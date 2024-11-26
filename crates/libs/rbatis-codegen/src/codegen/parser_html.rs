@@ -606,6 +606,7 @@ fn remove_extra(txt: &str) -> String {
     data
 }
 
+#[allow(clippy::ptr_arg)]
 fn impl_continue(
     _x: &Element,
     body: &mut proc_macro2::TokenStream,
@@ -617,6 +618,7 @@ fn impl_continue(
     };
 }
 
+#[allow(clippy::ptr_arg)]
 fn impl_break(
     _x: &Element,
     body: &mut proc_macro2::TokenStream,
@@ -628,6 +630,7 @@ fn impl_break(
     };
 }
 
+#[allow(clippy::ptr_arg)]
 fn impl_if(
     test_value: &str,
     if_tag_body: proc_macro2::TokenStream,
@@ -652,6 +655,7 @@ fn impl_if(
     };
 }
 
+#[allow(clippy::ptr_arg)]
 fn impl_otherwise(
     child_body: proc_macro2::TokenStream,
     body: &mut proc_macro2::TokenStream,
@@ -664,6 +668,7 @@ fn impl_otherwise(
     );
 }
 
+#[allow(clippy::too_many_arguments)]
 fn impl_trim(
     prefix: &str,
     suffix: &str,

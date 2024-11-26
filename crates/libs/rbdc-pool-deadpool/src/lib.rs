@@ -10,9 +10,9 @@ use deadpool::managed::RecycleResult;
 use deadpool::managed::Timeouts;
 use deadpool::Runtime;
 use deadpool::Status;
-use rbdc::db;
-// use futures_core::future::BoxFuture;
-use rbdc::db::{Connection, ExecResult, Row};
+use rbdc::db::Connection;
+use rbdc::db::ExecResult;
+use rbdc::db::Row;
 use rbdc::pool::conn_box::ConnectionBox;
 use rbdc::pool::conn_manager::ConnManager;
 use rbdc::pool::Pool;
@@ -88,9 +88,7 @@ impl Pool for DeadPool {
     }
 
     async fn get_timeout(&self, d: Duration) -> Result<Box<dyn Connection>, Error> {
-        let mut out = Timeouts::default();
-        out.create = Some(d);
-        out.wait = Some(d);
+        let out = Timeouts { create: Some(d), wait: Some(d), ..Default::default() };
         let v = self
             .inner
             .timeout_get(&out)
@@ -113,10 +111,6 @@ impl Pool for DeadPool {
         self.inner.resize(n as usize)
     }
 
-    fn driver_type(&self) -> &str {
-        self.manager.inner.driver_type()
-    }
-
     async fn state(&self) -> Value {
         let mut m = ValueMap::with_capacity(10);
         let state = self.status();
@@ -125,6 +119,10 @@ impl Pool for DeadPool {
         m.insert(to_value!("available"), to_value!(state.available));
         m.insert(to_value!("waiting"), to_value!(state.waiting));
         Value::Map(m)
+    }
+
+    fn driver_type(&self) -> &str {
+        self.manager.inner.driver_type()
     }
 }
 
@@ -160,7 +158,7 @@ use std::future::Future;
 use std::pin::Pin;
 pub type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
 
-impl db::Connection for ConnManagerProxy {
+impl Connection for ConnManagerProxy {
     fn get_rows(
         &mut self,
         sql: &str,

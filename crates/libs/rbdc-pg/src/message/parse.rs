@@ -1,5 +1,3 @@
-use std::i16;
-
 use rbdc::io::BufMutExt;
 use rbdc::io::Encode;
 

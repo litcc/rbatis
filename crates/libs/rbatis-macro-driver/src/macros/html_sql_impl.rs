@@ -103,7 +103,7 @@ pub(crate) fn impl_macro_html_sql(
 
     //append all args
     let sql_args_gen =
-        py_sql_impl::filter_args_context_id(&rbatis_name, &get_fn_args(target_fn));
+        py_sql_impl::filter_args_context_id(&rbatis_name, get_fn_args(target_fn));
     let is_query = is_query(&return_ty.to_string());
     let mut call_method = quote! {};
     if is_query {

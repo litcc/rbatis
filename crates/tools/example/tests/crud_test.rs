@@ -5,7 +5,7 @@
 #![allow(unused_assignments)]
 #![allow(unused_must_use)]
 #![allow(dead_code)]
-
+#![allow(clippy::upper_case_acronyms)]
 #[macro_use]
 extern crate rbatis;
 
@@ -372,7 +372,7 @@ mod test {
                 delete_flag: Some(1),
                 count: 0,
             };
-            let r = MockTable::insert(&mut rb, &t).await.unwrap();
+            let r = MockTable::insert(&rb, &t).await.unwrap();
             let (sql, args) = queue.pop().unwrap();
             println!("{} [{}]", sql, Value::from(args.clone()));
             assert_eq!(sql, "insert into mock_table (id,name,pc_link,h5_link,status,remark,create_time,version,delete_flag,count) VALUES (?,?,?,?,?,?,?,?,?,?)");
@@ -421,7 +421,7 @@ mod test {
             t.remark = None;
             t2.id = "3".to_string().into();
             let ts = vec![t, t2];
-            let r = MockTable::insert_batch(&mut rb, &ts, 10).await.unwrap();
+            let r = MockTable::insert_batch(&rb, &ts, 10).await.unwrap();
             let (sql, args) = queue.pop().unwrap();
             println!("{} [{}]", sql, Value::from(args.clone()));
             assert_eq!(sql, "insert into mock_table (id,name,pc_link,h5_link,status,remark,create_time,version,delete_flag,count) VALUES (?,?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?,?)");
@@ -476,7 +476,7 @@ mod test {
                 delete_flag: Some(1),
                 count: 0,
             };
-            let r = MockTable::update_by_column(&mut rb, &t, "id").await.unwrap();
+            let r = MockTable::update_by_column(&rb, &t, "id").await.unwrap();
 
             let (sql, args) = queue.pop().unwrap();
             println!("{}", sql);
@@ -523,7 +523,7 @@ mod test {
                 delete_flag: Some(1),
                 count: 0,
             };
-            let r = MockTable::update_by_column_skip(&mut rb, &t, "id", false)
+            let r = MockTable::update_by_column_skip(&rb, &t, "id", false)
                 .await
                 .unwrap();
 
@@ -677,7 +677,7 @@ mod test {
                     count: 4,
                 },
             ];
-            let r = MockTable::update_by_column_batch(&mut rb, &tables, "id", 2)
+            let r = MockTable::update_by_column_batch(&rb, &tables, "id", 2)
                 .await
                 .unwrap();
         };
@@ -691,7 +691,7 @@ mod test {
             let queue = Arc::new(SyncVec::new());
             rb.set_intercepts(vec![Arc::new(MockIntercept::new(queue.clone()))]);
             rb.init(MockDriver {}, "test").unwrap();
-            let r = MockTable::select_all(&mut rb).await.unwrap();
+            let r = MockTable::select_all(&rb).await.unwrap();
             let (sql, args) = queue.pop().unwrap();
             println!("{:?}", sql);
             assert_eq!(sql.trim(), "select * from mock_table");
@@ -707,7 +707,7 @@ mod test {
             rb.set_intercepts(vec![Arc::new(MockIntercept::new(queue.clone()))]);
             rb.init(MockDriver {}, "test").unwrap();
             let r = MockTable::delete_by_column(
-                &mut rb,
+                &rb,
                 "1",
                 &Value::String("1".to_string()),
             )
@@ -759,7 +759,7 @@ mod test {
             })]);
             rb.init(MockDriver {}, "test").unwrap();
             let r = MockTable::delete_by_column_batch(
-                &mut rb,
+                &rb,
                 "1",
                 &["1", "2", "3", "4"],
                 2,
@@ -778,7 +778,7 @@ mod test {
             let queue = Arc::new(SyncVec::new());
             rb.set_intercepts(vec![Arc::new(MockIntercept::new(queue.clone()))]);
             rb.init(MockDriver {}, "test").unwrap();
-            let r = MockTable::select_all_by_id(&mut rb, "1", "1").await.unwrap();
+            let r = MockTable::select_all_by_id(&rb, "1", "1").await.unwrap();
             let (sql, args) = queue.pop().unwrap();
             println!("{}", sql);
             assert_eq!(sql, "select * from mock_table where id = ? and name = ?");
@@ -794,7 +794,7 @@ mod test {
             let queue = Arc::new(SyncVec::new());
             rb.set_intercepts(vec![Arc::new(MockIntercept::new(queue.clone()))]);
             rb.init(MockDriver {}, "test").unwrap();
-            let r = MockTable::select_by_id(&mut rb, "1").await.unwrap();
+            let r = MockTable::select_by_id(&rb, "1").await.unwrap();
             let (sql, args) = queue.pop().unwrap();
             println!("{}", sql);
             assert_eq!(sql, "select * from mock_table where id = ? limit 1");
@@ -815,7 +815,7 @@ mod test {
             let queue = Arc::new(SyncVec::new());
             rb.set_intercepts(vec![Arc::new(MockIntercept::new(queue.clone()))]);
             rb.init(MockDriver {}, "test").unwrap();
-            let r = MockTable::select_by_dto(&mut rb, DTO { id: "1".to_string() })
+            let r = MockTable::select_by_dto(&rb, DTO { id: "1".to_string() })
                 .await
                 .unwrap();
             let (sql, args) = queue.pop().unwrap();
@@ -847,7 +847,7 @@ mod test {
                 delete_flag: Some(1),
                 count: 0,
             };
-            let r = MockTable::update_by_name(&mut rb, &t, "test").await.unwrap();
+            let r = MockTable::update_by_name(&rb, &t, "test").await.unwrap();
             let (sql, args) = queue.pop().unwrap();
             println!("{}", sql);
             assert_eq!(sql, "update mock_table set id=?,name=?,pc_link=?,h5_link=?,status=?,remark=?,create_time=?,version=?,delete_flag=?,count=? where id = '2'");
@@ -893,10 +893,9 @@ mod test {
                 delete_flag: Some(1),
                 count: 0,
             };
-            let r =
-                MockTable::update_by_dto(&mut rb, &t, DTO { id: "2".to_string() })
-                    .await
-                    .unwrap();
+            let r = MockTable::update_by_dto(&rb, &t, DTO { id: "2".to_string() })
+                .await
+                .unwrap();
             let (sql, args) = queue.pop().unwrap();
             println!("{}", sql);
             assert_eq!(sql, "update mock_table set id=?,name=?,pc_link=?,h5_link=?,status=?,remark=?,create_time=?,version=?,delete_flag=?,count=? where id = '2'");
@@ -927,7 +926,7 @@ mod test {
             let queue = Arc::new(SyncVec::new());
             rb.set_intercepts(vec![Arc::new(MockIntercept::new(queue.clone()))]);
             rb.init(MockDriver {}, "test").unwrap();
-            let r = MockTable::delete_by_name(&mut rb, "2").await.unwrap();
+            let r = MockTable::delete_by_name(&rb, "2").await.unwrap();
             let (sql, args) = queue.pop().unwrap();
             println!("{}", sql);
             assert_eq!(sql, "delete from mock_table where name= '2'");
@@ -942,7 +941,7 @@ mod test {
             let queue = Arc::new(SyncVec::new());
             rb.set_intercepts(vec![Arc::new(MockIntercept::new(queue.clone()))]);
             rb.init(MockDriver {}, "test").unwrap();
-            let r = MockTable::select_page(&mut rb, &PageRequest::new(1, 10), "1")
+            let r = MockTable::select_page(&rb, &PageRequest::new(1, 10), "1")
                 .await
                 .unwrap();
             let (sql, args) = queue.pop().unwrap();
@@ -971,7 +970,7 @@ mod test {
             rb.set_intercepts(vec![Arc::new(MockIntercept::new(queue.clone()))]);
             rb.init(MockDriver {}, "test").unwrap();
             let r = MockTable::select_page_by_name(
-                &mut rb,
+                &rb,
                 &PageRequest::new(1, 10),
                 "",
                 "",
@@ -998,7 +997,7 @@ mod test {
             let queue = Arc::new(SyncVec::new());
             rb.set_intercepts(vec![Arc::new(MockIntercept::new(queue.clone()))]);
             rb.init(MockDriver {}, "test").unwrap();
-            let r = MockTable::select_by_column(&mut rb, "id", "1").await.unwrap();
+            let r = MockTable::select_by_column(&rb, "id", "1").await.unwrap();
             let (sql, args) = queue.pop().unwrap();
             println!("{}", sql);
             assert_eq!(sql.trim(), "select * from mock_table  where id = ?");
@@ -1016,10 +1015,9 @@ mod test {
             let queue = Arc::new(SyncVec::new());
             rb.set_intercepts(vec![Arc::new(MockIntercept::new(queue.clone()))]);
             rb.init(MockDriver {}, "test").unwrap();
-            let r =
-                MockTable::select_from_table_name_by_id(&mut rb, "1", "mock_table2")
-                    .await
-                    .unwrap();
+            let r = MockTable::select_from_table_name_by_id(&rb, "1", "mock_table2")
+                .await
+                .unwrap();
             let (sql, args) = queue.pop().unwrap();
             println!("{}", sql);
             assert_eq!(sql, "select * from mock_table2 where id = ?");
@@ -1038,7 +1036,7 @@ mod test {
             rb.set_intercepts(vec![Arc::new(MockIntercept::new(queue.clone()))]);
             rb.init(MockDriver {}, "test").unwrap();
             let r = MockTable::select_table_column_from_table_name_by_id(
-                &mut rb, "1", "id,name",
+                &rb, "1", "id,name",
             )
             .await
             .unwrap();
@@ -1057,9 +1055,8 @@ mod test {
             let queue = Arc::new(SyncVec::new());
             rb.set_intercepts(vec![Arc::new(MockIntercept::new(queue.clone()))]);
             rb.init(MockDriver {}, "test").unwrap();
-            let r = MockTable::select_in_column(&mut rb, "1", &["1", "2"])
-                .await
-                .unwrap();
+            let r =
+                MockTable::select_in_column(&rb, "1", &["1", "2"]).await.unwrap();
             let (sql, args) = queue.pop().unwrap();
             println!("{}", sql);
             assert_eq!(sql, "select * from mock_table  where 1 in (?,?)");
@@ -1075,9 +1072,8 @@ mod test {
             let queue = Arc::new(SyncVec::new());
             rb.set_intercepts(vec![Arc::new(MockIntercept::new(queue.clone()))]);
             rb.init(MockDriver {}, "test").unwrap();
-            let r = MockTable::delete_in_column(&mut rb, "1", &["1", "2"])
-                .await
-                .unwrap();
+            let r =
+                MockTable::delete_in_column(&rb, "1", &["1", "2"]).await.unwrap();
             let (sql, args) = queue.pop().unwrap();
             println!("{}", sql);
             assert_eq!(sql, "delete from mock_table where 1 in (?,?)");
@@ -1107,11 +1103,11 @@ mod test {
                 count: 0,
             };
             let mut tx = rb.acquire_begin().await.unwrap();
-            let _r = MockTable::insert(&mut tx, &t).await.unwrap();
+            let _r = MockTable::insert(&tx, &t).await.unwrap();
 
             let mut tx =
                 rb.acquire_begin().await.unwrap().defer_async(|_tx| async {});
-            let _r = MockTable::insert(&mut tx, &t).await.unwrap();
+            let _r = MockTable::insert(&tx, &t).await.unwrap();
         };
         block_on(f);
     }
@@ -1156,10 +1152,9 @@ mod test {
             let queue = Arc::new(SyncVec::new());
             rb.set_intercepts(vec![Arc::new(MockIntercept::new(queue.clone()))]);
             rb.init(MockDriver {}, "test").unwrap();
-            let r =
-                htmlsql_select_page_by_name(&mut rb, &PageRequest::new(1, 10), "")
-                    .await
-                    .unwrap();
+            let r = htmlsql_select_page_by_name(&rb, &PageRequest::new(1, 10), "")
+                .await
+                .unwrap();
             let (sql, args) = queue.pop().unwrap();
             println!("{}", sql);
             assert_eq!(sql, "select * from table limit 0,10");
@@ -1193,7 +1188,7 @@ mod test {
             rb.set_intercepts(vec![Arc::new(MockIntercept::new(queue.clone()))]);
             rb.init(MockDriver {}, "test").unwrap();
             let r = pysql_select_page(
-                &mut rb,
+                &rb,
                 &PageRequest::new(1, 10),
                 PySqlSelectPageArg { name: "aaa".to_string() },
                 "test",

@@ -40,21 +40,22 @@ pub fn snake_name(args: TokenStream, func: TokenStream) -> TokenStream {
 fn to_snake_name(name: &str) -> String {
     let len = name.len();
     let bytes = name.as_bytes();
-    let mut new_name = String::with_capacity(name.len());
-    let mut index = 0;
-    for x in bytes {
-        let c = *x as char;
-        if c.is_ascii_uppercase() {
-            if index != 0 && (index + 1) != len {
-                new_name.push('_');
+
+    bytes.iter().enumerate().fold(
+        String::with_capacity(name.len()),
+        |mut acc, (index, &x)| {
+            let c = x as char;
+            if c.is_ascii_uppercase() {
+                if index != 0 && (index + 1) != len {
+                    acc.push('_');
+                }
+                acc.push(c.to_ascii_lowercase());
+            } else {
+                acc.push(c);
             }
-            new_name.push(c.to_ascii_lowercase());
-        } else {
-            new_name.push(c);
-        }
-        index += 1;
-    }
-    new_name
+            acc
+        },
+    )
 }
 
 #[cfg(test)]

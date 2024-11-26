@@ -84,7 +84,7 @@ pub(crate) fn impl_macro_sql(target_fn: &ItemFn, args: &ParseArgs) -> TokenStrea
     //append all args
     let sql_args_gen = filter_args_context_id(
         &rbatis_name,
-        &get_fn_args(target_fn),
+        get_fn_args(target_fn),
         &[page_req_str],
     );
     let generic = target_fn.sig.generics.clone();
@@ -113,7 +113,7 @@ pub(crate) fn impl_macro_sql(target_fn: &ItemFn, args: &ParseArgs) -> TokenStrea
 
 fn filter_args_context_id(
     rbatis_name: &str,
-    fn_arg_name_vec: &Vec<Box<Pat>>,
+    fn_arg_name_vec: Vec<&Pat>,
     skip_names: &[String],
 ) -> proc_macro2::TokenStream {
     let mut sql_args_gen = quote! {};

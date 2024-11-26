@@ -39,6 +39,9 @@ pub(crate) struct WorkerSharedState {
     pub(crate) conn: Mutex<ConnectionState>,
 }
 
+pub type CreateCollationFn =
+    dyn FnOnce(&mut ConnectionState) -> Result<(), Error> + Send + Sync + 'static;
+
 pub enum Command {
     Prepare {
         query: Box<str>,
@@ -51,12 +54,7 @@ pub enum Command {
         tx: flume::Sender<Result<Either<SqliteQueryResult, SqliteRow>, Error>>,
     },
     CreateCollation {
-        create_collation: Box<
-            dyn FnOnce(&mut ConnectionState) -> Result<(), Error>
-                + Send
-                + Sync
-                + 'static,
-        >,
+        create_collation: Box<CreateCollationFn>,
     },
     UnlockDb,
     ClearCache {

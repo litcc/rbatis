@@ -24,4 +24,4 @@ async-trait = "0.1"
 # futures-core = { version = "0.3" }
 rbs = { workspace = true }
 rbdc = { workspace = true,default-features = false }
-deadpool = { version = "0.12" ,features = ["default"]}
+deadpool = { version = "0.12.1" ,features = ["default"]}

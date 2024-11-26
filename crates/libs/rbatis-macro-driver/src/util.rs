@@ -20,15 +20,20 @@ pub(crate) fn find_return_type(target_fn: &ItemFn) -> proc_macro2::TokenStream {
     return_ty
 }
 
-pub(crate) fn get_fn_args(target_fn: &ItemFn) -> Vec<Box<Pat>> {
-    let mut fn_arg_name_vec = vec![];
-    for arg in &target_fn.sig.inputs {
-        if let FnArg::Typed(t) = arg {
-            fn_arg_name_vec.push(t.pat.clone());
-            //println!("arg_name {}", arg_name);
-        }
-    }
-    fn_arg_name_vec
+pub(crate) fn get_fn_args(target_fn: &ItemFn) -> Vec<&Pat> {
+    target_fn
+        .sig
+        .inputs
+        .iter()
+        .filter_map(|arg| {
+            if let FnArg::Typed(t) = arg {
+                Some(t.pat.as_ref())
+                //println!("arg_name {}", arg_name);
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<_>>()
 }
 
 //find and check method return type

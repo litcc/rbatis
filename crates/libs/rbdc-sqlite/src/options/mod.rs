@@ -92,18 +92,20 @@ impl<'de> Deserialize<'de> for SqliteConnectOptions {
             // Sync + 'static>>,
         }
         let op = SqliteConnectOptions::deserialize(deserializer)?;
-        let mut s = Self::default();
-        s.filename = op.filename;
-        s.in_memory = op.in_memory;
-        s.read_only = op.read_only;
-        s.create_if_missing = op.create_if_missing;
-        s.shared_cache = op.shared_cache;
-        s.statement_cache_capacity = op.statement_cache_capacity;
-        s.busy_timeout = op.busy_timeout;
-        s.immutable = op.immutable;
-        s.command_channel_size = op.command_channel_size;
-        s.row_channel_size = op.row_channel_size;
-        s.serialized = op.serialized;
+        let s = Self {
+            filename: op.filename,
+            in_memory: op.in_memory,
+            read_only: op.read_only,
+            create_if_missing: op.create_if_missing,
+            shared_cache: op.shared_cache,
+            statement_cache_capacity: op.statement_cache_capacity,
+            busy_timeout: op.busy_timeout,
+            immutable: op.immutable,
+            command_channel_size: op.command_channel_size,
+            row_channel_size: op.row_channel_size,
+            serialized: op.serialized,
+            ..Default::default()
+        };
         Ok(s)
     }
 }

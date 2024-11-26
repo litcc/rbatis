@@ -24,6 +24,12 @@ use crate::types::TypeInfo;
 //            to &mut Vec<u8>, backtrack and update the prefixed-len, then write
 //            until the next patch offset
 
+pub type Patch = (
+    usize, // offset
+    usize, // argument index
+    Box<dyn Fn(&mut [u8], &PgTypeInfo) + 'static + Send + Sync>,
+);
+
 #[derive(Default)]
 pub struct PgArgumentBuffer {
     buffer: Vec<u8>,
@@ -37,11 +43,7 @@ pub struct PgArgumentBuffer {
     // This currently is only setup to be useful if there is a *fixed-size* slot
     // that needs to be tweaked from the input type. However, that's the only
     // use case we currently have.
-    patches: Vec<(
-        usize, // offset
-        usize, // argument index
-        Box<dyn Fn(&mut [u8], &PgTypeInfo) + 'static + Send + Sync>,
-    )>,
+    patches: Vec<Patch>,
 
     // Whenever an `Encode` impl encounters a `PgTypeInfo` object that does not have
     // an OID It pushes a "hole" that must be patched later.

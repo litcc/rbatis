@@ -231,7 +231,7 @@ mod test {
             ) -> Result<Value, Error> {
                 impled!()
             }
-            let r = test_same_id(&mut rb, &1).await.unwrap();
+            let r = test_same_id(&rb, &1).await.unwrap();
             let (sql, args) = queue.pop().unwrap();
             assert_eq!(sql, "select 1,1,?,?");
             assert_eq!(args, vec![Value::U64(1), Value::U64(1)]);
@@ -249,7 +249,7 @@ mod test {
 
             pysql!(test_same_id(rb: &RBatis, id: &u64)  -> Result<Value, Error> => "select ${id},${id},#{id},#{id} ");
 
-            let r = test_same_id(&mut rb, &1).await.unwrap();
+            let r = test_same_id(&rb, &1).await.unwrap();
             let (sql, args) = queue.pop().unwrap();
             assert_eq!(sql, "select 1,1,?,?");
             assert_eq!(args, vec![Value::U64(1), Value::U64(1)]);
@@ -259,13 +259,13 @@ mod test {
 
     #[test]
     fn test_macro_bench() {
-        pub trait QPS {
+        pub trait Qps {
             fn qps(&self, total: u64);
             fn time(&self, total: u64);
             fn cost(&self);
         }
 
-        impl QPS for std::time::Instant {
+        impl Qps for std::time::Instant {
             fn qps(&self, total: u64) {
                 let time = self.elapsed();
                 println!(
@@ -302,7 +302,7 @@ mod test {
                               ${k},
                          `) VALUES `
                     ");
-            let r = test_bench(&mut rb, &[]).await.unwrap();
+            let r = test_bench(&rb, &[]).await.unwrap();
 
             let mut t = MockTable {
                 id: Some("2".into()),
@@ -323,7 +323,7 @@ mod test {
             let total = 100000;
             let now = std::time::Instant::now();
             for _ in 0..total {
-                let r = test_bench(&mut rb, &vec![t.clone()]).await.unwrap();
+                let r = test_bench(&rb, &vec![t.clone()]).await.unwrap();
             }
             now.time(total);
             now.qps(total);

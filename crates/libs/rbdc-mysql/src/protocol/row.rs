@@ -27,37 +27,28 @@ impl From<(Vec<Option<Range<usize>>>, Vec<u8>)> for Row {
 
 impl Row {
     pub fn get(&self, index: usize) -> Option<&[u8]> {
-        let mut idx = 0;
-        for x in &self.values {
+        self.values.iter().enumerate().find_map(|(idx, x)| {
             if index == idx {
                 match x {
-                    None => return None,
-                    Some(_) => match &self.storage[idx] {
-                        None => {
-                            return None;
-                        }
-                        Some(v) => {
-                            return Some(v);
-                        }
-                    },
+                    None => None,
+                    Some(_) => self.storage[idx].as_deref(),
                 }
+            } else {
+                None
             }
-            idx += 1;
-        }
-        None
+        })
     }
 
     pub fn take(&mut self, index: usize) -> Option<Vec<u8>> {
-        let mut idx = 0;
-        for x in &self.values {
+        self.values.iter().enumerate().find_map(|(idx, x)| {
             if index == idx {
                 match x {
-                    None => return None,
-                    Some(_) => return self.storage[idx].take(),
+                    None => None,
+                    Some(_) => self.storage[idx].take(),
                 }
+            } else {
+                None
             }
-            idx += 1;
-        }
-        None
+        })
     }
 }

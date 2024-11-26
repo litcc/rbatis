@@ -36,6 +36,12 @@ impl Clone for Snowflake {
     }
 }
 
+impl Default for Snowflake {
+    fn default() -> Snowflake {
+        Snowflake::new(1, 1, 0)
+    }
+}
+
 impl Snowflake {
     pub fn new(machine_id: i32, node_id: i32, mode: i32) -> Snowflake {
         Self::with_epoch(machine_id, node_id, mode, UNIX_EPOCH)
@@ -92,10 +98,6 @@ impl Snowflake {
             idx: AtomicU16::new(0),
             lock: ReentrantMutex::new(()),
         }
-    }
-
-    pub fn default() -> Snowflake {
-        Snowflake::new(1, 1, 0)
     }
 
     #[inline]

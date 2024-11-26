@@ -18,19 +18,25 @@ use rbdc::error::Error;
 use crate::connection::handle::ConnectionHandle;
 use crate::SqliteError;
 
+pub type CollateFn = dyn Fn(&str, &str) -> Ordering + Send + Sync + 'static;
+
+pub type CallType = unsafe extern "C" fn(
+    arg1: *mut c_void,
+    arg2: c_int,
+    arg3: *const c_void,
+    arg4: c_int,
+    arg5: *const c_void,
+) -> c_int;
+
+pub type FreeType = unsafe extern "C" fn(*mut c_void);
+
 #[derive(Clone)]
 pub struct Collation {
     name: Arc<str>,
-    collate: Arc<dyn Fn(&str, &str) -> Ordering + Send + Sync + 'static>,
+    collate: Arc<CollateFn>,
     // SAFETY: these must match the concrete type of `collate`
-    call: unsafe extern "C" fn(
-        arg1: *mut c_void,
-        arg2: c_int,
-        arg3: *const c_void,
-        arg4: c_int,
-        arg5: *const c_void,
-    ) -> c_int,
-    free: unsafe extern "C" fn(*mut c_void),
+    call: CallType,
+    free: FreeType,
 }
 
 impl Collation {
