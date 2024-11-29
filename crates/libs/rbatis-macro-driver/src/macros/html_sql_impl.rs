@@ -67,8 +67,15 @@ pub(crate) fn impl_macro_html_sql(
         //relative path append realpath
         let file_path = PathBuf::from(file_name.clone());
         if file_path.is_relative() {
-            let mut current = current_dir().unwrap_or_default();
+            let mut manifest_dir = std::env::var("CARGO_MANIFEST_DIR")
+                .expect("Failed to read CARGO_MANIFEST_DIR");
+            manifest_dir.push('/');
+            let mut current = PathBuf::from(manifest_dir);
             current.push(file_name.clone());
+            if !current.exists() {
+                current = current_dir().unwrap_or_default();
+                current.push(file_name.clone());
+            }
             file_name = current.to_str().unwrap_or_default().to_string();
         }
         let mut html_data = String::new();

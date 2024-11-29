@@ -29,7 +29,7 @@ htmlsql!(select_page_data(rb: &dyn Executor,
     dt: &DateTime,
     page_no: i32,
     page_size: i32,
-) -> rbatis::Result<Vec<Activity>> => "./crates/tools/example/example.html");
+) -> rbatis::Result<Vec<Activity>> => "example.html");
 
 #[tokio::main]
 pub async fn main() {
