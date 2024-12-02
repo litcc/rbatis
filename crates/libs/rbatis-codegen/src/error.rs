@@ -82,7 +82,7 @@ impl Serialize for Error {
 
 struct ErrorVisitor;
 
-impl<'de> Visitor<'de> for ErrorVisitor {
+impl Visitor<'_> for ErrorVisitor {
     type Value = String;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {

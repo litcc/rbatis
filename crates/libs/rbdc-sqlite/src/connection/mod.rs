@@ -29,16 +29,14 @@ pub use worker::Command;
 
 /// A connection to an open [Sqlite] database.
 ///
-/// Because SQLite is an in-process database accessed by blocking API calls, SQLx
-/// uses a background thread and communicates with it via channels to allow
-/// non-blocking access to the database.
+/// Because SQLite is an in-process database accessed by blocking API calls, SQLx uses a background
+/// thread and communicates with it via channels to allow non-blocking access to the database.
 ///
-/// Dropping this struct will signal the worker thread to quit and close the
-/// database, though if an error occurs there is no way to pass it back to the user
-/// this way.
+/// Dropping this struct will signal the worker thread to quit and close the database, though
+/// if an error occurs there is no way to pass it back to the user this way.
 ///
-/// You can explicitly call [`.close()`][Self::close] to ensure the database is
-/// closed successfully or get an error otherwise.
+/// You can explicitly call [`.close()`][Self::close] to ensure the database is closed successfully
+/// or get an error otherwise.
 pub struct SqliteConnection {
     pub(crate) worker: ConnectionWorker,
     pub(crate) row_channel_size: usize,

@@ -318,7 +318,7 @@ impl PgConnectOptions {
     /// maximum precision in Postgres 12 and later), and 0 means keep the default
     /// behavior (or the "old" behavior described above as of Postgres 12).
     ///
-    /// SQLx sets this value to 3 by default, which tells Postgres to return
+    /// rbdc sets this value to 3 by default, which tells Postgres to return
     /// floating-point values at their maximum precision in the hope that the
     /// parsed value will be identical to its counterpart in Postgres. This is
     /// also the default in Postgres 12 and later anyway.

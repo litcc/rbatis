@@ -27,7 +27,7 @@ impl<'a> RbsValueDisplay<'a> {
     }
 }
 
-impl<'a> Display for RbsValueDisplay<'a> {
+impl Display for RbsValueDisplay<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.write_str("[")?;
         for (idx, x) in self.inner.deref().iter().enumerate() {

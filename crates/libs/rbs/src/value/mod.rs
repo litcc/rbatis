@@ -559,7 +559,7 @@ impl From<String> for Value {
     }
 }
 
-impl<'a> From<&'a str> for Value {
+impl From<&str> for Value {
     #[inline]
     fn from(v: &str) -> Self {
         Value::String(v.to_string())
@@ -573,7 +573,7 @@ impl From<Vec<u8>> for Value {
     }
 }
 
-impl<'a> From<&'a [u8]> for Value {
+impl From<&[u8]> for Value {
     #[inline]
     fn from(v: &[u8]) -> Self {
         Value::Binary(v.into())
@@ -718,7 +718,7 @@ impl<'a> IntoIterator for &'a Value {
     }
 }
 
-impl<'a, 'b> IntoIterator for &'a &'b Value {
+impl<'b> IntoIterator for &&'b Value {
     type Item = (Value, &'b Value);
     type IntoIter = std::vec::IntoIter<(Value, &'b Value)>;
 

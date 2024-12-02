@@ -61,7 +61,7 @@ impl<'r> SqliteValueRef<'r> {
     }
 }
 
-impl<'r> SqliteValueRef<'r> {
+impl SqliteValueRef<'_> {
     pub fn to_owned(&self) -> SqliteValue {
         match self.0 {
             SqliteValueData::Value(v) => v.clone(),

@@ -407,7 +407,7 @@ impl<'a> MapDeserializer<'a> {
     }
 }
 
-impl<'de, 'a> serde::de::MapAccess<'de> for MapDeserializer<'a> {
+impl<'de> serde::de::MapAccess<'de> for MapDeserializer<'_> {
     type Error = crate::Error;
 
     fn next_key_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>
@@ -442,7 +442,7 @@ impl<'de, 'a> serde::de::MapAccess<'de> for MapDeserializer<'a> {
     }
 }
 
-impl<'de, 'a> Deserializer<'de> for MapDeserializer<'a> {
+impl<'de> Deserializer<'de> for MapDeserializer<'_> {
     type Error = crate::Error;
 
     #[inline]
@@ -465,7 +465,7 @@ struct EnumDeserializer<'a> {
     value: Option<Value>,
 }
 
-impl<'de, 'a> serde::de::EnumAccess<'de> for EnumDeserializer<'a> {
+impl<'de> serde::de::EnumAccess<'de> for EnumDeserializer<'_> {
     type Error = crate::Error;
     type Variant = VariantDeserializer;
 

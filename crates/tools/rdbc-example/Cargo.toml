@@ -10,9 +10,16 @@ publish = false
 name = "sqlite"
 path = "src/sqlite.rs"
 
+[[bin]]
+name = "mssql"
+path = "src/mssql.rs"
+
+
 [dependencies]
 rbs = { workspace = true }
 rbdc = { workspace = true }
 rbdc-sqlite = { workspace = true }
+rbdc-mssql = {workspace = true}
+
 rbdc-pool-fast = { workspace = true }
 tokio = { version = "1", features = ["sync", "fs", "net", "rt", "rt-multi-thread", "time", "io-util", "macros"] }

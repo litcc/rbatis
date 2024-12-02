@@ -108,7 +108,7 @@ impl Element {
     pub fn child_strings(&self) -> Vec<&str> {
         let mut elements = vec![];
         for x in &self.childs {
-            if x.tag.eq("") {
+            if x.tag.is_empty() {
                 elements.push(x.data.as_str());
             }
             let v = x.child_strings();

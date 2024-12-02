@@ -30,6 +30,7 @@ mod test {
     use rbatis::impl_update;
     use rbatis::intercept::Intercept;
     use rbatis::intercept::ResultType;
+    use rbatis::intercept_page::PageIntercept;
     use rbatis::plugin::PageRequest;
     use rbatis::DefaultPool;
     use rbatis::Error;
@@ -924,7 +925,10 @@ mod test {
         let f = async move {
             let mut rb = RBatis::new();
             let queue = Arc::new(SyncVec::new());
-            rb.set_intercepts(vec![Arc::new(MockIntercept::new(queue.clone()))]);
+            rb.set_intercepts(vec![
+                Arc::new(PageIntercept::new()),
+                Arc::new(MockIntercept::new(queue.clone())),
+            ]);
             rb.init(MockDriver {}, "test").unwrap();
             let r = MockTable::delete_by_name(&rb, "2").await.unwrap();
             let (sql, args) = queue.pop().unwrap();
@@ -939,7 +943,10 @@ mod test {
         let f = async move {
             let mut rb = RBatis::new();
             let queue = Arc::new(SyncVec::new());
-            rb.set_intercepts(vec![Arc::new(MockIntercept::new(queue.clone()))]);
+            rb.set_intercepts(vec![
+                Arc::new(PageIntercept::new()),
+                Arc::new(MockIntercept::new(queue.clone())),
+            ]);
             rb.init(MockDriver {}, "test").unwrap();
             let r = MockTable::select_page(&rb, &PageRequest::new(1, 10), "1")
                 .await
@@ -947,7 +954,7 @@ mod test {
             let (sql, args) = queue.pop().unwrap();
             assert_eq!(
                 sql,
-                "select * from mock_table order by create_time desc limit 0,10"
+                "select * from mock_table order by create_time desc limit 0,10 "
             );
             let (sql, args) = queue.pop().unwrap();
             assert_eq!(
@@ -967,7 +974,10 @@ mod test {
         let f = async move {
             let mut rb = RBatis::new();
             let queue = Arc::new(SyncVec::new());
-            rb.set_intercepts(vec![Arc::new(MockIntercept::new(queue.clone()))]);
+            rb.set_intercepts(vec![
+                Arc::new(PageIntercept::new()),
+                Arc::new(MockIntercept::new(queue.clone())),
+            ]);
             rb.init(MockDriver {}, "test").unwrap();
             let r = MockTable::select_page_by_name(
                 &rb,
@@ -979,7 +989,7 @@ mod test {
             .unwrap();
             let (sql, args) = queue.pop().unwrap();
             println!("{}", sql);
-            assert_eq!(sql, "select * from mock_table where name != '' limit 0,10");
+            assert_eq!(sql, "select * from mock_table where name != '' limit 0,10 ");
             let (sql, args) = queue.pop().unwrap();
             println!("{}", sql);
             assert_eq!(
@@ -1150,7 +1160,10 @@ mod test {
         let f = async move {
             let mut rb = RBatis::new();
             let queue = Arc::new(SyncVec::new());
-            rb.set_intercepts(vec![Arc::new(MockIntercept::new(queue.clone()))]);
+            rb.set_intercepts(vec![
+                Arc::new(PageIntercept::new()),
+                Arc::new(MockIntercept::new(queue.clone())),
+            ]);
             rb.init(MockDriver {}, "test").unwrap();
             let r = htmlsql_select_page_by_name(&rb, &PageRequest::new(1, 10), "")
                 .await
@@ -1160,7 +1173,7 @@ mod test {
             assert_eq!(sql, "select * from table limit 0,10");
             let (sql, args) = queue.pop().unwrap();
             println!("{}", sql);
-            assert_eq!(sql, "select count(1) from table");
+            assert_eq!(sql, "select count(1) as count from table");
         };
         block_on(f);
     }
@@ -1185,7 +1198,10 @@ mod test {
         let f = async move {
             let mut rb = RBatis::new();
             let queue = Arc::new(SyncVec::new());
-            rb.set_intercepts(vec![Arc::new(MockIntercept::new(queue.clone()))]);
+            rb.set_intercepts(vec![
+                Arc::new(PageIntercept::new()),
+                Arc::new(MockIntercept::new(queue.clone())),
+            ]);
             rb.init(MockDriver {}, "test").unwrap();
             let r = pysql_select_page(
                 &rb,
@@ -1199,13 +1215,13 @@ mod test {
             println!("{}", sql);
             assert_eq!(
                 sql,
-                "select  * from activity where delete_flag = 0 and var1 = ? and name=?"
+                "select  * from activity where delete_flag = 0 and var1 = ? and name=? limit 0,10 "
             );
             let (sql, args) = queue.pop().unwrap();
             println!("{}", sql);
             assert_eq!(
                 sql,
-                "select  count(1) as count from activity where delete_flag = 0 and var1 = ? and name=?"
+                "select count(1) as count from activity where delete_flag = 0 and var1 = ? and name=?"
             );
         };
         block_on(f);

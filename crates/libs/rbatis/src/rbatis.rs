@@ -15,6 +15,7 @@ use crate::executor::Executor;
 use crate::executor::RBatisConnExecutor;
 use crate::executor::RBatisTxExecutor;
 use crate::intercept_log::LogInterceptor;
+use crate::intercept_page::PageIntercept;
 use crate::plugin::intercept::Intercept;
 use crate::snowflake::Snowflake;
 use crate::table_sync::sync;
@@ -50,6 +51,8 @@ impl RBatis {
         let rb = RBatis::default();
         //default use LogInterceptor
         rb.intercepts.push(Arc::new(LogInterceptor::new(LevelFilter::Info)));
+        rb.intercepts.push(Arc::new(PageIntercept::new()));
+        rb.intercepts.push(Arc::new(LogInterceptor::new(LevelFilter::Debug)));
         rb
     }
 
@@ -139,7 +142,9 @@ impl RBatis {
         self.init_option::<Driver, ConnectOptions, DefaultPool>(driver, options)
     }
 
-    /// set_intercepts for many
+    /// set_intercepts for many.
+    /// notice:
+    /// do not forget add PageIntercept!
     pub fn set_intercepts(&mut self, arg: Vec<Arc<dyn Intercept>>) {
         self.intercepts = Arc::new(SyncVec::from(arg));
     }

@@ -62,7 +62,7 @@ impl Display for ExecResult {
         struct DisplayBox<'a> {
             inner: &'a Value,
         }
-        impl<'a> Debug for DisplayBox<'a> {
+        impl Debug for DisplayBox<'_> {
             fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
                 std::fmt::Display::fmt(&self.inner, f)
             }

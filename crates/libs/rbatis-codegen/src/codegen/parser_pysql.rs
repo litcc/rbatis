@@ -205,10 +205,10 @@ impl NodeType {
         childs: Vec<NodeType>,
     ) -> Result<NodeType, Error> {
         if trim_express.starts_with(IfNode::name()) {
-            return Ok(NodeType::NIf(IfNode {
+            Ok(NodeType::NIf(IfNode {
                 childs,
                 test: trim_express.trim_start_matches("if ").to_string(),
-            }));
+            }))
         } else if trim_express.starts_with(ForEachNode::name()) {
             let for_tag = "for";
             if !trim_express.starts_with(for_tag) {
