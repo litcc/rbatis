@@ -1,5 +1,3 @@
-
-
 use rbdc::db::Connection;
 use rbdc::pool::conn_manager::ConnManager;
 use rbdc::pool::Pool;

@@ -5,14 +5,14 @@
         `insert into activity`
         <foreach collection="arg" index="key" item="item" open="(" close=")" separator=",">
             <if test="key == 'id'">
-                <continue/>
+                <continue></continue>
             </if>
             ${key}
         </foreach>
         ` values `
         <foreach collection="arg" index="key" item="item" open="(" close=")" separator=",">
             <if test="key == 'id'">
-                <continue/>
+                <continue></continue>
             </if>
             ${item.sql()}
         </foreach>
@@ -62,6 +62,8 @@
     </select>
 
     <update id="update_by_id">
-        update activity set name = '1' where id = #{id}
+        ` update activity `
+        <set collection="arg"></set>
+        ` where id = #{id} `
     </update>
 </mapper>

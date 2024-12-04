@@ -50,7 +50,6 @@ impl RBatis {
     pub fn new() -> Self {
         let rb = RBatis::default();
         //default use LogInterceptor
-        rb.intercepts.push(Arc::new(LogInterceptor::new(LevelFilter::Info)));
         rb.intercepts.push(Arc::new(PageIntercept::new()));
         rb.intercepts.push(Arc::new(LogInterceptor::new(LevelFilter::Debug)));
         rb
@@ -281,6 +280,26 @@ impl RBatis {
                 let call: &T = unsafe { std::mem::transmute_copy(&item.as_ref()) };
                 return Some(call);
             }
+        }
+        None
+    }
+
+    /// how to ge name
+    /// ```rust
+    /// pub struct Intercept {}
+    /// let name = std::any::type_name::<Intercept>();
+    /// ```
+    pub fn remove_intercept_dyn<T: Intercept>(
+        &self,
+        name: &str,
+    ) -> Option<Arc<dyn Intercept>> {
+        let mut index = 0;
+        for item in self.intercepts.iter() {
+            if item.name() == name {
+                //this is safe
+                return self.intercepts.remove(index);
+            }
+            index += 1;
         }
         None
     }

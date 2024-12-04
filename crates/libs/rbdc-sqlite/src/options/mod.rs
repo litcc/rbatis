@@ -318,19 +318,20 @@ impl SqliteConnectOptions {
 
     /// Sets the [threading mode](https://www.sqlite.org/threadsafe.html) for the database connection.
     ///
-    /// The default setting is `false` corersponding to using `OPEN_NOMUTEX`, if `true` then `OPEN_FULLMUTEX`.
+    /// The default setting is `false` corersponding to using `OPEN_NOMUTEX`, if
+    /// `true` then `OPEN_FULLMUTEX`.
     ///
     /// See [open](https://www.sqlite.org/c3ref/open.html) for more details.
     ///
     /// ### Note
-    /// Setting this to `true` may help if you are getting access violation errors or segmentation
-    /// faults, but will also incur a significant performance penalty. You should leave this
-    /// set to `false` if at all possible.
+    /// Setting this to `true` may help if you are getting access violation errors or
+    /// segmentation faults, but will also incur a significant performance
+    /// penalty. You should leave this set to `false` if at all possible.
     ///
     /// If you do end up needing to set this to `true` for some reason, please
     /// [open an issue](https://github.com/rbatis/rbatis/issues/new/choose) as this may indicate
-    /// a concurrency bug in rbdc. Please provide clear instructions for reproducing the issue,
-    /// including a sample database schema if applicable.
+    /// a concurrency bug in rbdc. Please provide clear instructions for reproducing
+    /// the issue, including a sample database schema if applicable.
     pub fn serialized(mut self, serialized: bool) -> Self {
         self.serialized = serialized;
         self

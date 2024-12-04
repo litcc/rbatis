@@ -78,7 +78,7 @@ mod test {
     //     let task = async move {
     //         //jdbc:sqlserver://[serverName[\instanceName][:portNumber]][;
     // property=value[;property=value]]         let uri =
-    //             
+    //
     // "jdbc:sqlserver://localhost:1433;User=SA;Password={TestPass!123456};
     // Database=master;";         // let pool = Pool::new_url(MssqlDriver {},
     // "jdbc:sqlserver://SA:TestPass!123456@localhost:1433;database=test").unwrap();

@@ -1,7 +1,9 @@
 use log::LevelFilter;
 use rbatis::dark_std::defer;
-use rbatis::impl_delete;
+use rbatis::executor::Executor;
+use rbatis::html_sql;
 use rbatis::rbdc::datetime::DateTime;
+use rbatis::rbdc::db::ExecResult;
 use rbatis::table_sync::SqliteTableMapper;
 use rbatis::RBatis;
 use serde_json::json;
@@ -23,7 +25,13 @@ pub struct Activity {
     pub delete_flag: Option<i32>,
 }
 
-impl_delete!(Activity {delete_by_name(name:&str) => "`where name= #{name}`"});
+#[html_sql("example.html")]
+pub async fn update_by_id(
+    rb: &dyn Executor,
+    arg: &Activity,
+) -> rbatis::Result<ExecResult> {
+    impled!()
+}
 
 #[tokio::main]
 pub async fn main() {
@@ -46,13 +54,6 @@ pub async fn main() {
     rb.init(rbdc_sqlite::driver::SqliteDriver {}, "sqlite://target/sqlite.db")
         .unwrap();
     // table sync done
-    sync_table(&rb).await;
-
-    let data = Activity::delete_by_name(&rb, "2").await;
-    println!("delete_by_column = {}", json!(data));
-}
-
-async fn sync_table(rb: &RBatis) {
     fast_log::logger().set_level(LevelFilter::Off);
     _ = RBatis::sync(
         &rb.acquire().await.unwrap(),
@@ -75,4 +76,25 @@ async fn sync_table(rb: &RBatis) {
     )
     .await;
     fast_log::logger().set_level(LevelFilter::Debug);
+
+    let a = update_by_id(
+        &rb,
+        &Activity {
+            id: Some("1".into()),
+            name: Some("1".into()),
+            pc_link: Some("1".into()),
+            h5_link: Some("1".into()),
+            pc_banner_img: None,
+            h5_banner_img: None,
+            sort: Some("1".to_string()),
+            status: Some(1),
+            remark: Some("1".into()),
+            create_time: Some(DateTime::now()),
+            version: Some(1),
+            delete_flag: Some(1),
+        },
+    )
+    .await
+    .unwrap();
+    println!("{}", json!(a));
 }
