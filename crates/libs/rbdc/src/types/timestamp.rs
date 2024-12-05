@@ -1,8 +1,6 @@
 use std::fmt::Debug;
 use std::fmt::Display;
 use std::fmt::Formatter;
-use std::ops::Deref;
-use std::ops::DerefMut;
 use std::str::FromStr;
 
 use rbs::Value;
@@ -70,20 +68,6 @@ impl FromStr for Timestamp {
 impl From<Timestamp> for fastdate::DateTime {
     fn from(value: Timestamp) -> Self {
         fastdate::DateTime::from_timestamp_millis(value.0)
-    }
-}
-
-impl Deref for Timestamp {
-    type Target = i64;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl DerefMut for Timestamp {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
     }
 }
 

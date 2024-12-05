@@ -3,8 +3,6 @@ use std::fmt::Debug;
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::ops::Add;
-use std::ops::Deref;
-use std::ops::DerefMut;
 use std::ops::Sub;
 use std::str::FromStr;
 use std::time::Duration;
@@ -76,20 +74,6 @@ impl<'de> Deserialize<'de> for DateTime {
                 Err(D::Error::custom(format!("unsupported type DateTime({})", v.0)))
             }
         }
-    }
-}
-
-impl Deref for DateTime {
-    type Target = fastdate::DateTime;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl DerefMut for DateTime {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
     }
 }
 

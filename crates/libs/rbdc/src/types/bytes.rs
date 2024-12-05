@@ -6,8 +6,6 @@ use std::hash::Hash;
 use std::hash::Hasher;
 use std::io;
 use std::io::ErrorKind;
-use std::ops::Deref;
-use std::ops::DerefMut;
 use std::str::FromStr;
 use std::vec::IntoIter;
 
@@ -87,20 +85,6 @@ impl AsRef<[u8]> for Bytes {
 
 impl AsMut<[u8]> for Bytes {
     fn as_mut(&mut self) -> &mut [u8] {
-        &mut self.0
-    }
-}
-
-impl Deref for Bytes {
-    type Target = [u8];
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl DerefMut for Bytes {
-    fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
 }
@@ -195,20 +179,6 @@ impl<'de> Deserialize<'de> for BytesSize {
     {
         let v = i64::deserialize(deserializer)?;
         Ok(BytesSize(v))
-    }
-}
-
-impl Deref for BytesSize {
-    type Target = i64;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl DerefMut for BytesSize {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
     }
 }
 

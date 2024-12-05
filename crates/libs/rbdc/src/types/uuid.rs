@@ -1,8 +1,6 @@
 use std::fmt::Debug;
 use std::fmt::Display;
 use std::fmt::Formatter;
-use std::ops::Deref;
-use std::ops::DerefMut;
 use std::str::FromStr;
 
 use rbs::Value;
@@ -64,20 +62,6 @@ impl Uuid {
 impl Default for Uuid {
     fn default() -> Self {
         Uuid(uuid::Uuid::default().to_string())
-    }
-}
-
-impl Deref for Uuid {
-    type Target = str;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl DerefMut for Uuid {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
     }
 }
 

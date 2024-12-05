@@ -59,7 +59,6 @@ impl Placeholder for MssqlDriver {
 #[cfg(test)]
 mod test {
     use rbdc::db::Placeholder;
-    use rbdc::pool::conn_manager::ConnManager;
 
     use crate::driver::MssqlDriver;
 

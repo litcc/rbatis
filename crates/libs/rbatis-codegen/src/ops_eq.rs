@@ -4,7 +4,6 @@ use std::ops::Deref;
 
 use rbs::Value;
 
-use crate::ops::AsProxy;
 use crate::ops::PartialEq;
 
 #[inline]
@@ -352,7 +351,6 @@ mod test {
     use rbs::Value;
 
     use crate::ops::Add;
-    use crate::ops::PartialEq;
 
     #[test]
     fn test_eq() {

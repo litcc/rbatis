@@ -1,6 +1,9 @@
 use std::any::Any;
 use std::fmt::Debug;
 use std::fmt::Formatter;
+use std::sync::atomic::AtomicBool;
+use std::sync::atomic::Ordering;
+use std::sync::Arc;
 
 use dark_std::sync::SyncVec;
 use futures::Future;
@@ -232,22 +235,24 @@ impl RBatisConnExecutor {
         })
     }
 
-    pub fn rollback(&mut self) -> BoxFuture<'_, Result<(), Error>> {
-        Box::pin(async { self.conn.lock().await.rollback().await })
+    pub fn rollback(&self) -> BoxFuture<'_, Result<(), Error>> {
+        Box::pin(async { Ok(self.conn.lock().await.rollback().await?) })
     }
 
-    pub fn commit(&mut self) -> BoxFuture<'_, Result<(), Error>> {
-        Box::pin(async { self.conn.lock().await.commit().await })
+    pub fn commit(&self) -> BoxFuture<'_, Result<(), Error>> {
+        Box::pin(async { Ok(self.conn.lock().await.commit().await?) })
     }
 }
 
+#[derive(Clone)]
 pub struct RBatisTxExecutor {
     pub tx_id: i64,
-    pub conn: Mutex<Box<dyn Connection>>,
+    pub conn: Arc<Mutex<Box<dyn Connection>>>,
     pub rb: RBatis,
+    /// please use tx.done()
     /// if tx call .commit() or .rollback() done = true.
     /// if tx not call .commit() or .rollback() done = false
-    pub done: bool,
+    done: Arc<AtomicBool>,
 }
 
 impl Debug for RBatisTxExecutor {
@@ -262,7 +267,12 @@ impl Debug for RBatisTxExecutor {
 
 impl<'a> RBatisTxExecutor {
     pub fn new(tx_id: i64, rb: RBatis, conn: Box<dyn Connection>) -> Self {
-        RBatisTxExecutor { tx_id, conn: Mutex::new(conn), rb, done: false }
+        RBatisTxExecutor {
+            tx_id,
+            conn: Arc::new(Mutex::new(conn)),
+            rb,
+            done: Arc::new(AtomicBool::new(false)),
+        }
     }
 
     /// exec
@@ -299,20 +309,30 @@ impl<'a> RBatisTxExecutor {
         })
     }
 
-    pub fn rollback(&mut self) -> BoxFuture<'_, Result<(), Error>> {
+    pub fn rollback(&self) -> BoxFuture<'_, Result<(), Error>> {
         Box::pin(async {
-            self.conn.lock().await.rollback().await?;
-            self.done = true;
-            Ok(())
+            let r = self.conn.lock().await.rollback().await?;
+            self.done.store(true, Ordering::Relaxed);
+            Ok(r)
         })
     }
 
-    pub fn commit(&mut self) -> BoxFuture<'_, Result<(), Error>> {
+    pub fn commit(&self) -> BoxFuture<'_, Result<(), Error>> {
         Box::pin(async {
-            self.conn.lock().await.commit().await?;
-            self.done = true;
-            Ok(())
+            let r = self.conn.lock().await.commit().await?;
+            self.done.store(true, Ordering::Relaxed);
+            Ok(r)
         })
+    }
+
+    /// tx is done?
+    pub fn done(&self) -> bool {
+        self.done.load(Ordering::Relaxed)
+    }
+
+    ///change is done
+    pub fn set_done(&self, done: bool) {
+        self.done.store(done, Ordering::Relaxed)
     }
 }
 
@@ -432,7 +452,13 @@ impl RBatisRef for RBatisTxExecutor {
 
 impl RBatisTxExecutor {
     pub fn take_conn(self) -> Option<Box<dyn Connection>> {
-        Some(self.conn.into_inner())
+        match Arc::into_inner(self.conn) {
+            None => None,
+            Some(v) => {
+                let inner = v.into_inner();
+                Some(inner)
+            }
+        }
     }
 }
 
@@ -459,16 +485,16 @@ impl RBatisTxExecutorGuard {
         Ok(())
     }
 
-    pub async fn commit(&mut self) -> crate::Result<()> {
+    pub async fn commit(&self) -> crate::Result<()> {
         let tx =
-            self.tx.as_mut().ok_or_else(|| Error::from("[rb] tx is committed"))?;
+            self.tx.as_ref().ok_or_else(|| Error::from("[rb] tx is committed"))?;
         tx.commit().await?;
         Ok(())
     }
 
-    pub async fn rollback(&mut self) -> crate::Result<()> {
+    pub async fn rollback(&self) -> crate::Result<()> {
         let tx =
-            self.tx.as_mut().ok_or_else(|| Error::from("[rb] tx is committed"))?;
+            self.tx.as_ref().ok_or_else(|| Error::from("[rb] tx is committed"))?;
         tx.rollback().await?;
         Ok(())
     }
@@ -481,7 +507,7 @@ impl RBatisTxExecutorGuard {
     }
 
     pub async fn query_decode<T>(
-        &mut self,
+        &self,
         sql: &str,
         args: Vec<Value>,
     ) -> Result<T, Error>
@@ -489,7 +515,7 @@ impl RBatisTxExecutorGuard {
         T: DeserializeOwned,
     {
         let tx =
-            self.tx.as_mut().ok_or_else(|| Error::from("[rb] tx is committed"))?;
+            self.tx.as_ref().ok_or_else(|| Error::from("[rb] tx is committed"))?;
         tx.query_decode(sql, args).await
     }
 }
@@ -504,21 +530,23 @@ impl RBatisTxExecutor {
     /// use rbatis::RBatis;
     ///
     /// async fn test_tx(tx: RBatisTxExecutor) -> Result<(), Error> {
-    ///     tx.defer_async(|mut tx| async move {
-    ///         tx.rollback().await;
+    ///     tx.defer_async(|tx| async move {
+    ///         if !tx.done() {
+    ///             let _ = tx.rollback().await;
+    ///         }
     ///     });
     ///     Ok(())
     /// }
     /// ```
     pub fn defer_async<F>(
-        self,
+        &self,
         callback: fn(s: RBatisTxExecutor) -> F,
     ) -> RBatisTxExecutorGuard
     where
         F: Future<Output = ()> + Send + 'static,
     {
         RBatisTxExecutorGuard {
-            tx: Some(self),
+            tx: Some(self.clone()),
             callback: Box::new(move |arg| {
                 let future = callback(arg);
                 rbdc::rt::spawn(future);
@@ -639,12 +667,6 @@ impl Executor for RBatis {
         })
     }
 }
-
-// impl RBatisRef for &RBatis {
-//     fn rb_ref(&self) -> &RBatis {
-//         self
-//     }
-// }
 
 #[derive(Debug)]
 pub struct TempExecutor<'a> {

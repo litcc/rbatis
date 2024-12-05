@@ -262,9 +262,9 @@ mod test {
             let mut tx = rb.acquire_begin().await.unwrap();
             let r: Vec<MockTable> =
                 tx.query_decode("select * from mock_table", vec![]).await.unwrap();
-            assert!(!tx.done);
+            assert!(!tx.done());
             tx.commit().await;
-            assert!(tx.done);
+            assert!(tx.done());
         };
         block_on(f);
     }
@@ -277,9 +277,9 @@ mod test {
             let mut tx = rb.acquire_begin().await.unwrap();
             let r: Vec<MockTable> =
                 tx.query_decode("select * from mock_table", vec![]).await.unwrap();
-            assert!(!tx.done);
+            assert!(!tx.done());
             tx.rollback().await;
-            assert!(tx.done);
+            assert!(tx.done());
         };
         block_on(f);
     }

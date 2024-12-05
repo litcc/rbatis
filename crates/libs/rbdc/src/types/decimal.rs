@@ -6,8 +6,6 @@ use std::fmt::Display;
 use std::fmt::Formatter;
 use std::ops::Add;
 use std::ops::AddAssign;
-use std::ops::Deref;
-use std::ops::DerefMut;
 use std::ops::Div;
 use std::ops::Mul;
 use std::ops::MulAssign;
@@ -188,20 +186,6 @@ impl FromStr for Decimal {
         Ok(Decimal(
             BigDecimal::from_str(&s).map_err(|e| Error::from(e.to_string()))?,
         ))
-    }
-}
-
-impl Deref for Decimal {
-    type Target = BigDecimal;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl DerefMut for Decimal {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
     }
 }
 

@@ -83,8 +83,8 @@ async fn transaction(
     tx: RBatisTxExecutor,
     forget_commit: bool,
 ) -> Result<(), Error> {
-    let mut tx = tx.defer_async(|mut tx| async move {
-        if tx.done {
+    let tx = tx.defer_async(|tx| async move {
+        if tx.done() {
             log::info!("transaction [{}] complete.", tx.tx_id);
         } else {
             let r = tx.rollback().await;

@@ -1,8 +1,6 @@
 use std::fmt::Debug;
 use std::fmt::Display;
 use std::fmt::Formatter;
-use std::ops::Deref;
-use std::ops::DerefMut;
 use std::str::FromStr;
 
 use rbs::Value;
@@ -216,20 +214,6 @@ impl<'de, T: Serialize + serde::de::DeserializeOwned> Deserialize<'de> for JsonV
         } else {
             Ok(JsonV(T::deserialize(deserializer)?))
         }
-    }
-}
-
-impl<T: Serialize + serde::de::DeserializeOwned> Deref for JsonV<T> {
-    type Target = T;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl<T: Serialize + serde::de::DeserializeOwned> DerefMut for JsonV<T> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
     }
 }
 
