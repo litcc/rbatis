@@ -12,7 +12,7 @@ impl ColumnMapper for SqliteTableMapper {
     fn get_column_type(&self, _column: &str, v: &Value) -> String {
         match v {
             Value::Null => "NULL".to_string(),
-            Value::SetNull => "NULL".to_string(),
+            Value::SomeNull => "NULL".to_string(),
             Value::Bool(_) => "BOOLEAN".to_string(),
             Value::I32(_) => "INTEGER".to_string(),
             Value::I64(_) => "INT8".to_string(),
@@ -22,9 +22,6 @@ impl ColumnMapper for SqliteTableMapper {
             Value::F64(_) => "DOUBLE".to_string(),
             Value::String(v) => {
                 if !v.is_empty() {
-                    if v.eq("id") {
-                        return "TEXT".to_string();
-                    }
                     v.to_string()
                 } else {
                     "TEXT".to_string()

@@ -95,7 +95,7 @@ async fn transaction(
             }
         }
     });
-    log::info!("transaction [{}] start", tx.tx.as_ref().unwrap().tx_id);
+    log::info!("transaction [{}] start", tx.tx_id());
     let _ = Activity::insert(
         &tx,
         &Activity {

@@ -17,7 +17,7 @@ impl Serialize for Value {
     {
         match *self {
             Value::Null => s.serialize_unit(),
-            Value::SetNull => s.serialize_unit(),
+            Value::SomeNull => s.serialize_unit(),
             Value::Bool(v) => s.serialize_bool(v),
             Value::I32(v) => s.serialize_i32(v),
             Value::I64(v) => s.serialize_i64(v),
@@ -226,7 +226,17 @@ impl ser::Serializer for Value {
     where
         T: Serialize + ?Sized,
     {
-        value.serialize(self)
+        let data = value.serialize(self);
+        match data {
+            Ok(data) => {
+                if data.is_null() {
+                    Ok(Value::SomeNull)
+                } else {
+                    Ok(data)
+                }
+            }
+            Err(e) => Err(e),
+        }
     }
 
     fn serialize_seq(

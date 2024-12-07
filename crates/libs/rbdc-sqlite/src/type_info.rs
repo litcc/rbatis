@@ -149,7 +149,7 @@ impl Type for Value {
     fn type_info(&self) -> SqliteTypeInfo {
         match self {
             Value::Null => SqliteTypeInfo::null(),
-            Value::SetNull => SqliteTypeInfo::null(),
+            Value::SomeNull => SqliteTypeInfo::null(),
             Value::Bool(_) => SqliteTypeInfo(DataType::Bool),
             Value::I32(_) => SqliteTypeInfo(DataType::Int),
             Value::I64(_) => SqliteTypeInfo(DataType::Int64),

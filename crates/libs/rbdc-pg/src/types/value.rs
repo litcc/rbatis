@@ -32,7 +32,7 @@ impl TypeInfo for Value {
     fn type_info(&self) -> PgTypeInfo {
         match self {
             Value::Null => PgTypeInfo::UNKNOWN,
-            Value::SetNull => PgTypeInfo::UNKNOWN,
+            Value::SomeNull => PgTypeInfo::UNKNOWN,
             Value::Bool(_) => PgTypeInfo::BOOL,
             Value::I32(_) => PgTypeInfo::INT4,
             Value::I64(_) => PgTypeInfo::INT8,
@@ -455,7 +455,7 @@ impl Encode for Value {
     fn encode(self, buf: &mut PgArgumentBuffer) -> Result<IsNull, Error> {
         Ok(match self {
             Value::Null => IsNull::Yes,
-            Value::SetNull => IsNull::Yes,
+            Value::SomeNull => IsNull::Yes,
             Value::Bool(v) => v.encode(buf)?,
             Value::I32(v) => v.encode(buf)?,
             Value::I64(v) => v.encode(buf)?,

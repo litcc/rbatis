@@ -14,8 +14,11 @@ use crate::PageRequest;
 
 /// make count sql remove `limit`
 /// make select sql append limit ${page_no},${page_size}
-/// notice: the sql must be starts with 'select '
-/// how to use?
+/// notice:
+/// ```log
+/// sql must be starts with 'select ' and ' from '
+/// this PageIntercept only support sqlite,mysql,mssql,postgres...
+/// ```
 /// ```rust
 /// 
 /// use rbatis::{crud, Error, PageRequest, RBatis};

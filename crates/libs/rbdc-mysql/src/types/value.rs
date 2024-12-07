@@ -35,7 +35,7 @@ impl TypeInfo for Value {
     fn type_info(&self) -> MySqlTypeInfo {
         match self {
             Value::Null => MySqlTypeInfo::null(),
-            Value::SetNull => MySqlTypeInfo::null(),
+            Value::SomeNull => MySqlTypeInfo::null(),
             Value::Bool(_) => MySqlTypeInfo::from_type(ColumnType::Tiny),
             Value::I32(_) => MySqlTypeInfo::from_type(ColumnType::Long),
             Value::I64(_) => MySqlTypeInfo::from_type(ColumnType::LongLong),
@@ -78,7 +78,7 @@ impl Encode for Value {
     fn encode(self, buf: &mut Vec<u8>) -> Result<usize, Error> {
         match self {
             Value::Null => Ok(0),
-            Value::SetNull => Ok(0),
+            Value::SomeNull => Ok(0),
             Value::Bool(v) => {
                 buf.extend(&(v as i8).to_le_bytes());
                 Ok(1)

@@ -219,7 +219,7 @@ impl RBatis {
         Ok(executor)
     }
 
-    /// is debug mode
+    /// is RBatis enable debug_mode?
     pub fn is_debug_mode(&self) -> bool {
         crate::decode::is_debug_mode()
     }

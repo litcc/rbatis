@@ -130,7 +130,7 @@ impl Value {
     pub fn insert(&mut self, key: Value, value: Value) -> Option<Value> {
         match self {
             Value::Null => None,
-            Value::SetNull => None,
+            Value::SomeNull => None,
             Value::Bool(_) => None,
             Value::I32(_) => None,
             Value::I64(_) => None,
@@ -152,7 +152,7 @@ impl Value {
     pub fn remove(&mut self, key: &Value) -> Value {
         match self {
             Value::Null => Value::Null,
-            Value::SetNull => Value::Null,
+            Value::SomeNull => Value::Null,
             Value::Bool(_) => Value::Null,
             Value::I32(_) => Value::Null,
             Value::I64(_) => Value::Null,

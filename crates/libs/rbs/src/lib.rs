@@ -27,7 +27,7 @@ impl Value {
     pub fn is_empty(&self) -> bool {
         match self {
             Value::Null => true,
-            Value::SetNull => false,
+            Value::SomeNull => false,
             Value::Bool(_) => false,
             Value::I32(_) => false,
             Value::I64(_) => false,
@@ -47,7 +47,7 @@ impl Value {
     pub fn len(&self) -> usize {
         match self {
             Value::Null => 0,
-            Value::SetNull => 0,
+            Value::SomeNull => 0,
             Value::Bool(_) => 0,
             Value::I32(_) => 0,
             Value::I64(_) => 0,

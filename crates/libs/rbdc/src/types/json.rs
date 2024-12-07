@@ -88,7 +88,7 @@ impl From<Value> for Json {
     fn from(v: Value) -> Self {
         match v {
             Value::Null => Json(v.to_string()),
-            Value::SetNull => Json(v.to_string()),
+            Value::SomeNull => Json(v.to_string()),
             Value::Bool(v) => Json(v.to_string()),
             Value::I32(v) => Json(v.to_string()),
             Value::I64(v) => Json(v.to_string()),

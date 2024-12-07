@@ -56,7 +56,7 @@ impl Encode for Value {
     fn encode(self, args: &mut Vec<SqliteArgumentValue>) -> Result<IsNull, Error> {
         match self {
             Value::Null => Ok(IsNull::Yes),
-            Value::SetNull => Ok(IsNull::Yes),
+            Value::SomeNull => Ok(IsNull::Yes),
             Value::Bool(v) => {
                 v.encode(args)?;
                 Ok(IsNull::No)

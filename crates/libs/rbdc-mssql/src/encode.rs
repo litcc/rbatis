@@ -17,7 +17,7 @@ impl Encode for Value {
                 q.bind(Option::<String>::None);
                 Ok(())
             }
-            Value::SetNull => {
+            Value::SomeNull => {
                 q.bind(Option::<String>::None);
                 Ok(())
             }

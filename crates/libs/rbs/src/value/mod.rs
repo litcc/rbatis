@@ -22,8 +22,8 @@ pub enum Value {
     /// null
     #[default]
     Null,
-    /// set null
-    SetNull,
+    /// Some null
+    SomeNull,
     /// true or false
     Bool(bool),
     /// Int32
@@ -65,18 +65,18 @@ impl Value {
         matches!(*self, Value::Null)
     }
 
-    /// Returns true if the `Value` is a SetNull. Returns false otherwise.
+    /// Returns true if the `Value` is a SomeNull. Returns false otherwise.
     ///
     /// # Examples
     ///
     /// ```
     /// use rbs::Value;
     ///
-    /// assert!(Value::SetNull.is_set_null());
+    /// assert!(Value::SomeNull.is_some_null());
     /// ```
     #[inline]
-    pub fn is_set_null(&self) -> bool {
-        matches!(*self, Value::SetNull)
+    pub fn is_some_null(&self) -> bool {
+        matches!(*self, Value::SomeNull)
     }
 
     /// Returns true if the `Value` is a Bool. Returns false otherwise.
@@ -348,7 +348,7 @@ impl Value {
             Value::Binary(v) => Some(v),
             Value::Ext(_, ext) => ext.into_bytes(),
             Value::Null => Some(vec![]),
-            Value::SetNull => Some(vec![]),
+            Value::SomeNull => Some(vec![]),
             Value::Bool(v) => Some(v.to_string().into_bytes()),
             Value::I32(v) => Some(v.to_string().into_bytes()),
             Value::I64(v) => Some(v.to_string().into_bytes()),
@@ -631,7 +631,7 @@ impl Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         match self {
             Value::Null => f.write_str("null"),
-            Value::SetNull => f.write_str("null"),
+            Value::SomeNull => f.write_str("null"),
             Value::Bool(val) => Display::fmt(&val, f),
             Value::I32(ref val) => Display::fmt(&val, f),
             Value::I64(ref val) => Display::fmt(&val, f),
@@ -795,7 +795,7 @@ impl Hash for Value {
             Value::Null => {
                 state.write_u8(0);
             }
-            Value::SetNull => {
+            Value::SomeNull => {
                 state.write_u8(13);
             }
             Value::Bool(b) => {

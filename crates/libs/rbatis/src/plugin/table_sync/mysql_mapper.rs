@@ -9,10 +9,10 @@ impl ColumnMapper for MysqlTableMapper {
     fn driver_type(&self) -> String {
         "mysql".to_string()
     }
-    fn get_column_type(&self, _column: &str, v: &Value) -> String {
+    fn get_column_type(&self, column: &str, v: &Value) -> String {
         match v {
             Value::Null => "NULL".to_string(),
-            Value::SetNull => "NULL".to_string(),
+            Value::SomeNull => "NULL".to_string(),
             Value::Bool(_) => "TINYINT".to_string(),
             Value::I32(_) => "INT".to_string(),
             Value::I64(_) => "BIGINT".to_string(),
@@ -22,11 +22,14 @@ impl ColumnMapper for MysqlTableMapper {
             Value::F64(_) => "DOUBLE".to_string(),
             Value::String(v) => {
                 if !v.is_empty() {
-                    if v.eq("id") {
-                        return "TEXT".to_string();
-                    }
                     v.to_string()
                 } else {
+                    if column.eq("id") ||
+                        column.ends_with("_id") ||
+                        column.starts_with("id_")
+                    {
+                        return "VARCHAR(50)".to_string();
+                    }
                     "TEXT".to_string()
                 }
             }

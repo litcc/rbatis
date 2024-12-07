@@ -54,7 +54,7 @@ impl<'de> Deserialize<'de> for Value {
             {
                 let data = Deserialize::deserialize(de)?;
                 if data == Value::Null {
-                    return Ok(Value::SetNull);
+                    return Ok(Value::SomeNull);
                 }
                 Ok(data)
             }
@@ -199,7 +199,7 @@ impl<'de> Deserializer<'de> for &Value {
     {
         match self {
             Value::Null => visitor.visit_none(),
-            Value::SetNull => visitor.visit_none(),
+            Value::SomeNull => visitor.visit_none(),
             Value::Bool(v) => visitor.visit_bool(*v),
             Value::I32(v) => visitor.visit_i32(*v),
             Value::I64(v) => visitor.visit_i64(*v),
