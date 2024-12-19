@@ -17,10 +17,13 @@ use std::str::FromStr;
 
 use bigdecimal::BigDecimal;
 use bigdecimal::FromPrimitive;
+use bigdecimal::ToPrimitive;
 use rbs::Value;
 use serde::Deserializer;
 
 use crate::Error;
+
+pub type RoundingMode = bigdecimal::RoundingMode;
 
 #[derive(serde::Serialize, Clone, Eq, PartialEq, Hash)]
 #[serde(rename = "Decimal")]
@@ -33,11 +36,13 @@ impl Decimal {
 
     #[inline]
     pub fn from_f64(arg: f64) -> Option<Decimal> {
+        use bigdecimal::FromPrimitive;
         BigDecimal::from_f64(arg).map(Decimal::from)
     }
 
     #[inline]
     pub fn from_f32(arg: f32) -> Option<Decimal> {
+        use bigdecimal::FromPrimitive;
         BigDecimal::from_f32(arg).map(Decimal::from)
     }
 
@@ -81,6 +86,30 @@ impl Decimal {
     /// assert_eq!(scale, 9);
     pub fn with_prec(self, arg: u64) -> Self {
         Decimal(self.0.with_prec(arg))
+    }
+
+    ///Return given number rounded to 'round_digits' precision after the decimal
+    /// point, using default rounding mode Default rounding mode is HalfEven, but
+    /// can be configured at compile-time by the environment variable:
+    /// RUST_BIGDECIMAL_DEFAULT_ROUNDING_MODE (or by patching build. rs )
+    pub fn round(self, round_digits: i64) -> Self {
+        Decimal(self.0.round(round_digits))
+    }
+
+    ///Return a new Decimal after shortening the digits and rounding
+    ///```rust
+    /// use rbdc::Decimal;
+    /// use rbdc::RoundingMode;
+    /// let n: Decimal = "129.41675".parse().unwrap();
+    /// assert_eq!(n.with_scale_round(2, RoundingMode::Up), "129.42".parse().unwrap());
+    /// assert_eq!(n.with_scale_round(-1, RoundingMode::Down), "120".parse().unwrap());
+    /// assert_eq!(
+    ///     n.with_scale_round(4, RoundingMode::HalfEven),
+    ///     "129.4168".parse().unwrap()
+    /// );
+    /// ```
+    pub fn with_scale_round(&self, new_scale: i64, mode: RoundingMode) -> Self {
+        Decimal(self.0.with_scale_round(new_scale, mode))
     }
 }
 
@@ -186,6 +215,57 @@ impl FromStr for Decimal {
         Ok(Decimal(
             BigDecimal::from_str(&s).map_err(|e| Error::from(e.to_string()))?,
         ))
+    }
+}
+
+impl ToPrimitive for Decimal {
+    fn to_i64(&self) -> Option<i64> {
+        self.0.to_i64()
+    }
+    fn to_i128(&self) -> Option<i128> {
+        self.0.to_i128()
+    }
+    fn to_u64(&self) -> Option<u64> {
+        self.0.to_u64()
+    }
+    fn to_u128(&self) -> Option<u128> {
+        self.0.to_u128()
+    }
+
+    fn to_f64(&self) -> Option<f64> {
+        self.0.to_f64()
+    }
+}
+
+impl FromPrimitive for Decimal {
+    #[inline]
+    fn from_i64(n: i64) -> Option<Self> {
+        Some(Self::from(BigDecimal::from_i64(n)?))
+    }
+
+    #[inline]
+    fn from_u64(n: u64) -> Option<Self> {
+        Some(Self::from(BigDecimal::from_u64(n)?))
+    }
+
+    #[inline]
+    fn from_i128(n: i128) -> Option<Self> {
+        Some(Self::from(BigDecimal::from_i128(n)?))
+    }
+
+    #[inline]
+    fn from_u128(n: u128) -> Option<Self> {
+        Some(Self::from(BigDecimal::from_u128(n)?))
+    }
+
+    #[inline]
+    fn from_f32(n: f32) -> Option<Self> {
+        Some(Self::from(BigDecimal::from_f32(n)?))
+    }
+
+    #[inline]
+    fn from_f64(n: f64) -> Option<Self> {
+        Some(Self::from(BigDecimal::from_f64(n)?))
     }
 }
 

@@ -74,7 +74,10 @@ pub fn decode_json(value: PgValue) -> Result<Value, Error> {
         buf.remove(0);
     }
 
-    Ok(Value::Ext("Json", Box::new(Value::String(unsafe { String::from_utf8_unchecked(buf) }))))
+    Ok(Value::Ext(
+        "Json",
+        Box::new(Value::String(unsafe { String::from_utf8_unchecked(buf) })),
+    ))
     // serde_json::from_str(&unsafe { String::from_utf8_unchecked(buf) })
     //     .map_err(|e| Error::from(e.to_string()))
 }

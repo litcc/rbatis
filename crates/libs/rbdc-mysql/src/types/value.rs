@@ -30,6 +30,7 @@ use crate::types::Decode;
 use crate::types::Encode;
 use crate::types::TypeInfo;
 use crate::value::MySqlValue;
+use crate::value::MySqlValueFormat;
 
 impl TypeInfo for Value {
     fn type_info(&self) -> MySqlTypeInfo {
@@ -181,7 +182,8 @@ impl Decode for Value {
     where
         Self: Sized,
     {
-        Ok(match v.type_info().r#type {
+        let mut type_info = v.type_info().r#type;
+        Ok(match type_info {
             ColumnType::Tiny => Value::I32(int_decode(v).unwrap_or_default() as i32),
             ColumnType::Short => {
                 Value::I32(int_decode(v).unwrap_or_default() as i32)

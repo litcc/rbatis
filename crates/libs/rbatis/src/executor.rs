@@ -22,20 +22,30 @@ use crate::Error;
 /// the RBatis Executor. this trait impl with structs =
 /// RBatis,RBatisConnExecutor,RBatisTxExecutor,RBatisTxExecutorGuard
 pub trait Executor: RBatisRef + Send + Sync {
+
+    /// executor id
     fn id(&self) -> i64;
+
+    /// Executor type name
     fn name(&self) -> &str {
         std::any::type_name::<Self>()
     }
+
+    /// exec sql to get ExecResult
     fn exec(
         &self,
         sql: &str,
         args: Vec<Value>,
     ) -> BoxFuture<'_, Result<ExecResult, Error>>;
+
+    /// query sql to get Value
     fn query(
         &self,
         sql: &str,
         args: Vec<Value>,
     ) -> BoxFuture<'_, Result<Value, Error>>;
+
+    /// to any trait
     fn as_any(&self) -> &dyn Any
     where
         Self: Sized,
@@ -223,6 +233,7 @@ impl RBatisRef for RBatisConnExecutor {
 }
 
 impl RBatisConnExecutor {
+    ///run begin
     pub fn begin(self) -> BoxFuture<'static, Result<RBatisTxExecutor, Error>> {
         Box::pin(async move {
             let mut conn = self.conn.into_inner();
@@ -235,10 +246,12 @@ impl RBatisConnExecutor {
         })
     }
 
+    /// rollback tx
     pub fn rollback(&self) -> BoxFuture<'_, Result<(), Error>> {
         Box::pin(async { Ok(self.conn.lock().await.rollback().await?) })
     }
 
+    /// commit tx
     pub fn commit(&self) -> BoxFuture<'_, Result<(), Error>> {
         Box::pin(async { Ok(self.conn.lock().await.commit().await?) })
     }

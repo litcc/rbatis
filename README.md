@@ -9,9 +9,9 @@ Stand on the shoulders of giants.
 > Soft fork since https://github.com/rbatis/rbatis
 
 
-- rbatis/rbatis 65ce5df3bd88b84cf23716550c648deadf753e1b
+- rbatis/rbatis 3556ae0e2600f3e360faa644ecc05f624e15205b
 
-- rbatis/rbdc df0b82c89f8312140bc7073ddb78ee280f81bb20
+- rbatis/rbdc 7b8022df00f8750711401f46aa1da2ba032c162c
 
 - rbatis/rbdc-pool-deadpool 87e0da57ae313be6d2ef6977aaefc2c66c3c07b4
 

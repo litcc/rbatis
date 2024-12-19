@@ -8,7 +8,7 @@ use crate::options::MySqlConnectOptions;
 use crate::protocol::text::ColumnType;
 use crate::result_set::MySqlTypeInfo;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[repr(u8)]
 pub enum MySqlValueFormat {
     Text,

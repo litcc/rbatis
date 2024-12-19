@@ -22,6 +22,7 @@ rbatis-codegen = { path = "crates/libs/rbatis-codegen", default-features = false
 rbatis-macro-driver = { path = "crates/libs/rbatis-macro-driver" , default-features = false}
 rbdc = { path = "crates/libs/rbdc", default-features = false }
 rbdc-pool-fast = { path = "crates/libs/rbdc-pool-fast" }
+rbdc-pool-deadpool = { path = "crates/libs/rbdc-pool-deadpool" }
 rbdc-sqlite = { path = "crates/libs/rbdc-sqlite" }
 rbdc-mysql = { path = "crates/libs/rbdc-mysql" }
 rbdc-pg = { path = "crates/libs/rbdc-pg" }
