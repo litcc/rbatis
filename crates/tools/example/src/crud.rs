@@ -5,6 +5,7 @@ use rbatis::rbdc::datetime::DateTime;
 use rbatis::table_sync::SqliteTableMapper;
 use rbatis::RBatis;
 use serde_json::json;
+use rbs::to_value;
 
 /// table
 #[derive(serde::Serialize, serde::Deserialize, Clone)]
@@ -84,6 +85,12 @@ pub async fn main() {
     let data = Activity::delete_by_column(&rb, "id", "2").await;
     println!("delete_by_column = {}", json!(data));
 
+    let data = Activity::select_by_map(&rb, to_value!{
+        "id":"2",
+        "name":"2",
+    }).await;
+    println!("select_by_map1 = {}", json!(data));
+
     let data = Activity::select_in_column(&rb, "id", &["1", "2", "3"]).await;
     println!("select_in_column = {}", json!(data));
 
@@ -112,6 +119,6 @@ async fn sync_table(rb: &RBatis) {
         },
         "activity",
     )
-    .await;
+        .await;
     fast_log::logger().set_level(LevelFilter::Debug);
 }
