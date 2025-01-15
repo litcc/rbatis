@@ -133,3 +133,4 @@ rbdc-mysql = {workspace = true }
 rbdc-pg = { workspace = true}
 rbdc-mssql = { workspace = true }
 rbatis-codegen = { workspace = true }
+rbdc-pool-deadpool = { workspace = true }

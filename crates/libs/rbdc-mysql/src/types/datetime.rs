@@ -32,9 +32,15 @@ impl Encode for DateTime {
                 minute: datetime.minute(),
                 hour: datetime.hour(),
             };
-            let size_time = time.encode(buf)?;
-            buf.remove(buf.len() - (size_time + 1));
-            size += size_time;
+            let before_len = buf.len();
+            let encode_len = time.encode(buf)?;
+            if encode_len > 6 {
+                for _ in 0..6 {
+                    buf.remove(before_len);
+                }
+            }
+            let after_len = buf.len();
+            size += after_len - before_len;
         }
         Ok(1 + size)
     }
@@ -53,7 +59,7 @@ impl Decode for DateTime {
                 let len = buf[0];
                 let date = decode_date_buf(&buf[1..])?;
                 let time = if len > 4 {
-                    decode_time(len - 4, &buf[5..])
+                    decode_time(&buf[5..])
                 } else {
                     fastdate::Time { nano: 0, sec: 0, minute: 0, hour: 0 }
                 };

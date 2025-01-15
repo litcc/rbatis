@@ -731,19 +731,16 @@ mod test {
             rb.init(MockDriver {}, "test").unwrap();
             let r = MockTable::delete_by_map(
                 &mut rb,
-                to_value!{
+                to_value! {
                     "id":"1",
                     "name":"1",
                 },
             )
-                .await
-                .unwrap();
+            .await
+            .unwrap();
             let (sql, args) = queue.pop().unwrap();
             println!("{}", sql);
-            assert_eq!(
-                sql,
-                "delete from mock_table  where id = ? and name = ?"
-            );
+            assert_eq!(sql, "delete from mock_table  where id = ? and name = ?");
             assert_eq!(args, vec![to_value!("1"), to_value!("1")]);
         };
         block_on(f);
@@ -1052,13 +1049,13 @@ mod test {
             rb.init(MockDriver {}, "test").unwrap();
             let r = MockTable::select_by_map(
                 &mut rb,
-                to_value!{
+                to_value! {
                     "id":"1",
                     "name":"1",
                 },
             )
-                .await
-                .unwrap();
+            .await
+            .unwrap();
             let (sql, args) = queue.pop().unwrap();
             println!("{}", sql);
             assert_eq!(

@@ -111,6 +111,25 @@ impl Decimal {
     pub fn with_scale_round(&self, new_scale: i64, mode: RoundingMode) -> Self {
         Decimal(self.0.with_scale_round(new_scale, mode))
     }
+
+    ///Number of digits in the non-scaled integer representation
+    #[inline]
+    pub fn digits(&self) -> u64 {
+        self.0.digits()
+    }
+
+    /// Returns the scale of the BigDecimal, the total number of
+    /// digits to the right of the decimal point (including insignificant
+    /// leading zeros)
+    #[inline]
+    pub fn fractional_digit_count(&self) -> i64 {
+        self.0.fractional_digit_count()
+    }
+
+    #[inline]
+    pub fn abs(&self) -> Self {
+        Decimal::from(self.0.abs())
+    }
 }
 
 impl<'de> serde::Deserialize<'de> for Decimal {

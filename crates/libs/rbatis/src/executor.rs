@@ -22,7 +22,6 @@ use crate::Error;
 /// the RBatis Executor. this trait impl with structs =
 /// RBatis,RBatisConnExecutor,RBatisTxExecutor,RBatisTxExecutorGuard
 pub trait Executor: RBatisRef + Send + Sync {
-
     /// executor id
     fn id(&self) -> i64;
 

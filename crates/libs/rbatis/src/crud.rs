@@ -46,9 +46,8 @@ macro_rules! crud {
 ///PySql: gen sql => INSERT INTO table_name (column1,column2,column3,...) VALUES
 /// (value1,value2,value3,...);
 ///
-/// example1:
-///
-/// ```rust
+/// example:
+///```rust
 /// use rbatis::Error;
 /// use rbatis::RBatis;
 /// #[derive(serde::Serialize, serde::Deserialize)]
@@ -77,9 +76,9 @@ macro_rules! impl_insert {
                 tables: &[$table],
                 batch_size: u64,
             ) -> std::result::Result<$crate::rbdc::db::ExecResult, $crate::rbdc::Error> {
-                pub trait ColumnSet{
+                pub trait ColumnSet {
                     /// take `vec![Table{"id":1}]` columns
-                    fn column_sets(&self)->rbs::Value;
+                    fn column_sets(&self) -> rbs::Value;
                 }
                 impl ColumnSet for rbs::Value {
                     fn column_sets(&self) -> rbs::Value {
@@ -98,8 +97,8 @@ macro_rules! impl_insert {
                         if len > 0 {
                             let table = &self[0];
                             let mut column_datas = Vec::with_capacity(table.len());
-                            for (column,_) in table {
-                                if column_set.contains(&column){
+                            for (column, _) in table {
+                                if column_set.contains(&column) {
                                     column_datas.push(column);
                                 }
                             }
@@ -176,9 +175,8 @@ macro_rules! impl_insert {
 ///PySql: gen sql => SELECT (column1,column2,column3,...) FROM table_name
 /// (column1,column2,column3,...)  *** WHERE ***
 ///
-/// example1:
-///
-/// ```rust
+/// example:
+///```rust
 /// use rbatis::{Error, RBatis};
 /// #[derive(serde::Serialize, serde::Deserialize)]
 /// pub struct MockTable{
@@ -217,17 +215,20 @@ macro_rules! impl_select {
          "` where ${column} in (`
           trim ',': for _,item in column_values:
              #{item},
-          `)`"},$table_name);
+          `)`"},$table_name => { if column_values.is_empty() { return Ok(vec![]); }} );
     };
     ($table:ty{$fn_name:ident $(< $($gkey:ident:$gtype:path $(,)?)* >)? ($($param_key:ident:$param_type:ty $(,)?)*) => $sql:expr}$(,$table_name:expr)?) => {
         $crate::impl_select!($table{$fn_name$(<$($gkey:$gtype,)*>)?($($param_key:$param_type,)*) ->Vec => $sql}$(,$table_name)?);
     };
-    ($table:ty{$fn_name:ident $(< $($gkey:ident:$gtype:path $(,)?)* >)? ($($param_key:ident:$param_type:ty $(,)?)*) -> $container:tt => $sql:expr}$(,$table_name:expr)?) => {
+    ($table:ty{$fn_name:ident $(< $($gkey:ident:$gtype:path $(,)?)* >)? ($($param_key:ident:$param_type:ty $(,)?)*) -> $container:tt => $sql:expr}$(,$table_name:expr)?  $( => $cond:expr)? ) => {
         impl $table{
             pub async fn $fn_name $(<$($gkey:$gtype,)*>)? (executor: &dyn  $crate::executor::Executor,$($param_key:$param_type,)*) -> std::result::Result<$container<$table>,$crate::rbdc::Error>
             {
                      #[$crate::py_sql("`select ${table_column} from ${table_name} `",$sql)]
                      async fn $fn_name$(<$($gkey: $gtype,)*>)?(executor: &dyn $crate::executor::Executor,table_column:&str,table_name:&str,$($param_key:$param_type,)*) -> std::result::Result<$container<$table>,$crate::rbdc::Error> {impled!()}
+
+                     $($cond)?
+
                      let mut table_column = "*".to_string();
                      let mut table_name = String::new();
                      $(table_name = $table_name.to_string();)?
@@ -243,9 +244,7 @@ macro_rules! impl_select {
 }
 
 /// PySql: gen sql = UPDATE table_name SET column1=value1,column2=value2,... WHERE
-/// some_column=some_value;
-///
-/// ```rust
+/// some_column=some_value; ```rust
 /// use rbatis::Error;
 /// use rbatis::RBatis;
 /// #[derive(serde::Serialize, serde::Deserialize)]
@@ -275,6 +274,7 @@ macro_rules! impl_update {
              ` and ${key} = #{item}`
         "
         },$table_name);
+
         $crate::impl_update!($table{update_by_column_value(column: &str, column_value: &rbs::Value, skip_null: bool) => "`where ${column} = #{column_value}`"},$table_name);
         impl $table {
             ///  will skip null column
@@ -394,7 +394,7 @@ macro_rules! impl_delete {
         );
     };
     ($table:ty{},$table_name:expr) => {
-        $crate::impl_delete!($table {delete_by_column<V:serde::Serialize>(column:&str,column_value: V) => "`where ${column} = #{column_value}`"},$table_name);
+        $crate::impl_delete!($table{ delete_by_column<V:serde::Serialize>(column:&str,column_value: V) => "`where ${column} = #{column_value}`"},$table_name);
         $crate::impl_delete!($table{ delete_by_map(condition:rbs::Value) =>
         "` where `
          trim ' and ': for key,item in condition:
@@ -404,7 +404,7 @@ macro_rules! impl_delete {
         "`where ${column} in (`
           trim ',': for _,item in column_values:
              #{item},
-          `)`"},$table_name);
+          `)`"},$table_name => { if column_values.is_empty() { return Ok($crate::rbdc::db::ExecResult::default()); }} );
 
         impl $table {
             pub async fn delete_by_column_batch<V:serde::Serialize>(
@@ -425,7 +425,7 @@ macro_rules! impl_delete {
             }
         }
     };
-    ($table:ty{$fn_name:ident $(< $($gkey:ident:$gtype:path $(,)?)* >)? ($($param_key:ident:$param_type:ty$(,)?)*) => $sql_where:expr}$(,$table_name:expr)?) => {
+    ($table:ty{$fn_name:ident $(< $($gkey:ident:$gtype:path $(,)?)* >)? ($($param_key:ident:$param_type:ty$(,)?)*) => $sql_where:expr}$(,$table_name:expr)? $( => $cond:expr)?) => {
         impl $table {
             pub async fn $fn_name$(<$($gkey:$gtype,)*>)?(
                 executor: &dyn $crate::executor::Executor,
@@ -435,13 +435,14 @@ macro_rules! impl_delete {
                     return Err($crate::rbdc::Error::from("sql_where can't be empty!"));
                 }
                 #[$crate::py_sql("`delete from ${table_name} `",$sql_where)]
-                pub async fn $fn_name$(<$($gkey: $gtype,)*>)?(
+                async fn $fn_name$(<$($gkey: $gtype,)*>)?(
                     executor: &dyn $crate::executor::Executor,
                     table_name: String,
                     $($param_key:$param_type,)*
                 ) -> std::result::Result<$crate::rbdc::db::ExecResult, $crate::rbdc::Error> {
                     impled!()
                 }
+                $($cond)?
                 let mut table_name = String::new();
                 $(table_name = $table_name.to_string();)?
                 #[$crate::snake_name($table)]
@@ -653,8 +654,7 @@ macro_rules! pysql_select_page {
 }
 
 /// use macro wrapper #[sql]
-/// for example1:
-///
+/// for example:
 /// ```rust
 /// use rbatis::executor::Executor;
 /// rbatis::raw_sql!(test_same_id(rb: &dyn Executor, id: &u64)  -> Result<rbs::Value, rbatis::Error> =>
@@ -672,7 +672,7 @@ macro_rules! raw_sql {
 }
 
 /// use macro wrapper #[py_sql]
-/// for query example1:
+/// for query example:
 /// ```rust
 /// use rbatis::executor::Executor;
 /// rbatis::pysql!(test_same_id(rb: &dyn Executor, id: &u64)  -> Result<rbs::Value, rbatis::Error> =>
@@ -681,8 +681,7 @@ macro_rules! raw_sql {
 ///    `id = #{id}`"
 /// );
 /// ```
-/// for exec example1:
-///
+/// for exec example:
 /// ```rust
 /// use rbatis::executor::Executor;
 /// use rbdc::db::ExecResult;
@@ -695,13 +694,13 @@ macro_rules! pysql {
     ($fn_name:ident($($param_key:ident:$param_type:ty$(,)?)*) -> $return_type:ty => $py_file:expr) => {
        #[$crate::py_sql($py_file)]
        pub async fn $fn_name($($param_key: $param_type,)*) -> $return_type{
-           impled!()
+          impled!()
        }
     }
 }
 
 /// use macro wrapper #[html_sql]
-/// for example1 query rbs::Value:
+/// for example query rbs::Value:
 ///
 /// ```rust
 /// use rbatis::executor::Executor;
@@ -740,7 +739,7 @@ macro_rules! htmlsql {
     ($fn_name:ident($($param_key:ident:$param_type:ty$(,)?)*) -> $return_type:ty => $html_file:expr) => {
         #[$crate::html_sql($html_file)]
         pub async fn $fn_name($($param_key: $param_type,)*) -> $return_type{
-            impled!()
+              impled!()
         }
     }
 }
