@@ -140,7 +140,11 @@ impl Index<i64> for ValueMap {
 
 impl IndexMut<&str> for ValueMap {
     fn index_mut(&mut self, index: &str) -> &mut Self::Output {
-        self.0.index_mut(&Value::String(index.to_string()))
+        let key = Value::String(index.to_string());
+        if !self.0.contains_key(&key) {
+            self.0.insert(key.clone(), Value::Null);
+        }
+        self.0.get_mut(&key).unwrap()
     }
 }
 

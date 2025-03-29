@@ -614,9 +614,7 @@ fn make_sets(
 ) -> Vec<Element> {
     let mut is_skip_null = true;
     if let Some(skip_null_value) = skip_null {
-        if skip_null_value.eq("true") {
-            is_skip_null = true;
-        } else if skip_null_value.eq("false") {
+        if skip_null_value.eq("false") {
             is_skip_null = false;
         }
     }
@@ -653,7 +651,14 @@ fn make_sets(
                 attr.insert("test".to_string(), "v == null".to_string());
                 attr
             },
-            childs: vec![],
+            childs: vec![
+                Element {
+                    tag: "continue".to_string(),
+                    data: "".to_string(),
+                    attrs: Default::default(),
+                    childs: vec![],
+                },
+            ],
         });
     }
     for_each_body.push(Element {

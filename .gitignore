@@ -31,3 +31,4 @@ Cargo.lock
 *.DS_Store
 
 
+crates/tools/example/tests/tmp_test.rs

@@ -1,6 +1,6 @@
 [package]
 name = "rbatis"
-version = "4.5.49"
+version = "4.5.50"
 description = "The Rust SQL Toolkit and ORM Library. An async, pure Rust SQL crate featuring compile-time Dynamic SQL"
 readme = "../../../README.md"
 authors = ["ce <zhuxiujia@qq.com>"]
@@ -33,7 +33,7 @@ futures-core = { version = "0.3" }
 futures = { version = "0.3" }
 #object_id
 hex = "0.4"
-rand = "0.8"
+rand = "0.9"
 
 dark-std = "0.2"
 async-trait = "0.1.68"
