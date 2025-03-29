@@ -2,7 +2,7 @@
 
 # About
 
-Stand on the shoulders of giants.
+an experimental product, attempt to modify the core Value
 
 
 
