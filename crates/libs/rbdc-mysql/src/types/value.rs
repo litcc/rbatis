@@ -144,6 +144,7 @@ impl Encode for Value {
                     }
                     "Enum" => Enum(v.into_string().unwrap_or_default()).encode(buf),
                     "Set" => Set(v.into_string().unwrap_or_default()).encode(buf),
+                    "SetNull" => Ok(0),
                     _ => {
                         buf.put_bytes_lenenc(v.into_bytes().unwrap_or_default());
                         Ok(0)

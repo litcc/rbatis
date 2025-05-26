@@ -102,6 +102,10 @@ impl Encode for Value {
                     );
                     Ok(())
                 }
+                "SetNull" => {
+                    q.bind(Option::<Vec<u8>>::None);
+                    Ok(())
+                }
                 _ => Err(Error::from("unimplemented")),
             },
         }

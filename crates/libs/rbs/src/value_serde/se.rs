@@ -218,7 +218,17 @@ impl ser::Serializer for Value {
     where
         T: Serialize,
     {
-        value.serialize(self)
+        let data = value.serialize(self);
+        match data {
+            Ok(data) => {
+                if data.is_null() {
+                    Ok(Value::Ext("SetNull", Box::new(Value::Null)))
+                } else {
+                    Ok(data)
+                }
+            }
+            Err(e) => Err(e),
+        }
     }
 
     fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {

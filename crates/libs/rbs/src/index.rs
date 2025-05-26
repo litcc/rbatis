@@ -8,7 +8,7 @@ impl Index<usize> for Value {
         match self {
             Value::Array(arr) => &arr[index],
             Value::Ext(_, ext) => {
-                return ext.index(index);
+                ext.index(index)
             }
             _ => &Value::Null,
         }
@@ -20,7 +20,7 @@ impl IndexMut<usize> for Value {
         match self {
             Value::Array(arr) => &mut arr[index],
             Value::Ext(_, ext) => {
-                return ext.index_mut(index);
+                ext.index_mut(index)
             }
             _ => {
                 panic!("not an array!")
@@ -51,7 +51,7 @@ impl IndexMut<&str> for Value {
         match self {
             Value::Map(m) => m.index_mut(index),
             Value::Ext(_, ext) => {
-                return ext.index_mut(index);
+                ext.index_mut(index)
             }
             _ => {
                 panic!("not map type")
@@ -65,7 +65,7 @@ impl Index<Value> for Value {
     type Output = Value;
 
     fn index(&self, index: Value) -> &Self::Output {
-        return match self {
+        match self {
             Value::Array(arr) => {
                 let idx = index.as_u64().unwrap_or_default() as usize;
                 arr.index(idx)
@@ -80,7 +80,7 @@ impl Index<Value> for Value {
             _ => {
                 &Value::Null
             }
-        };
+        }
     }
 }
 
@@ -89,7 +89,7 @@ impl Index<&Value> for Value {
     type Output = Value;
 
     fn index(&self, index: &Value) -> &Self::Output {
-        return match self {
+        match self {
             Value::Array(arr) => {
                 let idx = index.as_u64().unwrap_or_default() as usize;
                 arr.index(idx)
@@ -104,7 +104,7 @@ impl Index<&Value> for Value {
             _ => {
                 &Value::Null
             }
-        };
+        }
     }
 }
 

@@ -183,4 +183,35 @@ fn test_roundtrip() {
     let roundtrip: TestStruct = from_value(value).unwrap();
     
     assert_eq!(original, roundtrip);
-} 
+}
+
+
+
+
+#[test]
+fn test_value_set_null() {
+
+    assert_eq!(value!(Option::<Option::<i32>>::Some(None)), Value::Ext("SetNull",Box::new(Value::Null)));
+
+
+
+}
+
+#[test]
+pub fn test_some_none() {
+    #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+    struct A {
+        a: Option<Option<i32>>,
+        b: Option<Option<i32>>,
+        c: Option<Option<i32>>,
+    }
+
+    let dd = A { a: Some(Some(1)), b: Some(None), c: None };
+
+    let dd = rbs::to_value(&dd).unwrap();
+
+    let dff = dd.as_map().unwrap();
+
+    let bb = dff.0.get(&Value::String("b".into())).unwrap();
+    assert!(bb.is_ext_match("SetNull"));
+}

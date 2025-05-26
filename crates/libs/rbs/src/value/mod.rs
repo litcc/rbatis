@@ -13,8 +13,10 @@ pub mod map;
 
 /// Represents any valid MessagePack value.
 #[derive(Clone, Debug, PartialEq)]
+#[derive(Default)]
 pub enum Value {
     /// null
+    #[default]
     Null,
     /// true or false
     Bool(bool),
@@ -221,6 +223,19 @@ impl Value {
         self.as_ext().is_some()
     }
 
+    /// If `Value` is an Ext and the ExtName is the same, return true. Otherwise, return false.
+    #[inline]
+    pub fn is_ext_match(&self,ext_name:&str) -> bool {
+        match self.as_ext() {
+            None => {
+                false
+            }
+            Some((name,_)) => {
+               name == ext_name
+            }
+        }
+    }
+
     /// If the `Value` is a Bool, returns the associated bool.
     /// Returns None otherwise.
     ///
@@ -405,7 +420,7 @@ impl Value {
     #[inline]
     pub fn as_array(&self) -> Option<&Vec<Value>> {
         if let Value::Array(ref array) = *self {
-            Some(&*array)
+            Some(array)
         } else if let Value::Ext(_, ref ext) = *self {
             ext.as_array()
         } else {
@@ -432,7 +447,7 @@ impl Value {
     ///
     #[inline]
     pub fn as_ext(&self) -> Option<(&str, &Box<Value>)> {
-        if let Value::Ext(ref ty, ref buf) = *self {
+        if let Value::Ext(ty, ref buf) = *self {
             Some((ty, buf))
         } else {
             None
@@ -596,18 +611,18 @@ impl From<(&'static str, Value)> for Value {
 }
 
 /// into vec value
-impl Into<Vec<Value>> for Value {
-    fn into(self) -> Vec<Value> {
-        match self {
+impl From<Value> for Vec<Value> {
+    fn from(val: Value) -> Self {
+        match val {
             Value::Array(arr) => arr,
             _ => vec![],
         }
     }
 }
 
-impl Into<ValueMap> for Value {
-    fn into(self) -> ValueMap {
-        match self {
+impl From<Value> for ValueMap {
+    fn from(val: Value) -> Self {
+        match val {
             Value::Map(arr) => arr,
             _ => ValueMap::new(),
         }
@@ -666,11 +681,6 @@ impl Display for Value {
     }
 }
 
-impl Default for Value {
-    fn default() -> Self {
-        Value::Null
-    }
-}
 
 impl IntoIterator for Value {
     type Item = (Value, Value);

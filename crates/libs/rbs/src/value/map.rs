@@ -84,6 +84,12 @@ impl Display for ValueMap {
     }
 }
 
+impl Default for ValueMap {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ValueMap {
     pub fn new() -> Self {
         ValueMap(IndexMap::new())
@@ -169,7 +175,7 @@ impl<'a> IntoIterator for &'a mut ValueMap {
     type IntoIter = indexmap::map::IterMut<'a, Value, Value>;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.0.iter_mut().into_iter()
+        self.0.iter_mut()
     }
 }
 
