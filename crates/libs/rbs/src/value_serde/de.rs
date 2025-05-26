@@ -44,11 +44,6 @@ impl<'de> Deserialize<'de> for Value {
             where
                 D: serde::de::Deserializer<'de>,
             {
-                // let data = Deserialize::deserialize(de)?;
-                //                 if data == Value::Null {
-                //                     return Ok(Value::Ext("SetNull", Box::new(Value::Null)));
-                //                 }
-                //                 Ok(data)
                 Deserialize::deserialize(de)
             }
 

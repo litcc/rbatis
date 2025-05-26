@@ -102,7 +102,7 @@ impl Encode for Value {
                     );
                     Ok(())
                 }
-                "SetNull" => {
+                "SNull" => {
                     q.bind(Option::<Vec<u8>>::None);
                     Ok(())
                 }
