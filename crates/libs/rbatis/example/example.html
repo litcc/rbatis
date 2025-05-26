@@ -1,0 +1,69 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+        "https://raw.githubusercontent.com/rbatis/rbatis/master/rbatis-codegen/mybatis-3-mapper.dtd">
+<mapper>
+    <sql id="a">` and id != '' `</sql>
+    <insert id="insert">
+        `insert into activity`
+        <foreach collection="arg" index="key" item="item" open="(" close=")" separator=",">
+            <if test="key == 'id'">
+                <continue></continue>
+            </if>
+            ${key}
+        </foreach>
+        ` values `
+        <foreach collection="arg" index="key" item="item" open="(" close=")" separator=",">
+            <if test="key == 'id'">
+                <continue></continue>
+            </if>
+            ${item.sql()}
+        </foreach>
+    </insert>
+    <select id="select_by_condition">
+        `select * from activity`
+        <where>
+            <if test="name != ''">
+                ` and name like #{name}`
+            </if>
+            <if test="dt >= '2009-12-12 00:00:00'">
+                ` and create_time < #{dt}`
+            </if>
+            <choose>
+                <when test="true">
+                    ` and id != '-1'`
+                </when>
+                <otherwise>and id != -2</otherwise>
+            </choose>
+            ` and `
+            <trim prefixOverrides=" and">
+                ` and name != '' `
+            </trim>
+        </where>
+    </select>
+
+    <select id="select_page_data">
+        `select * from activity `
+        <where>
+            <if test="name != ''">
+                ` and name like #{name}`
+            </if>
+            <if test="dt >= '2009-12-12 00:00:00'">
+                ` and create_time < #{dt}`
+            </if>
+            <choose>
+                <when test="true">
+                    ` and id != '-1'`
+                </when>
+                <otherwise>and id != -2</otherwise>
+            </choose>
+            ` and `
+            <trim prefixOverrides=" and">
+                ` and name != '' `
+            </trim>
+        </where>
+    </select>
+    <update id="update_by_id">
+        ` update activity `
+        <set collection="arg"></set>
+        ` where id = #{id} `
+    </update>
+</mapper>

@@ -1,0 +1,30 @@
+[package]
+name = "example"
+version = "0.1.0"
+authors = ["zhuxiujia <zhuxiujia@qq.com>"]
+edition = "2021"
+publish = false
+
+
+[[bin]]
+name = "sqlite"
+path = "src/sqlite.rs"
+[[bin]]
+name = "mssql"
+path = "src/mssql.rs"
+[[bin]]
+name = "mysql"
+path = "src/mysql.rs"
+[[bin]]
+name = "pg"
+path = "src/pg.rs"
+[dependencies]
+rbs = "4.6"
+rbdc = {version = "4.6",path = "../"}
+rbdc-sqlite = {version = "4.6",path = "../rbdc-sqlite"}
+rbdc-mssql = {version = "4.6",path = "../rbdc-mssql"}
+rbdc-mysql = {version = "4.6",path = "../rbdc-mysql"}
+rbdc-pg = {version = "4.6",path = "../rbdc-pg"}
+rbdc-pool-fast = {version = "4.6",path = "../rbdc-pool-fast"}
+tokio = { version = "1", features = ["sync", "fs", "net", "rt", "rt-multi-thread", "time", "io-util", "macros"] }
+
