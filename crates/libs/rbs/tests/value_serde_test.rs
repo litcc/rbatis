@@ -191,7 +191,7 @@ fn test_roundtrip() {
 #[test]
 fn test_value_set_null() {
 
-    assert_eq!(value!(Option::<Option::<i32>>::Some(None)), Value::Ext("SNull",Box::new(Value::Null)));
+    assert_eq!(value!(Option::<Option::<i32>>::Some(None)), Value::Ext("SomeNull",Box::new(Value::Null)));
 
 
 
@@ -213,5 +213,5 @@ pub fn test_some_none() {
     let dff = dd.as_map().unwrap();
 
     let bb = dff.0.get(&Value::String("b".into())).unwrap();
-    assert!(bb.is_ext_match("SNull"));
+    assert!(bb.is_ext_match("SomeNull"));
 }

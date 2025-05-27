@@ -236,6 +236,12 @@ impl Value {
         }
     }
 
+    /// Determine if it is SomeNull
+    #[inline]
+    pub fn is_some_null(&self) -> bool{
+        self.is_ext_match("SomeNull")
+    }
+
     /// If the `Value` is a Bool, returns the associated bool.
     /// Returns None otherwise.
     ///

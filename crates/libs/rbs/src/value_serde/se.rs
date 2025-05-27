@@ -222,7 +222,7 @@ impl ser::Serializer for Value {
         match data {
             Ok(data) => {
                 if data.is_null() {
-                    Ok(Value::Ext("SNull", Box::new(Value::Null)))
+                    Ok(Value::Ext("SomeNull", Box::new(Value::Null)))
                 } else {
                     Ok(data)
                 }
