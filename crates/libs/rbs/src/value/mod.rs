@@ -644,7 +644,13 @@ impl Display for Value {
                 Display::fmt(val, f)?;
                 f.write_str("\"")
             }
-            Value::Binary(ref val) => Debug::fmt(val, f),
+            Value::Binary(ref val) => {
+                if val.len() > 32 {
+                    Debug::fmt(&val[0..32], f)
+                } else {
+                    Debug::fmt(val, f)
+                }
+            },
             Value::Array(ref vec) => {
                 f.write_str("[")?;
                 let mut i = 0;

@@ -1,9 +1,9 @@
 use rbs::Value;
-use crate::ops::StringContain;
+use crate::ops::StrMethods;
 
-impl StringContain for Value {
-    fn contains(self, other: &str) -> bool {
-        self.as_str().unwrap_or_default().contains(other)
+impl StrMethods for Value {
+    fn contains_str(self, s: &str) -> bool {
+        self.as_str().unwrap_or_default().contains(s)
     }
 
     fn starts_with(self, other: &str) -> bool {
@@ -15,9 +15,9 @@ impl StringContain for Value {
     }
 }
 
-impl StringContain for &Value {
-    fn contains(self, other: &str) -> bool {
-        self.as_str().unwrap_or_default().contains(other)
+impl StrMethods for &Value {
+    fn contains_str(self, s: &str) -> bool {
+        self.as_str().unwrap_or_default().contains(s)
     }
 
     fn starts_with(self, other: &str) -> bool {
@@ -29,9 +29,9 @@ impl StringContain for &Value {
     }
 }
 
-impl StringContain for &&Value {
-    fn contains(self, other: &str) -> bool {
-        self.as_str().unwrap_or_default().contains(other)
+impl StrMethods for &&Value {
+    fn contains_str(self, s: &str) -> bool {
+        self.as_str().unwrap_or_default().contains(s)
     }
 
     fn starts_with(self, other: &str) -> bool {

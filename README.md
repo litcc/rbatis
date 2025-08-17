@@ -9,15 +9,15 @@ an experimental product
 
 - rbatis/rbs
 
-  v4.6.0
+  v4.6.2
 
-  76379231a84ce2e9642099c424042ada788685a1
+  73fafff704c429ffb7e93a7b120746daf86db23d
 
 - rbatis/rbatis
 
-  v4.6.2
+  v4.6.8
 
-  391c72e96cb8b84c8f084c7283682eb0e27fda24
+  3d11d11b3399e766fc5b362a968002a26e18312f
 
 - rbatis/rbdc
 
